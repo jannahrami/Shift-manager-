@@ -7,25 +7,27 @@
   <title>Shift Manager</title>
   <style>
     :root{
-      --bg:#0b1220;
-      --card:#111827;
-      --card2:#172033;
-      --text:#f8fafc;
-      --muted:#94a3b8;
-      --line:#263247;
-      --primary:#38bdf8;
-      --green:#22c55e;
-      --yellow:#f59e0b;
-      --red:#ef4444;
-      --blue:#3b82f6;
-      --shadow:0 14px 40px rgba(0,0,0,.28);
-      --radius:22px;
+      --bg:#07101f;
+      --card:#0f1b2d;
+      --card2:#13243a;
+      --text:#f7fbff;
+      --muted:#8fa3ba;
+      --line:rgba(148,163,184,.15);
+      --primary:#41c7ff;
+      --green:#2dd4a3;
+      --yellow:#f7b955;
+      --red:#fb7185;
+      --blue:#60a5fa;
+      --shadow:0 18px 50px rgba(0,0,0,.22);
+      --radius:20px;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;
-      background:linear-gradient(180deg,#0b1220,#0f172a 45%,#0b1220);
+      background:
+        radial-gradient(circle at 85% -10%,rgba(56,189,248,.13),transparent 30%),
+        linear-gradient(180deg,#07101f,#091426 55%,#07101f);
       color:var(--text);
       min-height:100vh;
     }
@@ -33,67 +35,78 @@
       max-width:430px;
       margin:auto;
       min-height:100vh;
-      padding:18px 16px 96px;
+      padding:16px 16px 104px;
     }
     .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:12px;
-      margin-bottom:18px;
+      margin-bottom:22px;
       position:sticky;
       top:0;
       z-index:20;
       padding:10px 0 8px;
       backdrop-filter:blur(14px);
-      background:linear-gradient(180deg,rgba(11,18,32,.96),rgba(11,18,32,.72),transparent);
+      background:linear-gradient(180deg,rgba(7,16,31,.97),rgba(7,16,31,.78),transparent);
     }
-    .title h1{font-size:22px;margin:0}
+    .brand{display:flex;align-items:center;gap:11px}
+    .brand-mark{
+      width:45px;height:45px;border-radius:15px;display:grid;place-items:center;
+      background:linear-gradient(145deg,#40c9ff,#1688c5);color:#042033;font-size:21px;font-weight:950;
+      box-shadow:0 10px 28px rgba(56,189,248,.2)
+    }
+    .title h1{font-size:21px;letter-spacing:-.3px;margin:0}
     .title p{font-size:12px;color:var(--muted);margin:4px 0 0}
     .iconbtn{
       width:42px;height:42px;border-radius:14px;border:1px solid var(--line);
-      background:var(--card);color:var(--text);font-size:20px;cursor:pointer
+      background:rgba(15,27,45,.9);color:var(--text);font-size:18px;cursor:pointer;transition:.2s ease
     }
+    .iconbtn:hover{border-color:rgba(65,199,255,.45);transform:translateY(-1px)}
     .grid4{
       display:grid;
       grid-template-columns:1fr 1fr;
       gap:12px;
-      margin-bottom:14px;
+      margin-bottom:16px;
     }
     .stat{
-      background:linear-gradient(180deg,var(--card2),var(--card));
+      position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(20,39,64,.96),rgba(12,25,43,.96));
       border:1px solid var(--line);
       border-radius:var(--radius);
-      padding:16px;
+      padding:16px 15px;
       box-shadow:var(--shadow);
     }
-    .stat .num{font-size:28px;font-weight:800}
-    .stat .label{font-size:12px;color:var(--muted);margin-top:4px}
+    .stat::after{content:"";position:absolute;width:60px;height:60px;border-radius:50%;left:-22px;top:-24px;background:var(--stat-glow,rgba(65,199,255,.11))}
+    .stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .stat-icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.055);font-size:16px}
+    .stat .num{font-size:29px;line-height:1;font-weight:850;letter-spacing:-1px}
+    .stat .label{font-size:12px;color:var(--muted);margin-top:7px}
     .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-left:6px}
     .section{
-      background:rgba(17,24,39,.88);
+      background:linear-gradient(145deg,rgba(15,27,45,.96),rgba(11,23,40,.96));
       border:1px solid var(--line);
       border-radius:var(--radius);
-      padding:16px;
+      padding:17px;
       margin-top:14px;
       box-shadow:var(--shadow);
     }
     .section-head{
       display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px
     }
-    .section-head h2{font-size:16px;margin:0}
+    .section-head h2{font-size:16px;margin:0;letter-spacing:-.15px}
+    .section-kicker{display:block;color:var(--primary);font-size:11px;font-weight:800;margin-bottom:4px}
     .section-head button,.primary{
       border:none;border-radius:12px;padding:9px 12px;background:var(--primary);color:#07111c;font-weight:800;cursor:pointer
     }
     .list{display:flex;flex-direction:column;gap:10px}
     .row{
       display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:12px;background:#0d1526;border:1px solid var(--line);border-radius:16px
+      padding:12px;background:rgba(6,17,32,.64);border:1px solid var(--line);border-radius:15px
     }
     .row-main{display:flex;align-items:center;gap:10px;min-width:0}
     .avatar{
       width:40px;height:40px;border-radius:13px;display:grid;place-items:center;
-      background:linear-gradient(135deg,#164e63,#0ea5e9);font-weight:800
+      background:linear-gradient(135deg,#164e63,#0ea5e9);font-weight:850;color:white
     }
     .name{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .meta{font-size:11px;color:var(--muted);margin-top:3px}
@@ -104,11 +117,24 @@
     .b-yellow{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.25)}
     .b-blue{background:rgba(59,130,246,.12);color:#93c5fd;border-color:rgba(59,130,246,.25)}
     .b-red{background:rgba(239,68,68,.12);color:#fca5a5;border-color:rgba(239,68,68,.25)}
-    .empty{color:var(--muted);text-align:center;padding:20px 8px;font-size:13px}
+    .b-neutral{background:rgba(148,163,184,.1);color:#cbd5e1;border-color:rgba(148,163,184,.2)}
+    .empty{color:var(--muted);text-align:center;padding:24px 8px;font-size:13px}
+    .leave-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:rgba(5,14,28,.48)}
+    .leave-table{width:100%;border-collapse:collapse;min-width:610px;text-align:right}
+    .leave-table th{font-size:11px;color:var(--muted);font-weight:700;padding:12px 14px;background:rgba(255,255,255,.025);border-bottom:1px solid var(--line)}
+    .leave-table td{font-size:13px;padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+    .leave-table tr:last-child td{border-bottom:none}
+    .leave-table .employee-cell{display:flex;align-items:center;gap:9px}
+    .leave-table .avatar{width:34px;height:34px;border-radius:11px;font-size:11px;flex:0 0 auto}
+    .days-remaining{font-weight:850;color:var(--text)}
+    .status-legend{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+    .legend-item{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--line);border-radius:999px;background:rgba(5,14,28,.4)}
+    .legend-dot{width:8px;height:8px;border-radius:50%}
+    .section-wide{grid-column:1/-1}
     .bottom-nav{
       position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
       width:min(398px,calc(100% - 24px));display:grid;grid-template-columns:repeat(4,1fr);
-      background:rgba(10,16,30,.95);border:1px solid var(--line);border-radius:22px;padding:8px;
+      background:rgba(8,18,34,.96);border:1px solid var(--line);border-radius:22px;padding:8px;
       backdrop-filter:blur(18px);box-shadow:var(--shadow);z-index:30
     }
     .navbtn{
@@ -116,7 +142,7 @@
       font-size:11px;cursor:pointer
     }
     .navbtn span{display:block;font-size:19px;margin-bottom:4px}
-    .navbtn.active{background:#152238;color:#fff}
+    .navbtn.active{background:linear-gradient(145deg,#17314d,#10263d);color:#fff;box-shadow:inset 0 0 0 1px rgba(65,199,255,.12)}
     .view{display:none}
     .view.active{display:block}
     .form{
@@ -160,25 +186,21 @@
 
     /* Desktop / tablet layout */
     @media(min-width:900px){
-      body{background:#08101d}
-      .app{max-width:1180px;padding:24px 28px 40px;margin:0 auto}
+      body{background:radial-gradient(circle at 80% -10%,rgba(56,189,248,.13),transparent 30%),#07101f}
+      .app{max-width:1240px;padding:25px 30px 42px;margin:0 auto}
       .topbar{padding:14px 0 16px}
       .title h1{font-size:28px}
       .title p{font-size:14px}
       .grid4{grid-template-columns:repeat(4,1fr);gap:16px}
       .section{padding:20px}
-      #homeView.active{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start}
+      #homeView.active{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;align-items:start}
       #homeView .grid4{grid-column:1/-1}
       #homeView .section{margin-top:0}
       #employeesView .section,#leaveView .section,#shiftView .section{margin-top:0}
       .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
       #employeesList{grid-template-columns:repeat(2,minmax(0,1fr))}
       #leaveList{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .bottom-nav{
-        position:sticky;bottom:auto;left:auto;transform:none;
-        width:100%;margin:18px 0 0;grid-template-columns:repeat(4,160px);
-        justify-content:center;background:#0b1323
-      }
+      .bottom-nav{position:sticky;bottom:auto;left:auto;transform:none;width:100%;margin:20px 0 0;grid-template-columns:repeat(4,160px);justify-content:center;background:rgba(9,21,39,.94)}
       .fab{right:32px;left:auto;bottom:32px;transform:none}
       .sheet{width:min(640px,100%);border-radius:24px}
       .modal{align-items:center}
@@ -190,9 +212,12 @@
 <body>
 <div class="app">
   <div class="topbar">
-    <div class="title">
-      <h1>Shift Manager</h1>
-      <p>إدارة الموظفين والإجازات والشفت</p>
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div class="title">
+        <h1>Shift Manager</h1>
+        <p>Group A · لوحة إدارة الشفت</p>
+      </div>
     </div>
     <button class="iconbtn" id="backupBtn" title="نسخة احتياطية">⤴︎</button>
   </div>
@@ -200,22 +225,35 @@
   <main>
     <section id="homeView" class="view active">
       <div class="grid4">
-        <div class="stat"><div class="num" id="totalCount">0</div><div class="label"><span class="dot" style="background:var(--primary)"></span>إجمالي الموظفين</div></div>
-        <div class="stat"><div class="num" id="workingCount">0</div><div class="label"><span class="dot" style="background:var(--green)"></span>على رأس العمل</div></div>
-        <div class="stat"><div class="num" id="leaveCount">0</div><div class="label"><span class="dot" style="background:var(--blue)"></span>في إجازة</div></div>
-        <div class="stat"><div class="num" id="soonCount">0</div><div class="label"><span class="dot" style="background:var(--yellow)"></span>إجازة/عودة قريبًا</div></div>
+        <div class="stat" style="--stat-glow:rgba(65,199,255,.15)"><div class="stat-top"><div class="stat-icon">👥</div><div class="num" id="totalCount">0</div></div><div class="label">إجمالي الموظفين</div></div>
+        <div class="stat" style="--stat-glow:rgba(45,212,163,.16)"><div class="stat-top"><div class="stat-icon">✓</div><div class="num" id="workingCount">0</div></div><div class="label">على رأس العمل</div></div>
+        <div class="stat" style="--stat-glow:rgba(96,165,250,.16)"><div class="stat-top"><div class="stat-icon">☂</div><div class="num" id="leaveCount">0</div></div><div class="label">في إجازة الآن</div></div>
+        <div class="stat" style="--stat-glow:rgba(247,185,85,.16)"><div class="stat-top"><div class="stat-icon">◷</div><div class="num" id="soonCount">0</div></div><div class="label">تنبيهات خلال 3 أيام</div></div>
+      </div>
+
+      <div class="section section-wide">
+        <div class="section-head">
+          <div><span class="section-kicker">الحالة الحالية</span><h2>الموظفون في إجازة الآن</h2></div>
+          <span class="chip" id="currentLeaveCount">0 موظف</span>
+        </div>
+        <div class="status-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>إجازته قريبة</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>في إجازة</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>راجع قريب</span>
+        </div>
+        <div id="currentLeaveTable"></div>
       </div>
 
       <div class="section">
         <div class="section-head">
-          <h2>تنبيهات اليوم</h2>
+          <div><span class="section-kicker">خلال 3 أيام</span><h2>تنبيهات الإجازات</h2></div>
           <span class="chip" id="todayLabel"></span>
         </div>
         <div class="list" id="alertsList"></div>
       </div>
 
       <div class="section">
-        <div class="section-head"><h2>الشفت الحالي</h2><button onclick="showView('shiftView')">إدارة</button></div>
+        <div class="section-head"><div><span class="section-kicker">التوزيع اليومي</span><h2>الشفت الحالي</h2></div><button onclick="showView('shiftView')">إدارة</button></div>
         <div id="currentShiftPreview"></div>
       </div>
     </section>
@@ -338,6 +376,7 @@
 
 <script>
 const KEY='shiftManagerDataV3_GroupA_Leaves';
+const SOON_DAYS=3;
 let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
   employees:[
     {
@@ -876,7 +915,10 @@ function save(){ localStorage.setItem(KEY,JSON.stringify(state)); renderAll(); }
 
 function fmtDate(s){ if(!s)return ''; return new Date(s+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{day:'2-digit',month:'2-digit',year:'numeric'}); }
 function diffDays(a,b){ const x=new Date(a+'T12:00:00'),y=new Date(b+'T12:00:00'); return Math.round((x-y)/86400000); }
-function todayISO(){ return new Date().toISOString().slice(0,10); }
+function todayISO(){
+  const d=new Date(), y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function initials(n){ return (n||'?').trim().split(/\s+/).slice(0,2).map(x=>x[0]).join(''); }
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 
@@ -895,7 +937,7 @@ function renderStats(){
   let soon=0;
   state.leaves.forEach(l=>{
     const ds=diffDays(l.start,t), de=diffDays(l.end,t);
-    if((ds>=0&&ds<=2)||(de>=0&&de<=2)) soon++;
+    if((ds>=0&&ds<=SOON_DAYS)||(de>=0&&de<=SOON_DAYS)) soon++;
   });
   document.getElementById('soonCount').textContent=soon;
 }
@@ -909,9 +951,11 @@ function renderAlerts(){
     if(ds===0) alerts.push({name:e.name,msg:'تبدأ إجازته اليوم',cls:'b-yellow'});
     else if(ds===1) alerts.push({name:e.name,msg:'تبدأ إجازته غدًا',cls:'b-yellow'});
     else if(ds===2) alerts.push({name:e.name,msg:'تبدأ إجازته بعد يومين',cls:'b-yellow'});
+    else if(ds===3) alerts.push({name:e.name,msg:'تبدأ إجازته بعد 3 أيام',cls:'b-yellow'});
     if(de===0) alerts.push({name:e.name,msg:'آخر يوم إجازة اليوم',cls:'b-blue'});
     else if(de===1) alerts.push({name:e.name,msg:'يعود من الإجازة غدًا',cls:'b-green'});
     else if(de===2) alerts.push({name:e.name,msg:'يعود من الإجازة بعد يومين',cls:'b-green'});
+    else if(de===3) alerts.push({name:e.name,msg:'يعود من الإجازة بعد 3 أيام',cls:'b-green'});
   });
   if(!alerts.length){box.innerHTML='<div class="empty">لا توجد تنبيهات قريبة 👌</div>';return}
   alerts.forEach(a=>box.insertAdjacentHTML('beforeend',`
@@ -919,6 +963,42 @@ function renderAlerts(){
       <div class="row-main"><div class="avatar">${esc(initials(a.name))}</div><div><div class="name">${esc(a.name)}</div><div class="meta">${esc(a.msg)}</div></div></div>
       <span class="badge ${a.cls}">تنبيه</span>
     </div>`));
+}
+
+function renderCurrentLeaveTable(){
+  const box=document.getElementById('currentLeaveTable');
+  const count=document.getElementById('currentLeaveCount');
+  if(!box||!count)return;
+  const t=todayISO();
+  const active=state.leaves
+    .filter(l=>l.start<=t&&l.end>=t)
+    .sort((a,b)=>a.end.localeCompare(b.end));
+  count.textContent=`${active.length} ${active.length===1?'موظف':'موظفين'}`;
+  if(!active.length){
+    box.innerHTML='<div class="empty">لا يوجد موظفون في إجازة حاليًا</div>';
+    return;
+  }
+  const rows=active.map(l=>{
+    const e=state.employees.find(x=>x.id===l.employeeId);
+    if(!e)return '';
+    const remaining=Math.max(0,diffDays(l.end,t));
+    const returningSoon=remaining<=SOON_DAYS;
+    const status=returningSoon
+      ? {cls:'b-green',text:'راجع قريب'}
+      : {cls:'b-blue',text:'في إجازة'};
+    const remainingText=remaining===0?'اليوم آخر يوم':remaining===1?'يوم واحد':`${remaining} يوم`;
+    return `<tr>
+      <td><div class="employee-cell"><div class="avatar">${esc(initials(e.name))}</div><div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)}</div></div></div></td>
+      <td>${fmtDate(l.start)}</td>
+      <td>${fmtDate(l.end)}</td>
+      <td><span class="days-remaining">${remainingText}</span></td>
+      <td><span class="badge ${status.cls}">${status.text}</span></td>
+    </tr>`;
+  }).join('');
+  box.innerHTML=`<div class="leave-table-wrap"><table class="leave-table">
+    <thead><tr><th>الموظف</th><th>بداية الإجازة</th><th>نهاية الإجازة</th><th>المتبقي</th><th>الحالة</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
 }
 
 function renderEmployees(){
@@ -1036,9 +1116,14 @@ function renderLeaves(){
   const t=todayISO();
   list.forEach(l=>{
     const e=state.employees.find(x=>x.id===l.employeeId); if(!e)return;
-    let cls='b-yellow',label='قادمة';
-    if(l.start<=t&&l.end>=t){cls='b-blue';label='جارية'}
-    else if(l.end<t){cls='b-green';label='منتهية'}
+    const untilStart=diffDays(l.start,t), untilEnd=diffDays(l.end,t);
+    let cls='b-neutral',label='قادمة';
+    if(l.start<=t&&l.end>=t){
+      if(untilEnd<=SOON_DAYS){cls='b-green';label='راجع قريب'}
+      else{cls='b-blue';label='في إجازة'}
+    }
+    else if(untilStart>=0&&untilStart<=SOON_DAYS){cls='b-yellow';label='إجازته قريبة'}
+    else if(l.end<t){cls='b-neutral';label='منتهية'}
     box.insertAdjacentHTML('beforeend',`
       <div class="row">
         <div class="row-main">
@@ -1086,7 +1171,7 @@ function refreshSelects(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderStats(); renderAlerts(); renderEmployees(); renderLeaves(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
+  renderStats(); renderCurrentLeaveTable(); renderAlerts(); renderEmployees(); renderLeaves(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
 }
 
 function showView(id,btn){
