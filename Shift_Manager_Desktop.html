@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Shift Manager</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111827;
+      --card2:#172033;
+      --text:#f8fafc;
+      --muted:#94a3b8;
+      --line:#263247;
+      --primary:#38bdf8;
+      --green:#22c55e;
+      --yellow:#f59e0b;
+      --red:#ef4444;
+      --blue:#3b82f6;
+      --shadow:0 14px 40px rgba(0,0,0,.28);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;
+      background:linear-gradient(180deg,#0b1220,#0f172a 45%,#0b1220);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .app{
+      max-width:430px;
+      margin:auto;
+      min-height:100vh;
+      padding:18px 16px 96px;
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:18px;
+      position:sticky;
+      top:0;
+      z-index:20;
+      padding:10px 0 8px;
+      backdrop-filter:blur(14px);
+      background:linear-gradient(180deg,rgba(11,18,32,.96),rgba(11,18,32,.72),transparent);
+    }
+    .title h1{font-size:22px;margin:0}
+    .title p{font-size:12px;color:var(--muted);margin:4px 0 0}
+    .iconbtn{
+      width:42px;height:42px;border-radius:14px;border:1px solid var(--line);
+      background:var(--card);color:var(--text);font-size:20px;cursor:pointer
+    }
+    .grid4{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .stat{
+      background:linear-gradient(180deg,var(--card2),var(--card));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+    }
+    .stat .num{font-size:28px;font-weight:800}
+    .stat .label{font-size:12px;color:var(--muted);margin-top:4px}
+    .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-left:6px}
+    .section{
+      background:rgba(17,24,39,.88);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:16px;
+      margin-top:14px;
+      box-shadow:var(--shadow);
+    }
+    .section-head{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px
+    }
+    .section-head h2{font-size:16px;margin:0}
+    .section-head button,.primary{
+      border:none;border-radius:12px;padding:9px 12px;background:var(--primary);color:#07111c;font-weight:800;cursor:pointer
+    }
+    .list{display:flex;flex-direction:column;gap:10px}
+    .row{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px;background:#0d1526;border:1px solid var(--line);border-radius:16px
+    }
+    .row-main{display:flex;align-items:center;gap:10px;min-width:0}
+    .avatar{
+      width:40px;height:40px;border-radius:13px;display:grid;place-items:center;
+      background:linear-gradient(135deg,#164e63,#0ea5e9);font-weight:800
+    }
+    .name{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .meta{font-size:11px;color:var(--muted);margin-top:3px}
+    .badge{
+      font-size:11px;padding:6px 9px;border-radius:999px;border:1px solid transparent;white-space:nowrap
+    }
+    .b-green{background:rgba(34,197,94,.12);color:#86efac;border-color:rgba(34,197,94,.25)}
+    .b-yellow{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.25)}
+    .b-blue{background:rgba(59,130,246,.12);color:#93c5fd;border-color:rgba(59,130,246,.25)}
+    .b-red{background:rgba(239,68,68,.12);color:#fca5a5;border-color:rgba(239,68,68,.25)}
+    .empty{color:var(--muted);text-align:center;padding:20px 8px;font-size:13px}
+    .bottom-nav{
+      position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+      width:min(398px,calc(100% - 24px));display:grid;grid-template-columns:repeat(4,1fr);
+      background:rgba(10,16,30,.95);border:1px solid var(--line);border-radius:22px;padding:8px;
+      backdrop-filter:blur(18px);box-shadow:var(--shadow);z-index:30
+    }
+    .navbtn{
+      border:none;background:transparent;color:var(--muted);padding:9px 4px;border-radius:14px;
+      font-size:11px;cursor:pointer
+    }
+    .navbtn span{display:block;font-size:19px;margin-bottom:4px}
+    .navbtn.active{background:#152238;color:#fff}
+    .view{display:none}
+    .view.active{display:block}
+    .form{
+      display:grid;gap:10px
+    }
+    input,select,textarea{
+      width:100%;background:#0b1323;color:#fff;border:1px solid var(--line);
+      border-radius:14px;padding:12px;font:inherit;outline:none
+    }
+    textarea{min-height:90px;resize:vertical}
+    .form-actions{display:flex;gap:8px}
+    .secondary{
+      border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#0e1728;color:#fff;cursor:pointer
+    }
+    .danger{background:#3a1519!important;color:#fecaca!important}
+    .modal{
+      position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:flex-end;justify-content:center;
+      z-index:50;padding:12px
+    }
+    .modal.show{display:flex}
+    .sheet{
+      width:min(430px,100%);background:#101827;border:1px solid var(--line);border-radius:26px 26px 18px 18px;
+      padding:18px;max-height:84vh;overflow:auto
+    }
+    .sheet h3{margin:0 0 14px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{padding:8px 10px;background:#0d1526;border:1px solid var(--line);border-radius:999px;font-size:12px}
+    .toolbar{display:flex;gap:8px;margin-bottom:12px}
+    .toolbar input{flex:1}
+    .small-note{font-size:11px;color:var(--muted);line-height:1.7}
+    .shift-card{
+      padding:14px;border:1px solid var(--line);border-radius:16px;background:#0d1526;margin-bottom:10px
+    }
+    .shift-card strong{display:block;margin-bottom:6px}
+    .fab{
+      position:fixed;bottom:88px;left:calc(50% + 140px);transform:translateX(-50%);
+      width:52px;height:52px;border-radius:17px;border:none;background:var(--primary);
+      color:#06131d;font-size:28px;font-weight:700;box-shadow:var(--shadow);cursor:pointer;z-index:35
+    }
+    @media(max-width:380px){.fab{left:auto;right:18px;transform:none}}
+
+    /* Desktop / tablet layout */
+    @media(min-width:900px){
+      body{background:#08101d}
+      .app{max-width:1180px;padding:24px 28px 40px;margin:0 auto}
+      .topbar{padding:14px 0 16px}
+      .title h1{font-size:28px}
+      .title p{font-size:14px}
+      .grid4{grid-template-columns:repeat(4,1fr);gap:16px}
+      .section{padding:20px}
+      #homeView.active{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start}
+      #homeView .grid4{grid-column:1/-1}
+      #homeView .section{margin-top:0}
+      #employeesView .section,#leaveView .section,#shiftView .section{margin-top:0}
+      .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+      #employeesList{grid-template-columns:repeat(2,minmax(0,1fr))}
+      #leaveList{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .bottom-nav{
+        position:sticky;bottom:auto;left:auto;transform:none;
+        width:100%;margin:18px 0 0;grid-template-columns:repeat(4,160px);
+        justify-content:center;background:#0b1323
+      }
+      .fab{right:32px;left:auto;bottom:32px;transform:none}
+      .sheet{width:min(640px,100%);border-radius:24px}
+      .modal{align-items:center}
+      .row{min-height:72px}
+      .employee-click{cursor:pointer}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="title">
+      <h1>Shift Manager</h1>
+      <p>إدارة الموظفين والإجازات والشفت</p>
+    </div>
+    <button class="iconbtn" id="backupBtn" title="نسخة احتياطية">⤴︎</button>
+  </div>
+
+  <main>
+    <section id="homeView" class="view active">
+      <div class="grid4">
+        <div class="stat"><div class="num" id="totalCount">0</div><div class="label"><span class="dot" style="background:var(--primary)"></span>إجمالي الموظفين</div></div>
+        <div class="stat"><div class="num" id="workingCount">0</div><div class="label"><span class="dot" style="background:var(--green)"></span>على رأس العمل</div></div>
+        <div class="stat"><div class="num" id="leaveCount">0</div><div class="label"><span class="dot" style="background:var(--blue)"></span>في إجازة</div></div>
+        <div class="stat"><div class="num" id="soonCount">0</div><div class="label"><span class="dot" style="background:var(--yellow)"></span>إجازة/عودة قريبًا</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2>تنبيهات اليوم</h2>
+          <span class="chip" id="todayLabel"></span>
+        </div>
+        <div class="list" id="alertsList"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h2>الشفت الحالي</h2><button onclick="showView('shiftView')">إدارة</button></div>
+        <div id="currentShiftPreview"></div>
+      </div>
+    </section>
+
+    <section id="employeesView" class="view">
+      <div class="section">
+        <div class="section-head"><h2>الموظفون</h2><button onclick="openEmployeeModal()">+ إضافة</button></div>
+        <div class="toolbar"><input id="searchInput" placeholder="ابحث بالاسم أو الرقم الوظيفي" oninput="renderEmployees()"></div>
+        <div class="list" id="employeesList"></div>
+      </div>
+    </section>
+
+
+    <section id="employeeProfileView" class="view">
+      <div class="section">
+        <div class="section-head">
+          <h2>ملف الموظف</h2>
+          <button class="secondary" onclick="showView('employeesView')">رجوع</button>
+        </div>
+        <div id="employeeProfileHeader"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h2>إضافة ملاحظة</h2></div>
+        <div class="form">
+          <select id="recordType">
+            <option value="Late">Late</option>
+            <option value="Excuse">Excuse</option>
+            <option value="M time">M time</option>
+            <option value="Medical release">Medical release</option>
+          </select>
+          <input type="date" id="recordDate">
+          <textarea id="recordNote" placeholder="تفاصيل / ملاحظة اختيارية"></textarea>
+          <button class="primary" onclick="saveEmployeeRecord()">حفظ الملاحظة</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h2>سجل الملاحظات</h2><span class="chip" id="recordCount">0</span></div>
+        <div class="list" id="employeeRecordsList"></div>
+      </div>
+    </section>
+
+    <section id="leaveView" class="view">
+      <div class="section">
+        <div class="section-head"><h2>الإجازات</h2><button onclick="openLeaveModal()">+ إجازة</button></div>
+        <div class="list" id="leaveList"></div>
+      </div>
+    </section>
+
+    <section id="shiftView" class="view">
+      <div class="section">
+        <div class="section-head"><h2>توزيع الشفت</h2><button onclick="openShiftModal()">+ توزيع</button></div>
+        <div id="shiftList"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<button class="fab" onclick="quickAdd()">+</button>
+
+<nav class="bottom-nav">
+  <button class="navbtn active" data-view="homeView" onclick="showView('homeView',this)"><span>⌂</span>الرئيسية</button>
+  <button class="navbtn" data-view="employeesView" onclick="showView('employeesView',this)"><span>👥</span>الموظفون</button>
+  <button class="navbtn" data-view="leaveView" onclick="showView('leaveView',this)"><span>🗓️</span>الإجازات</button>
+  <button class="navbtn" data-view="shiftView" onclick="showView('shiftView',this)"><span>🛡️</span>الشفت</button>
+</nav>
+
+<div class="modal" id="employeeModal">
+  <div class="sheet">
+    <h3>إضافة موظف</h3>
+    <div class="form">
+      <input id="empName" placeholder="اسم الموظف">
+      <input id="empId" placeholder="الرقم الوظيفي">
+      <select id="empShift">
+        <option>Morning</option><option>Afternoon</option><option>Night</option>
+      </select>
+      <input id="empLocation" placeholder="الموقع / البوابة">
+      <textarea id="empNote" placeholder="ملاحظة اختيارية"></textarea>
+      <div class="form-actions">
+        <button class="primary" onclick="saveEmployee()">حفظ</button>
+        <button class="secondary" onclick="closeModal('employeeModal')">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="leaveModal">
+  <div class="sheet">
+    <h3>إضافة إجازة</h3>
+    <div class="form">
+      <select id="leaveEmployee"></select>
+      <label class="small-note">بداية الإجازة</label>
+      <input type="date" id="leaveStart">
+      <label class="small-note">نهاية الإجازة</label>
+      <input type="date" id="leaveEnd">
+      <textarea id="leaveNote" placeholder="ملاحظة اختيارية"></textarea>
+      <div class="form-actions">
+        <button class="primary" onclick="saveLeave()">حفظ</button>
+        <button class="secondary" onclick="closeModal('leaveModal')">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="shiftModal">
+  <div class="sheet">
+    <h3>إضافة توزيع للشفت</h3>
+    <div class="form">
+      <input id="shiftPost" placeholder="الموقع، مثال: Gate 1">
+      <select id="shiftEmployee"></select>
+      <select id="shiftType"><option>Morning</option><option>Afternoon</option><option>Night</option></select>
+      <div class="form-actions">
+        <button class="primary" onclick="saveShift()">حفظ</button>
+        <button class="secondary" onclick="closeModal('shiftModal')">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY='shiftManagerDataV3_GroupA_Leaves';
+let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
+  employees:[
+    {
+        "id": "emp-102862",
+        "name": "NAEEM QASIM OUFI",
+        "empId": "102862",
+        "gc": "10",
+        "position": "Shift Chief ( 01 )",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101771",
+        "name": "RAMI MANSOUR JANNAH",
+        "empId": "101771",
+        "gc": "10",
+        "position": "Shift Chief Assistant ( 02 ) & Backup for 01",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101725",
+        "name": "ADEL ABDULLAH BELADI",
+        "empId": "101725",
+        "gc": "8",
+        "position": "Community Group Leader ( Gate-10 )",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101702",
+        "name": "OSAMAH MADANI YANBAWI",
+        "empId": "101702",
+        "gc": "8",
+        "position": "SCC",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-103630",
+        "name": "AHMED HASSAN AL SHAHRI",
+        "empId": "103630",
+        "gc": "8",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101655",
+        "name": "RIYADH EID HARBI",
+        "empId": "101655",
+        "gc": "8",
+        "position": "SCC Backup",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-103389",
+        "name": "RAMI ABDULRHAMAN SHMASI",
+        "empId": "103389",
+        "gc": "9",
+        "position": "Pool Backup",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101650",
+        "name": "NASSER MARZOUG YOUBI",
+        "empId": "101650",
+        "gc": "8",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101662",
+        "name": "THAMER NAIF MALKI",
+        "empId": "101662",
+        "gc": "9",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-104121",
+        "name": "HASSAN AZIZALLAH TASH",
+        "empId": "104121",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101738",
+        "name": "SULTAN MOHAMMAD TWAIRIQI",
+        "empId": "101738",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-102305",
+        "name": "HASSAN ALI AL SAADI",
+        "empId": "102305",
+        "gc": "8",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101634",
+        "name": "AHMED MOHAMMED SELAIHBI",
+        "empId": "101634",
+        "gc": "8",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-102299",
+        "name": "MOHAMMED MONAWER GRAGREE",
+        "empId": "102299",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-103661",
+        "name": "MOHAMMED OAYED MUTAIRI",
+        "empId": "103661",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101631",
+        "name": "GHAZI ABDULHAFIZ ZANBAQI",
+        "empId": "101631",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-103871",
+        "name": "ABDULMALIK SIRAJ AL ZANBAQI",
+        "empId": "103871",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-102301",
+        "name": "ASHRAF ABDALMOTI JAHDALI",
+        "empId": "102301",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101690",
+        "name": "YOUSEF BARKI FARSI",
+        "empId": "101690",
+        "gc": "8",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101632",
+        "name": "MAJED AHMED GHANMI",
+        "empId": "101632",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101708",
+        "name": "ADEL BRAIK SUBHI",
+        "empId": "101708",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-104165",
+        "name": "AMMAR THEYAB ALLUHAYBI",
+        "empId": "104165",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-104722",
+        "name": "OTHMAN HAMAD SAHLI",
+        "empId": "104722",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-102593",
+        "name": "MUHAMMAD B. MUALAD",
+        "empId": "102593",
+        "gc": "8",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101718",
+        "name": "SAAD MTHEEB NAFEI",
+        "empId": "101718",
+        "gc": "8",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-104495",
+        "name": "MOHAMMED  SALEM BELADI",
+        "empId": "104495",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-104116",
+        "name": "TURKI SAAD ALJEHANI",
+        "empId": "104116",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101749",
+        "name": "HUSAM HAMEED AL FARSI",
+        "empId": "101749",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-104666",
+        "name": "ABDULAZIZ YEHEA THWRI",
+        "empId": "104666",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101741",
+        "name": "HAMIDI THIYAR AL BLADI",
+        "empId": "101741",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101694",
+        "name": "RAYAN NASSAR DHAHRI",
+        "empId": "101694",
+        "gc": "8",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101697",
+        "name": "HANI ABID GHNMAI",
+        "empId": "101697",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-102297",
+        "name": "BATHAL HASSAN HAJRI",
+        "empId": "102297",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-102286",
+        "name": "NIZAR ALI AL HODHODI",
+        "empId": "102286",
+        "gc": "8",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101988",
+        "name": "RAMI AHMED AL ZAHRANI",
+        "empId": "101988",
+        "gc": "10",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101700",
+        "name": "MUTEEB ATIAH MUWALLAD",
+        "empId": "101700",
+        "gc": "8",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-103619",
+        "name": "ABDULLAH SALEH GHAMDI",
+        "empId": "103619",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101703",
+        "name": "NADER IBRAHIM MOHAMMADI",
+        "empId": "101703",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101701",
+        "name": "MOHAMMED ABDULLAH GHANMI",
+        "empId": "101701",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-103409",
+        "name": "MOHAMMED YOUSEF MOHAMMED YOUSEF",
+        "empId": "103409",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    },
+    {
+        "id": "emp-101698",
+        "name": "ABDULRAHEEM AHMED FARSI",
+        "empId": "101698",
+        "gc": "7",
+        "position": "",
+        "shift": "Group A",
+        "location": "",
+        "note": ""
+    }
+],
+  leaves:[
+    {
+        "id": "leave-103661-2026-08-30",
+        "employeeId": "emp-103661",
+        "start": "2026-08-30",
+        "end": "2026-09-27",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-101694-2026-08-30",
+        "employeeId": "emp-101694",
+        "start": "2026-08-30",
+        "end": "2026-09-16",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-102593-2026-09-13",
+        "employeeId": "emp-102593",
+        "start": "2026-09-13",
+        "end": "2026-09-26",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-101771-2026-10-06",
+        "employeeId": "emp-101771",
+        "start": "2026-10-06",
+        "end": "2026-10-25",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-101708-2026-10-06",
+        "employeeId": "emp-101708",
+        "start": "2026-10-06",
+        "end": "2026-11-05",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-101700-2026-10-06",
+        "employeeId": "emp-101700",
+        "start": "2026-10-06",
+        "end": "2026-11-02",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-103619-2026-10-15",
+        "employeeId": "emp-103619",
+        "start": "2026-10-15",
+        "end": "2026-11-02",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-103630-2026-10-15",
+        "employeeId": "emp-103630",
+        "start": "2026-10-15",
+        "end": "2026-11-02",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-101738-2026-11-03",
+        "employeeId": "emp-101738",
+        "start": "2026-11-03",
+        "end": "2026-11-30",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-102305-2026-11-03",
+        "employeeId": "emp-102305",
+        "start": "2026-11-03",
+        "end": "2026-11-30",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-101741-2026-11-05",
+        "employeeId": "emp-101741",
+        "start": "2026-11-05",
+        "end": "2026-11-30",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-101690-2026-11-22",
+        "employeeId": "emp-101690",
+        "start": "2026-11-22",
+        "end": "2026-11-30",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-104121-2026-11-25",
+        "employeeId": "emp-104121",
+        "start": "2026-11-25",
+        "end": "2026-12-09",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-101650-2026-12-01",
+        "employeeId": "emp-101650",
+        "start": "2026-12-01",
+        "end": "2026-12-24",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-104722-2026-12-01",
+        "employeeId": "emp-104722",
+        "start": "2026-12-01",
+        "end": "2026-12-28",
+        "note": "Annual leave schedule"
+    },
+    {
+        "id": "leave-101718-2026-12-01",
+        "employeeId": "emp-101718",
+        "start": "2026-12-01",
+        "end": "2027-12-20",
+        "note": "Annual leave schedule"
+    }
+],
+  shifts:[],
+  records:[]
+};
+
+if(!Array.isArray(state.records)) state.records=[];
+let selectedEmployeeId=null;
+
+function save(){ localStorage.setItem(KEY,JSON.stringify(state)); renderAll(); }
+
+function fmtDate(s){ if(!s)return ''; return new Date(s+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function diffDays(a,b){ const x=new Date(a+'T12:00:00'),y=new Date(b+'T12:00:00'); return Math.round((x-y)/86400000); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function initials(n){ return (n||'?').trim().split(/\s+/).slice(0,2).map(x=>x[0]).join(''); }
+function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+
+function employeeStatus(emp){
+  const t=todayISO();
+  const active=state.leaves.find(l=>l.employeeId===emp.id && l.start<=t && l.end>=t);
+  return active ? {text:'إجازة',cls:'b-blue'}:{text:'دوام',cls:'b-green'};
+}
+
+function renderStats(){
+  const t=todayISO();
+  document.getElementById('totalCount').textContent=state.employees.length;
+  const inLeave=state.employees.filter(e=>employeeStatus(e).text==='إجازة').length;
+  document.getElementById('leaveCount').textContent=inLeave;
+  document.getElementById('workingCount').textContent=state.employees.length-inLeave;
+  let soon=0;
+  state.leaves.forEach(l=>{
+    const ds=diffDays(l.start,t), de=diffDays(l.end,t);
+    if((ds>=0&&ds<=2)||(de>=0&&de<=2)) soon++;
+  });
+  document.getElementById('soonCount').textContent=soon;
+}
+
+function renderAlerts(){
+  const box=document.getElementById('alertsList'); box.innerHTML='';
+  const t=todayISO(); let alerts=[];
+  state.leaves.forEach(l=>{
+    const e=state.employees.find(x=>x.id===l.employeeId); if(!e)return;
+    const ds=diffDays(l.start,t), de=diffDays(l.end,t);
+    if(ds===0) alerts.push({name:e.name,msg:'تبدأ إجازته اليوم',cls:'b-yellow'});
+    else if(ds===1) alerts.push({name:e.name,msg:'تبدأ إجازته غدًا',cls:'b-yellow'});
+    else if(ds===2) alerts.push({name:e.name,msg:'تبدأ إجازته بعد يومين',cls:'b-yellow'});
+    if(de===0) alerts.push({name:e.name,msg:'آخر يوم إجازة اليوم',cls:'b-blue'});
+    else if(de===1) alerts.push({name:e.name,msg:'يعود من الإجازة غدًا',cls:'b-green'});
+    else if(de===2) alerts.push({name:e.name,msg:'يعود من الإجازة بعد يومين',cls:'b-green'});
+  });
+  if(!alerts.length){box.innerHTML='<div class="empty">لا توجد تنبيهات قريبة 👌</div>';return}
+  alerts.forEach(a=>box.insertAdjacentHTML('beforeend',`
+    <div class="row">
+      <div class="row-main"><div class="avatar">${esc(initials(a.name))}</div><div><div class="name">${esc(a.name)}</div><div class="meta">${esc(a.msg)}</div></div></div>
+      <span class="badge ${a.cls}">تنبيه</span>
+    </div>`));
+}
+
+function renderEmployees(){
+  const box=document.getElementById('employeesList'); box.innerHTML='';
+  const q=(document.getElementById('searchInput')?.value||'').trim().toLowerCase();
+  const list=state.employees.filter(e=>!q || e.name.toLowerCase().includes(q) || (e.empId||'').toLowerCase().includes(q) || (e.gc||'').toLowerCase().includes(q) || (e.position||'').toLowerCase().includes(q));
+  if(!list.length){box.innerHTML='<div class="empty">لا يوجد موظفون</div>';return}
+  list.forEach(e=>{
+    const st=employeeStatus(e);
+    box.insertAdjacentHTML('beforeend',`
+    <div class="row employee-click" onclick="openEmployeeProfile('${e.id}')">
+      <div class="row-main">
+        <div class="avatar">${esc(initials(e.name))}</div>
+        <div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)} · GC ${esc(e.gc||'-')} · ${esc(e.position||e.shift||'-')}</div></div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="badge ${st.cls}">${st.text}</span>
+        <button class="secondary danger" onclick="event.stopPropagation();deleteEmployee('${e.id}')">حذف</button>
+      </div>
+    </div>`);
+  });
+}
+
+
+function recordBadgeClass(type){
+  if(type==='Late') return 'b-red';
+  if(type==='Excuse') return 'b-yellow';
+  if(type==='M time') return 'b-blue';
+  return 'b-green';
+}
+
+function openEmployeeProfile(id){
+  selectedEmployeeId=id;
+  const dateInput=document.getElementById('recordDate');
+  if(dateInput && !dateInput.value) dateInput.value=todayISO();
+  renderEmployeeProfile();
+  showView('employeeProfileView');
+}
+
+function renderEmployeeProfile(){
+  const head=document.getElementById('employeeProfileHeader');
+  const list=document.getElementById('employeeRecordsList');
+  if(!head||!list)return;
+  const e=state.employees.find(x=>x.id===selectedEmployeeId);
+  if(!e){
+    head.innerHTML='<div class="empty">اختر موظفًا من قائمة الموظفين</div>';
+    list.innerHTML='';
+    return;
+  }
+  const st=employeeStatus(e);
+  head.innerHTML=`
+    <div class="row">
+      <div class="row-main">
+        <div class="avatar">${esc(initials(e.name))}</div>
+        <div>
+          <div class="name">${esc(e.name)}</div>
+          <div class="meta">Badge #${esc(e.empId)} · GC ${esc(e.gc||'-')}</div>
+          <div class="meta">${esc(e.position||e.shift||'-')}</div>
+        </div>
+      </div>
+      <span class="badge ${st.cls}">${st.text}</span>
+    </div>`;
+
+  const records=state.records
+    .filter(r=>r.employeeId===e.id)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  document.getElementById('recordCount').textContent=records.length;
+
+  if(!records.length){
+    list.innerHTML='<div class="empty">لا توجد ملاحظات مسجلة لهذا الموظف</div>';
+    return;
+  }
+  list.innerHTML=records.map(r=>`
+    <div class="row">
+      <div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="badge ${recordBadgeClass(r.type)}">${esc(r.type)}</span>
+          <span class="meta">${fmtDate(r.date)}</span>
+        </div>
+        ${r.note?`<div class="meta" style="margin-top:8px;color:var(--text)">${esc(r.note)}</div>`:''}
+      </div>
+      <button class="secondary danger" onclick="deleteEmployeeRecord('${r.id}')">حذف</button>
+    </div>`).join('');
+}
+
+function saveEmployeeRecord(){
+  if(!selectedEmployeeId){alert('اختر موظفًا أولًا');return}
+  const type=document.getElementById('recordType').value;
+  const date=document.getElementById('recordDate').value || todayISO();
+  const note=document.getElementById('recordNote').value.trim();
+  state.records.push({
+    id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),
+    employeeId:selectedEmployeeId,
+    type,date,note,
+    createdAt:new Date().toISOString()
+  });
+  document.getElementById('recordNote').value='';
+  document.getElementById('recordDate').value=todayISO();
+  save();
+  renderEmployeeProfile();
+}
+
+function deleteEmployeeRecord(id){
+  if(!confirm('حذف هذه الملاحظة؟'))return;
+  state.records=state.records.filter(r=>r.id!==id);
+  save();
+  renderEmployeeProfile();
+}
+
+
+function renderLeaves(){
+  const box=document.getElementById('leaveList'); box.innerHTML='';
+  const list=[...state.leaves].sort((a,b)=>a.start.localeCompare(b.start));
+  if(!list.length){box.innerHTML='<div class="empty">لم تتم إضافة إجازات بعد</div>';return}
+  const t=todayISO();
+  list.forEach(l=>{
+    const e=state.employees.find(x=>x.id===l.employeeId); if(!e)return;
+    let cls='b-yellow',label='قادمة';
+    if(l.start<=t&&l.end>=t){cls='b-blue';label='جارية'}
+    else if(l.end<t){cls='b-green';label='منتهية'}
+    box.insertAdjacentHTML('beforeend',`
+      <div class="row">
+        <div class="row-main">
+          <div class="avatar">${esc(initials(e.name))}</div>
+          <div><div class="name">${esc(e.name)}</div><div class="meta">${fmtDate(l.start)} ← ${fmtDate(l.end)}</div></div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="badge ${cls}">${label}</span>
+          <button class="secondary danger" onclick="deleteLeave('${l.id}')">حذف</button>
+        </div>
+      </div>`);
+  });
+}
+
+function renderShift(){
+  const box=document.getElementById('shiftList'); box.innerHTML='';
+  if(!state.shifts.length){box.innerHTML='<div class="empty">لا يوجد توزيع محفوظ للشفت</div>';return}
+  state.shifts.forEach(s=>{
+    const e=state.employees.find(x=>x.id===s.employeeId);
+    box.insertAdjacentHTML('beforeend',`
+      <div class="shift-card">
+        <strong>${esc(s.post)}</strong>
+        <div class="meta">${esc(e?e.name:'موظف محذوف')} · ${esc(s.shift)}</div>
+        <div style="margin-top:10px"><button class="secondary danger" onclick="deleteShift('${s.id}')">حذف</button></div>
+      </div>`);
+  });
+  renderShiftPreview();
+}
+
+function renderShiftPreview(){
+  const box=document.getElementById('currentShiftPreview');
+  const rows=state.shifts.slice(0,4);
+  if(!rows.length){box.innerHTML='<div class="empty">أضف توزيع الشفت من قسم الشفت</div>';return}
+  box.innerHTML=rows.map(s=>{
+    const e=state.employees.find(x=>x.id===s.employeeId);
+    return `<div class="row"><div><div class="name">${esc(s.post)}</div><div class="meta">${esc(e?e.name:'-')} · ${esc(s.shift)}</div></div></div>`;
+  }).join('');
+}
+
+function refreshSelects(){
+  const opts=state.employees.map(e=>`<option value="${e.id}">${esc(e.name)} (#${esc(e.empId)})</option>`).join('');
+  document.getElementById('leaveEmployee').innerHTML=opts;
+  document.getElementById('shiftEmployee').innerHTML=opts;
+}
+
+function renderAll(){
+  document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+  renderStats(); renderAlerts(); renderEmployees(); renderLeaves(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
+}
+
+function showView(id,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function openEmployeeModal(){document.getElementById('employeeModal').classList.add('show')}
+function openLeaveModal(){refreshSelects();document.getElementById('leaveModal').classList.add('show')}
+function openShiftModal(){refreshSelects();document.getElementById('shiftModal').classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function quickAdd(){openEmployeeModal()}
+
+function saveEmployee(){
+  const name=document.getElementById('empName').value.trim();
+  const empId=document.getElementById('empId').value.trim();
+  if(!name||!empId){alert('أدخل الاسم والرقم الوظيفي');return}
+  state.employees.push({
+    id:crypto.randomUUID(),name,empId,gc:'',position:'',
+    shift:document.getElementById('empShift').value,
+    location:document.getElementById('empLocation').value.trim(),
+    note:document.getElementById('empNote').value.trim()
+  });
+  ['empName','empId','empLocation','empNote'].forEach(id=>document.getElementById(id).value='');
+  closeModal('employeeModal'); save();
+}
+function saveLeave(){
+  const employeeId=document.getElementById('leaveEmployee').value;
+  const start=document.getElementById('leaveStart').value;
+  const end=document.getElementById('leaveEnd').value;
+  if(!employeeId||!start||!end){alert('أكمل بيانات الإجازة');return}
+  if(end<start){alert('تاريخ النهاية يجب أن يكون بعد البداية');return}
+  state.leaves.push({id:crypto.randomUUID(),employeeId,start,end,note:document.getElementById('leaveNote').value.trim()});
+  document.getElementById('leaveStart').value='';document.getElementById('leaveEnd').value='';document.getElementById('leaveNote').value='';
+  closeModal('leaveModal'); save();
+}
+function saveShift(){
+  const post=document.getElementById('shiftPost').value.trim();
+  const employeeId=document.getElementById('shiftEmployee').value;
+  const shift=document.getElementById('shiftType').value;
+  if(!post||!employeeId){alert('أدخل الموقع والموظف');return}
+  state.shifts.push({id:crypto.randomUUID(),post,employeeId,shift});
+  document.getElementById('shiftPost').value='';
+  closeModal('shiftModal'); save();
+}
+function deleteEmployee(id){
+  if(!confirm('حذف الموظف وكل الإجازات والتوزيعات المرتبطة به؟'))return;
+  state.employees=state.employees.filter(e=>e.id!==id);
+  state.leaves=state.leaves.filter(l=>l.employeeId!==id);
+  state.shifts=state.shifts.filter(s=>s.employeeId!==id); state.records=state.records.filter(r=>r.employeeId!==id); save();
+}
+function deleteLeave(id){ if(confirm('حذف الإجازة؟')){state.leaves=state.leaves.filter(x=>x.id!==id);save()} }
+function deleteShift(id){ if(confirm('حذف التوزيع؟')){state.shifts=state.shifts.filter(x=>x.id!==id);save()} }
+
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+
+document.getElementById('backupBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='shift-manager-backup.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+});
+
+renderAll();
+if(document.getElementById('recordDate')) document.getElementById('recordDate').value=todayISO();
+</script>
+</body>
+</html>
