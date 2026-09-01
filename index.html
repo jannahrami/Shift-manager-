@@ -188,6 +188,9 @@
     .chip{padding:8px 10px;background:#0d1526;border:1px solid var(--line);border-radius:999px;font-size:12px}
     .toolbar{display:flex;gap:8px;margin-bottom:12px}
     .toolbar input{flex:1}
+    .month-filter{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;margin:14px 0}
+    .month-filter input{min-width:0}
+    @media(max-width:390px){.month-filter{grid-template-columns:1fr 1fr}.month-filter input{grid-column:1/-1}}
     .small-note{font-size:11px;color:var(--muted);line-height:1.7}
     .shift-card{
       padding:14px;border:1px solid var(--line);border-radius:16px;background:#0d1526;margin-bottom:10px
@@ -339,6 +342,12 @@
     <section id="leaveView" class="view">
       <div class="section">
         <div class="section-head"><h2>الإجازات</h2><button onclick="openLeaveModal()">+ إجازة</button></div>
+        <div class="month-filter">
+          <input type="month" id="leaveMonthFilter" aria-label="اختر شهر الإجازات" onchange="renderLeaves()">
+          <button class="secondary" onclick="showCurrentLeaveMonth()">هذا الشهر</button>
+          <button class="secondary" onclick="clearLeaveMonth()">عرض الكل</button>
+        </div>
+        <div class="section-head"><span class="small-note" id="leaveMonthTitle">جميع الإجازات</span><span class="chip" id="leaveMonthCount">0 موظف</span></div>
         <div class="list" id="leaveList"></div>
       </div>
     </section>
@@ -1267,10 +1276,29 @@ function deleteEmployeeRecord(id){
 }
 
 
+function currentMonthValue(){return todayISO().slice(0,7)}
+function showCurrentLeaveMonth(){
+  document.getElementById('leaveMonthFilter').value=currentMonthValue();renderLeaves();
+}
+function clearLeaveMonth(){
+  document.getElementById('leaveMonthFilter').value='';renderLeaves();
+}
+function monthLabel(value){
+  if(!value)return 'جميع الإجازات';
+  const [year,month]=value.split('-').map(Number);
+  return 'إجازات '+new Date(year,month-1,1).toLocaleDateString('ar-SA-u-ca-gregory',{month:'long',year:'numeric'});
+}
 function renderLeaves(){
   const box=document.getElementById('leaveList'); box.innerHTML='';
-  const list=[...state.leaves].sort((a,b)=>a.start.localeCompare(b.start));
-  if(!list.length){box.innerHTML='<div class="empty">لم تتم إضافة إجازات بعد</div>';return}
+  const month=document.getElementById('leaveMonthFilter')?.value||'';
+  const monthStart=month?month+'-01':'';
+  const monthEnd=month?month+'-'+String(new Date(Number(month.slice(0,4)),Number(month.slice(5,7)),0).getDate()).padStart(2,'0'):'';
+  const list=state.leaves
+    .filter(l=>!month||(l.start<=monthEnd&&l.end>=monthStart))
+    .sort((a,b)=>a.start.localeCompare(b.start));
+  document.getElementById('leaveMonthTitle').textContent=monthLabel(month);
+  document.getElementById('leaveMonthCount').textContent=list.length+' موظف';
+  if(!list.length){box.innerHTML='<div class="empty">لا توجد إجازات في الشهر المحدد</div>';return}
   const t=todayISO();
   list.forEach(l=>{
     const e=state.employees.find(x=>x.id===l.employeeId); if(!e)return;
