@@ -131,6 +131,11 @@
     .legend-item{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--line);border-radius:999px;background:rgba(5,14,28,.4)}
     .legend-dot{width:8px;height:8px;border-radius:50%}
     .section-wide{grid-column:1/-1}
+    .note-list{display:grid;gap:10px}
+    .note-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:13px;background:rgba(6,17,32,.64);border:1px solid var(--line);border-radius:15px}
+    .note-copy{min-width:0;flex:1}
+    .note-text{font-size:14px;line-height:1.65;color:var(--text);overflow-wrap:anywhere}
+    .note-date{display:flex;align-items:center;gap:7px;margin-top:6px;font-size:12px;color:var(--muted)}
     .bottom-nav{
       position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
       width:min(398px,calc(100% - 24px));display:grid;grid-template-columns:repeat(4,1fr);
@@ -242,6 +247,14 @@
           <span class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>راجع قريب</span>
         </div>
         <div id="currentLeaveTable"></div>
+      </div>
+
+      <div class="section section-wide">
+        <div class="section-head">
+          <div><span class="section-kicker">تذكير شخصي</span><h2>ملاحظاتي وتنبيهاتي</h2></div>
+          <button onclick="openPersonalNoteModal()">+ ملاحظة</button>
+        </div>
+        <div class="note-list" id="personalNotesList"></div>
       </div>
 
       <div class="section">
@@ -369,6 +382,21 @@
       <div class="form-actions">
         <button class="primary" onclick="saveShift()">حفظ</button>
         <button class="secondary" onclick="closeModal('shiftModal')">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="personalNoteModal">
+  <div class="sheet">
+    <h3>إضافة ملاحظة وتنبيه</h3>
+    <div class="form">
+      <label class="small-note">تاريخ التنبيه</label>
+      <input type="date" id="personalNoteDate">
+      <textarea id="personalNoteText" placeholder="مثال: عندنا جولة في الموقع، أو الموظف لديه كورس"></textarea>
+      <div class="form-actions">
+        <button class="primary" onclick="savePersonalNote()">حفظ التنبيه</button>
+        <button class="secondary" onclick="closeModal('personalNoteModal')">إلغاء</button>
       </div>
     </div>
   </div>
@@ -905,10 +933,12 @@ let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
     }
 ],
   shifts:[],
-  records:[]
+  records:[],
+  personalNotes:[]
 };
 
 if(!Array.isArray(state.records)) state.records=[];
+if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
 let selectedEmployeeId=null;
 
 function save(){ localStorage.setItem(KEY,JSON.stringify(state)); renderAll(); }
@@ -939,6 +969,10 @@ function renderStats(){
     const ds=diffDays(l.start,t), de=diffDays(l.end,t);
     if((ds>=0&&ds<=SOON_DAYS)||(de>=0&&de<=SOON_DAYS)) soon++;
   });
+  soon+=state.personalNotes.filter(n=>{
+    const d=diffDays(n.date,t);
+    return d>=0&&d<=SOON_DAYS;
+  }).length;
   document.getElementById('soonCount').textContent=soon;
 }
 
@@ -999,6 +1033,35 @@ function renderCurrentLeaveTable(){
     <thead><tr><th>الموظف</th><th>بداية الإجازة</th><th>نهاية الإجازة</th><th>المتبقي</th><th>الحالة</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
+}
+
+function personalNoteStatus(date){
+  const days=diffDays(date,todayISO());
+  if(days<0)return {text:'فات موعدها',cls:'b-neutral',when:fmtDate(date)};
+  if(days===0)return {text:'اليوم',cls:'b-red',when:'اليوم'};
+  if(days===1)return {text:'غدًا',cls:'b-yellow',when:'غدًا'};
+  if(days<=SOON_DAYS)return {text:`بعد ${days} أيام`,cls:'b-yellow',when:`بعد ${days} أيام`};
+  return {text:'قادمة',cls:'b-blue',when:fmtDate(date)};
+}
+
+function renderPersonalNotes(){
+  const box=document.getElementById('personalNotesList');
+  if(!box)return;
+  const notes=[...state.personalNotes].sort((a,b)=>a.date.localeCompare(b.date));
+  if(!notes.length){
+    box.innerHTML='<div class="empty">لا توجد ملاحظات أو تنبيهات محفوظة</div>';
+    return;
+  }
+  box.innerHTML=notes.map(n=>{
+    const status=personalNoteStatus(n.date);
+    return `<div class="note-row">
+      <div class="note-copy">
+        <div class="note-text">${esc(n.text)}</div>
+        <div class="note-date"><span>◷</span><span>${fmtDate(n.date)}</span><span class="badge ${status.cls}">${status.text}</span></div>
+      </div>
+      <button class="secondary danger" onclick="deletePersonalNote('${n.id}')">حذف</button>
+    </div>`;
+  }).join('');
 }
 
 function renderEmployees(){
@@ -1171,7 +1234,7 @@ function refreshSelects(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderStats(); renderCurrentLeaveTable(); renderAlerts(); renderEmployees(); renderLeaves(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
+  renderStats(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderEmployees(); renderLeaves(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
 }
 
 function showView(id,btn){
@@ -1183,6 +1246,11 @@ function showView(id,btn){
 function openEmployeeModal(){document.getElementById('employeeModal').classList.add('show')}
 function openLeaveModal(){refreshSelects();document.getElementById('leaveModal').classList.add('show')}
 function openShiftModal(){refreshSelects();document.getElementById('shiftModal').classList.add('show')}
+function openPersonalNoteModal(){
+  const date=document.getElementById('personalNoteDate');
+  if(date&&!date.value)date.value=todayISO();
+  document.getElementById('personalNoteModal').classList.add('show');
+}
 function closeModal(id){document.getElementById(id).classList.remove('show')}
 function quickAdd(){openEmployeeModal()}
 
@@ -1217,6 +1285,23 @@ function saveShift(){
   state.shifts.push({id:crypto.randomUUID(),post,employeeId,shift});
   document.getElementById('shiftPost').value='';
   closeModal('shiftModal'); save();
+}
+function savePersonalNote(){
+  const date=document.getElementById('personalNoteDate').value;
+  const text=document.getElementById('personalNoteText').value.trim();
+  if(!date||!text){alert('أدخل تاريخ التنبيه ونص الملاحظة');return}
+  state.personalNotes.push({
+    id:(crypto.randomUUID?crypto.randomUUID():('note-'+Date.now())),
+    date,text,createdAt:new Date().toISOString()
+  });
+  document.getElementById('personalNoteText').value='';
+  document.getElementById('personalNoteDate').value=todayISO();
+  closeModal('personalNoteModal');save();
+}
+function deletePersonalNote(id){
+  if(confirm('حذف هذه الملاحظة؟')){
+    state.personalNotes=state.personalNotes.filter(n=>n.id!==id);save();
+  }
 }
 function deleteEmployee(id){
   if(!confirm('حذف الموظف وكل الإجازات والتوزيعات المرتبطة به؟'))return;
