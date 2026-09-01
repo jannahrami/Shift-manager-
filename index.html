@@ -63,6 +63,17 @@
       background:rgba(15,27,45,.9);color:var(--text);font-size:18px;cursor:pointer;transition:.2s ease
     }
     .iconbtn:hover{border-color:rgba(65,199,255,.45);transform:translateY(-1px)}
+    .cloud-tools{display:flex;align-items:center;gap:8px}
+    .cloud-status{width:10px;height:10px;border-radius:50%;background:var(--yellow);box-shadow:0 0 12px currentColor}
+    .cloud-status.online{background:var(--green)}
+    .cloud-status.offline{background:var(--red)}
+    .auth-screen{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 80% 0,rgba(65,199,255,.16),transparent 35%),#07101f}
+    .auth-screen.hidden{display:none}
+    .auth-card{width:min(390px,100%);padding:25px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(145deg,#13243a,#0b1728);box-shadow:var(--shadow);text-align:center}
+    .auth-logo{width:62px;height:62px;margin:0 auto 15px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,#40c9ff,#1688c5);color:#042033;font-size:28px;font-weight:950}
+    .auth-card h2{margin:0 0 7px}.auth-card p{color:var(--muted);font-size:13px;margin:0 0 20px}
+    .auth-card input{width:100%;margin-bottom:11px;text-align:left;direction:ltr}
+    .auth-card button{width:100%}.auth-error{min-height:20px;color:var(--red);font-size:12px;margin-top:10px}
     .grid4{
       display:grid;
       grid-template-columns:1fr 1fr;
@@ -215,6 +226,17 @@
   </style>
 </head>
 <body>
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">S</div>
+    <h2>تسجيل الدخول</h2>
+    <p>أدخل الحساب الذي أنشأته في Supabase</p>
+    <input type="email" id="loginEmail" placeholder="Email" autocomplete="username">
+    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+    <button class="primary" id="loginBtn" onclick="login()">دخول ومزامنة</button>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
 <div class="app">
   <div class="topbar">
     <div class="brand">
@@ -224,7 +246,11 @@
         <p>Group A · لوحة إدارة الشفت</p>
       </div>
     </div>
-    <button class="iconbtn" id="backupBtn" title="نسخة احتياطية">⤴︎</button>
+    <div class="cloud-tools">
+      <span class="cloud-status" id="cloudStatus" title="حالة المزامنة"></span>
+      <button class="iconbtn" id="backupBtn" title="نسخة احتياطية">⤴︎</button>
+      <button class="iconbtn" id="logoutBtn" title="تسجيل الخروج">↪</button>
+    </div>
   </div>
 
   <main>
@@ -404,6 +430,9 @@
 
 <script>
 const KEY='shiftManagerDataV3_GroupA_Leaves';
+const SESSION_KEY='shiftManagerSupabaseSession';
+const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
+const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
 const SOON_DAYS=3;
 let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
   employees:[
@@ -940,8 +969,74 @@ let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
 if(!Array.isArray(state.records)) state.records=[];
 if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
 let selectedEmployeeId=null;
+let session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
+let syncTimer=null;
+let cloudReady=false;
 
-function save(){ localStorage.setItem(KEY,JSON.stringify(state)); renderAll(); }
+function setCloudStatus(mode,title){
+  const el=document.getElementById('cloudStatus');
+  el.className='cloud-status'+(mode?' '+mode:''); el.title=title||'حالة المزامنة';
+}
+async function supabaseFetch(path,options={}){
+  const headers={apikey:SUPABASE_KEY,'Content-Type':'application/json',...(options.headers||{})};
+  if(session?.access_token) headers.Authorization='Bearer '+session.access_token;
+  return fetch(SUPABASE_URL+path,{...options,headers});
+}
+async function login(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  const error=document.getElementById('authError'),btn=document.getElementById('loginBtn');
+  if(!email||!password){error.textContent='أدخل البريد وكلمة المرور';return}
+  btn.disabled=true;btn.textContent='جاري الدخول...';error.textContent='';
+  try{
+    const res=await supabaseFetch('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
+    const data=await res.json(); if(!res.ok) throw new Error(data.error_description||data.msg||'تعذر تسجيل الدخول');
+    session=data;localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+    document.getElementById('loginPassword').value=''; await loadCloudState();
+  }catch(e){error.textContent=e.message}
+  finally{btn.disabled=false;btn.textContent='دخول ومزامنة'}
+}
+async function refreshSession(){
+  if(!session?.refresh_token)return false;
+  try{
+    const res=await supabaseFetch('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});
+    if(!res.ok)return false;session=await res.json();localStorage.setItem(SESSION_KEY,JSON.stringify(session));return true;
+  }catch{return false}
+}
+async function loadCloudState(){
+  setCloudStatus('','جاري المزامنة');
+  try{
+    const res=await supabaseFetch('/rest/v1/shift_manager_state?id=eq.main&select=data');
+    if(res.status===401){if(await refreshSession())return loadCloudState();throw new Error('انتهت جلسة الدخول')}
+    if(!res.ok)throw new Error('تعذر قراءة البيانات السحابية');
+    const rows=await res.json();
+    if(rows.length&&rows[0].data&&Object.keys(rows[0].data).length){
+      state=rows[0].data;localStorage.setItem(KEY,JSON.stringify(state));
+    }else{
+      await uploadCloudState();
+    }
+    if(!Array.isArray(state.records))state.records=[];
+    if(!Array.isArray(state.personalNotes))state.personalNotes=[];
+    cloudReady=true;document.getElementById('authScreen').classList.add('hidden');setCloudStatus('online','تمت المزامنة');renderAll();
+  }catch(e){setCloudStatus('offline','تعذر الاتصال');document.getElementById('authError').textContent=e.message;document.getElementById('authScreen').classList.remove('hidden')}
+}
+async function uploadCloudState(){
+  const res=await supabaseFetch('/rest/v1/shift_manager_state?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'main',data:state,updated_at:new Date().toISOString()})});
+  if(!res.ok)throw new Error('تعذر حفظ البيانات السحابية');
+}
+async function syncCloud(){
+  if(!session||!cloudReady)return;
+  setCloudStatus('','جاري الحفظ');
+  try{await uploadCloudState();setCloudStatus('online','تم الحفظ والمزامنة')}
+  catch{setCloudStatus('offline','حُفظ محليًا وتعذرت المزامنة')}
+}
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(state));renderAll();
+  clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450);
+}
+function logout(){
+  session=null;cloudReady=false;localStorage.removeItem(SESSION_KEY);document.getElementById('authScreen').classList.remove('hidden');setCloudStatus('offline','غير مسجل');
+}
 
 function fmtDate(s){ if(!s)return ''; return new Date(s+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{day:'2-digit',month:'2-digit',year:'numeric'}); }
 function diffDays(a,b){ const x=new Date(a+'T12:00:00'),y=new Date(b+'T12:00:00'); return Math.round((x-y)/86400000); }
@@ -1319,9 +1414,16 @@ document.getElementById('backupBtn').addEventListener('click',()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='shift-manager-backup.json';a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 });
+document.getElementById('logoutBtn').addEventListener('click',()=>{if(confirm('تسجيل الخروج من المزامنة؟'))logout()});
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
 
 renderAll();
 if(document.getElementById('recordDate')) document.getElementById('recordDate').value=todayISO();
+if(session){
+  refreshSession().then(ok=>ok?loadCloudState():logout());
+}else{
+  setCloudStatus('offline','سجّل الدخول للمزامنة');
+}
 </script>
 </body>
 </html>
