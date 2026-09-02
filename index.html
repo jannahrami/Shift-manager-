@@ -471,23 +471,49 @@
 
     @media(min-width:900px){
       body{
-        background:radial-gradient(circle at 7% 10%,rgba(85,101,242,.13),transparent 27%),linear-gradient(145deg,#e5e9ef,#d7dee7)!important;
+        background:radial-gradient(circle at 8% 5%,rgba(91,108,255,.09),transparent 25%),linear-gradient(145deg,#e9edf2,#f5f7fa)!important;
       }
-      .app{max-width:1460px;margin:0 auto;padding:24px 226px 46px 28px}
-      .topbar{border-radius:26px;padding:17px 21px;margin-bottom:20px}
+      .app{max-width:1480px;margin:0 auto;padding:24px 226px 46px 30px}
+      .topbar{position:relative;top:auto;border:0;border-radius:0;padding:3px 2px 14px;margin-bottom:8px;background:transparent;box-shadow:none;backdrop-filter:none;overflow:visible}
+      .topbar::after{display:none}.title h1{color:#182033;font-size:27px}.title p{color:#778196}
+      .brand-mark{background:linear-gradient(135deg,#202b42,#111827);box-shadow:0 10px 24px rgba(24,32,51,.17)}
+      .iconbtn{background:#fff;color:#253148;border-color:#dfe4eb;box-shadow:0 7px 18px rgba(28,39,58,.07)}
+      .iconbtn:hover{background:#f5f7fb;border-color:#cdd5e0}
+      .notify-count{border-color:#eef1f5}.global-search{margin-bottom:15px}.global-search input{background:#fff;border-color:#dfe4eb;box-shadow:0 8px 22px rgba(28,39,58,.055)}
       .bottom-nav{
         position:fixed;z-index:60;top:24px;right:24px;bottom:24px;left:auto;transform:none;
-        width:174px;height:auto;margin:0;padding:18px 12px;display:flex;flex-direction:column;justify-content:center;gap:9px;
+        width:174px;height:auto;margin:0;padding:20px 12px;display:flex;flex-direction:column;justify-content:center;gap:9px;
         border-radius:26px;
       }
-      .bottom-nav::before{content:"SHIFT\A MANAGER";white-space:pre;text-align:center;color:#fff;font-size:12px;font-weight:900;letter-spacing:1.4px;line-height:1.25;margin-bottom:20px;opacity:.85}
+      .bottom-nav::before{content:"SHIFT MANAGER\A Group A";white-space:pre;text-align:center;color:#fff;font-size:13px;font-weight:900;letter-spacing:.9px;line-height:1.5;margin-bottom:24px;opacity:.9}
       .navbtn{width:100%;min-height:68px;border-radius:17px;font-size:12px;transition:.2s ease}
       .navbtn span{font-size:21px;margin-bottom:5px}
       .navbtn:hover{background:rgba(255,255,255,.07);color:#fff}
       .navbtn.active:hover{background:linear-gradient(135deg,#5565f2,#267be9)}
-      #homeView.active{grid-template-columns:.9fr 1.1fr;gap:18px}
+      #homeView.active{grid-template-columns:.78fr 1.22fr;gap:16px}
+      #homeView .dashboard-hero,#homeView .grid4{grid-column:1/-1}
+      .dashboard-hero{display:grid;grid-template-columns:1.6fr .65fr;gap:14px;margin-bottom:0}
+      .dashboard-shift-card{position:relative;overflow:hidden;min-height:154px;border-radius:24px;padding:23px;background:linear-gradient(120deg,#26334e,#172136 64%,#1b2c47);color:#fff;box-shadow:0 18px 40px rgba(22,32,51,.20)}
+      .dashboard-shift-card::after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;left:-60px;top:-115px;background:radial-gradient(circle,rgba(32,198,201,.34),transparent 67%)}
+      .dashboard-shift-kicker{font-size:12px;color:#74e2df;font-weight:850;margin-bottom:13px}
+      .dashboard-shift-main{display:flex;align-items:flex-end;gap:13px;position:relative;z-index:1}
+      .dashboard-shift-code{font-size:52px;line-height:.9;font-weight:900;letter-spacing:-2px}
+      .dashboard-shift-copy strong{display:block;font-size:21px}.dashboard-shift-copy span{display:block;color:#abb7c9;font-size:12px;margin-top:5px}
+      .dashboard-next-shift{position:absolute;left:22px;bottom:20px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.08);color:#cbd5e1;font-size:11px}
+      .dashboard-add-card{border:0;border-radius:24px;padding:22px;background:linear-gradient(140deg,#6573fa,#3554d8);color:#fff;text-align:right;box-shadow:0 17px 35px rgba(55,77,190,.23);cursor:pointer;transition:.2s ease}
+      .dashboard-add-card:hover{transform:translateY(-3px);box-shadow:0 22px 40px rgba(55,77,190,.29)}
+      .dashboard-add-icon{display:grid;place-items:center;width:39px;height:39px;border-radius:13px;background:rgba(255,255,255,.14);font-size:25px;margin-bottom:22px}
+      .dashboard-add-card strong{display:block;font-size:20px}.dashboard-add-card span{display:block;color:#dfe3ff;font-size:11px;margin-top:7px;line-height:1.6}
+      .grid4{margin-bottom:0;gap:11px}.stat,.stat:nth-child(1),.stat:nth-child(2),.stat:nth-child(3),.stat:nth-child(4){background:#fff;border:1px solid #e0e5ec;box-shadow:0 9px 24px rgba(29,41,60,.065);color:#182033;padding:16px}
+      .stat .num,.stat .label{color:#182033}.stat .label{opacity:1;color:#778196}.stat::after{display:none}
+      .stat .stat-icon,.stat:nth-child(1) .stat-icon,.stat:nth-child(2) .stat-icon,.stat:nth-child(3) .stat-icon,.stat:nth-child(4) .stat-icon{background:#eef0ff;color:#5867eb;border:0}
+      .stat:hover{box-shadow:0 14px 29px rgba(29,41,60,.10)}
+      .section{background:#fff;border-color:#e0e5ec;box-shadow:0 10px 28px rgba(29,41,60,.07)}
+      .section::before{display:none}.section-wide{border-radius:24px}
       .fab{right:218px;left:auto}
     }
+
+    @media(max-width:899px){.dashboard-hero{display:none}}
   </style>
 </head>
 <body>
@@ -527,6 +553,21 @@
 
   <main>
     <section id="homeView" class="view active">
+      <div class="dashboard-hero">
+        <div class="dashboard-shift-card">
+          <div class="dashboard-shift-kicker">دوام Group A اليوم</div>
+          <div class="dashboard-shift-main">
+            <div class="dashboard-shift-code" id="dashboardShiftCode">—</div>
+            <div class="dashboard-shift-copy"><strong id="dashboardShiftName">جاري الحساب</strong><span id="dashboardShiftPeriod"></span></div>
+          </div>
+          <div class="dashboard-next-shift" id="dashboardNextShift">الشفت القادم</div>
+        </div>
+        <button class="dashboard-add-card" onclick="openLeaveModal()">
+          <span class="dashboard-add-icon">＋</span>
+          <strong>إضافة إجازة</strong>
+          <span>مع فحص العدد والتعارض تلقائيًا قبل الحفظ</span>
+        </button>
+      </div>
       <div class="grid4">
         <div class="stat" style="--stat-glow:rgba(65,199,255,.15)"><div class="stat-top"><div class="stat-icon">👥</div><div class="num" id="totalCount">0</div></div><div class="label">إجمالي الموظفين</div></div>
         <div class="stat" style="--stat-glow:rgba(45,212,163,.16)"><div class="stat-top"><div class="stat-icon">✓</div><div class="num" id="workingCount">0</div></div><div class="label">على رأس العمل</div></div>
@@ -1554,6 +1595,15 @@ function firstWorkDayAfterLeave(endDate){
   }
   return null;
 }
+function renderDashboardShift(){
+  const code=document.getElementById('dashboardShiftCode');
+  if(!code)return;
+  const t=todayISO(),current=groupShiftForDate(t),end=shiftPeriodEnd(t,current.code),next=nextWorkingShift(t,current.code);
+  code.textContent=current.code;
+  document.getElementById('dashboardShiftName').textContent=current.code==='OFF'?'يوم راحة':current.name+' Shift';
+  document.getElementById('dashboardShiftPeriod').textContent=current.code==='OFF'?`الراحة مستمرة حتى ${shortDate(end)}`:`${current.arabic} حتى ${shortDate(end)}`;
+  document.getElementById('dashboardNextShift').textContent=next?`القادم: ${next.code} · ${next.name} — ${shortDate(next.date)}`:'—';
+}
 function changeScheduleMonth(step){
   let [year,month]=scheduleMonth.split('-').map(Number);month+=step;
   if(month<1){month=12;year--}if(month>12){month=1;year++}
@@ -1625,7 +1675,6 @@ function renderCurrentLeaveTable(){
     const e=state.employees.find(x=>x.id===l.employeeId);
     if(!e)return '';
     const untilStart=diffDays(l.start,t),remaining=Math.max(0,diffDays(l.end,t));
-    const startDuty={date:l.start,...groupShiftForDate(l.start)};
     const returnDuty=firstWorkDayAfterLeave(l.end);
     let status,remainingText,rowClass;
     if(untilStart>0){
@@ -1640,7 +1689,7 @@ function renderCurrentLeaveTable(){
     }
     return `<tr class="${rowClass}">
       <td><div class="employee-cell"><div class="avatar">${esc(initials(e.name))}</div><div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)}</div><span class="badge ${status.cls} employee-status-inline">${status.text}</span></div></div></td>
-      <td>${fmtDate(l.start)}<div class="return-shift ${startDuty.cls}"><span>بداية الإجازة: ${startDuty.arabic}</span></div></td>
+      <td>${fmtDate(l.start)}</td>
       <td>${fmtDate(l.end)}</td>
       <td><span class="days-remaining">${remainingText}</span>${returnDuty?`<div class="return-shift ${returnDuty.cls}"><span>العودة: ${returnDuty.arabic}</span><small>${fmtDate(returnDuty.date)}</small></div>`:''}</td>
       <td><span class="badge ${status.cls}">${status.text}</span></td>
@@ -1910,7 +1959,7 @@ function refreshSelects(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderStats(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
+  renderStats(); renderDashboardShift(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
 }
 
 function showView(id,btn){
