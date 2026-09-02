@@ -328,6 +328,92 @@
       body{background:radial-gradient(circle at 92% 0,rgba(37,99,235,.08),transparent 26%),linear-gradient(180deg,#f8faff,#eef2f7)!important}
       .topbar{border-radius:20px;padding:14px 18px}.bottom-nav{background:rgba(255,255,255,.95)}
     }
+
+    /* Hybrid creative theme: charcoal structure, vivid accents, calm content */
+    :root{
+      --bg:#dfe5ed;--card:#f7f9fc;--card2:#eef2f7;--text:#182234;--muted:#69778a;
+      --line:#d5dde8;--primary:#3067f0;--shadow:0 16px 38px rgba(25,36,54,.12);
+    }
+    body{
+      background:
+        radial-gradient(circle at 12% 6%,rgba(70,98,255,.14),transparent 26%),
+        radial-gradient(circle at 92% 18%,rgba(0,184,198,.10),transparent 25%),
+        linear-gradient(145deg,#e7ebf1,#d9e0e9 58%,#e5e9ef);
+    }
+    .topbar{
+      background:linear-gradient(125deg,#151b27 0%,#202a3a 68%,#27364b 100%);
+      border-color:rgba(255,255,255,.08);box-shadow:0 16px 38px rgba(18,25,38,.24);
+      position:relative;overflow:hidden;
+    }
+    .topbar::after{
+      content:"";position:absolute;inset:auto -30px -70px auto;width:190px;height:190px;border-radius:50%;
+      background:radial-gradient(circle,rgba(53,205,255,.20),transparent 66%);pointer-events:none;
+    }
+    .title h1{color:#fff}.title p{color:#aeb9ca}
+    .brand-mark,.auth-logo{background:linear-gradient(135deg,#5b65ff,#13c9d7);box-shadow:0 10px 24px rgba(30,183,220,.26)}
+    .iconbtn{background:rgba(255,255,255,.07);color:#eef4ff;border-color:rgba(255,255,255,.13);box-shadow:none}
+    .iconbtn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22)}
+    .global-search input{background:#f1f4f8;border-color:#cfd8e4;box-shadow:0 10px 26px rgba(28,40,58,.10)}
+    .global-search input:focus,input:focus,select:focus,textarea:focus{border-color:#4b79ff;box-shadow:0 0 0 4px rgba(75,121,255,.13)}
+    .grid4{gap:14px}
+    .stat{color:#fff;border:0;box-shadow:0 13px 26px rgba(27,40,61,.16);overflow:hidden}
+    .stat:nth-child(1){background:linear-gradient(135deg,#7466f1,#5145c9)}
+    .stat:nth-child(2){background:linear-gradient(135deg,#1eb9a1,#087e72)}
+    .stat:nth-child(3){background:linear-gradient(135deg,#3f8efc,#225bc2)}
+    .stat:nth-child(4){background:linear-gradient(135deg,#f4a13b,#d96824)}
+    .stat .num,.stat .label{color:#fff}.stat .label{opacity:.84}
+    .stat .stat-icon,.stat:nth-child(1) .stat-icon,.stat:nth-child(2) .stat-icon,.stat:nth-child(3) .stat-icon,.stat:nth-child(4) .stat-icon{
+      background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.14)
+    }
+    .stat::after{opacity:.15;background:radial-gradient(circle,#fff,transparent 68%)}
+    .stat:hover{transform:translateY(-4px);box-shadow:0 18px 34px rgba(27,40,61,.21)}
+    .section{
+      background:linear-gradient(155deg,#fafbfd,#f3f6fa);border-color:rgba(255,255,255,.75);
+      box-shadow:0 14px 34px rgba(31,44,64,.10);position:relative;overflow:hidden;
+    }
+    .section::before{
+      content:"";position:absolute;top:0;right:22px;left:22px;height:3px;border-radius:0 0 8px 8px;
+      background:linear-gradient(90deg,#665ef1,#3288f5,#16b9b0);
+    }
+    .section-head h2,.name,.note-text,.days-remaining,.calendar-title{color:#1a2639}
+    .section-head button,.primary{background:linear-gradient(135deg,#446ff4,#2555d6);box-shadow:0 8px 18px rgba(48,103,240,.22)}
+    .row,.note-row,.shift-card,.notification-item{background:#fff;border-color:#dfe5ed;box-shadow:0 4px 12px rgba(31,44,64,.035)}
+    .row:hover,.note-row:hover{background:#f7faff;border-color:#c9d5e7;transform:translateY(-1px)}
+    .avatar{background:linear-gradient(145deg,#5967f1,#18b8d0);box-shadow:0 7px 16px rgba(50,116,216,.20)}
+    .leave-table-wrap,.calendar-scroll{background:#f8fafc;border-color:#d4dde8;box-shadow:inset 0 1px 0 #fff}
+    .leave-table th,.calendar-weekday{background:#e9eef5;color:#4e5e73}
+    .leave-table td,.calendar-day{background:#fbfcfe;color:#273449;border-color:#dfe5ec}
+    .calendar-day.other{background:#edf1f6}
+    .legend-item,.chip{background:#e9eef5;color:#526176;border-color:#d6dee8}
+    input,select,textarea{background:#f8fafc;color:#182234;border-color:#cfd8e4}
+    .secondary{background:#edf2f7;color:#314056;border-color:#d2dbe6}
+    .secondary:hover{background:#e4eaf2}
+    .sheet{background:linear-gradient(160deg,#fafbfd,#eef2f7);border-color:#fff}
+    .auth-screen{background:radial-gradient(circle at 70% 0,rgba(77,102,245,.22),transparent 38%),linear-gradient(145deg,#dce3ec,#cfd8e4)}
+    .auth-card{background:linear-gradient(160deg,#fafbfd,#eef2f7);border-color:#fff;box-shadow:0 28px 80px rgba(24,34,52,.22)}
+    .fab{background:linear-gradient(135deg,#5865f2,#13becd);box-shadow:0 16px 34px rgba(37,92,204,.32)}
+    .bottom-nav{background:linear-gradient(135deg,#171e2b,#252f40);border-color:rgba(255,255,255,.08);box-shadow:0 16px 38px rgba(18,25,38,.30)}
+    .navbtn{color:#aeb9ca}.navbtn.active{background:linear-gradient(135deg,#5565f2,#267be9);color:#fff;box-shadow:0 8px 20px rgba(43,96,222,.33)}
+
+    @media(min-width:900px){
+      body{
+        background:radial-gradient(circle at 7% 10%,rgba(85,101,242,.13),transparent 27%),linear-gradient(145deg,#e5e9ef,#d7dee7)!important;
+      }
+      .app{max-width:1460px;margin:0 auto;padding:24px 226px 46px 28px}
+      .topbar{border-radius:26px;padding:17px 21px;margin-bottom:20px}
+      .bottom-nav{
+        position:fixed;z-index:60;top:24px;right:24px;bottom:24px;left:auto;transform:none;
+        width:174px;height:auto;margin:0;padding:18px 12px;display:flex;flex-direction:column;justify-content:center;gap:9px;
+        border-radius:26px;
+      }
+      .bottom-nav::before{content:"SHIFT\A MANAGER";white-space:pre;text-align:center;color:#fff;font-size:12px;font-weight:900;letter-spacing:1.4px;line-height:1.25;margin-bottom:20px;opacity:.85}
+      .navbtn{width:100%;min-height:68px;border-radius:17px;font-size:12px;transition:.2s ease}
+      .navbtn span{font-size:21px;margin-bottom:5px}
+      .navbtn:hover{background:rgba(255,255,255,.07);color:#fff}
+      .navbtn.active:hover{background:linear-gradient(135deg,#5565f2,#267be9)}
+      #homeView.active{grid-template-columns:.9fr 1.1fr;gap:18px}
+      .fab{right:218px;left:auto}
+    }
   </style>
 </head>
 <body>
