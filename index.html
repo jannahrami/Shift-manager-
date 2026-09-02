@@ -322,6 +322,13 @@
     .sheet h3{color:#172033}.calendar-scroll{background:#fff;border-color:#dfe5ec}.calendar-weekday{background:#f8fafc;color:#536174}
     .calendar-day{background:#fff;border-color:#e5eaf0}.calendar-day.other{background:#f8fafc}
     .calendar-event{color:#243043}.calendar-event.start{background:#fef3c7}.calendar-event.active{background:#dbeafe}.calendar-event.end{background:#d1fae5}
+    .calendar-shift-tag{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:4px 6px;margin:0 0 5px;border-radius:7px;font-size:8px;font-weight:900;line-height:1}
+    .calendar-shift-tag small{font-size:7px;font-weight:750;opacity:.72}
+    .calendar-shift-tag.shift-night{background:#fff2a8!important;color:#765d00!important;border:1px solid #efd977!important}
+    .calendar-shift-tag.shift-afternoon{background:#f8c0cf!important;color:#8f2944!important;border:1px solid #e99aad!important}
+    .calendar-shift-tag.shift-morning{background:#edc2f5!important;color:#7b268c!important;border:1px solid #d89be5!important}
+    .calendar-shift-tag.shift-off{background:#e7ecf2!important;color:#667386!important;border:1px solid #d4dce6!important}
+    .combined-calendar-note{font-size:10px;color:#64748b;margin:-3px 0 11px;line-height:1.6}
     .capacity-label{background:#fff7ed}.capacity-label.exceeded{background:#fff1f2}
     .fab{background:linear-gradient(135deg,#2563eb,#06b6d4);color:#fff;box-shadow:0 14px 30px rgba(37,99,235,.28)}
     @media(min-width:900px){
@@ -395,6 +402,28 @@
     .bottom-nav{background:linear-gradient(135deg,#171e2b,#252f40);border-color:rgba(255,255,255,.08);box-shadow:0 16px 38px rgba(18,25,38,.30)}
     .navbtn{color:#aeb9ca}.navbtn.active{background:linear-gradient(135deg,#5565f2,#267be9);color:#fff;box-shadow:0 8px 20px rgba(43,96,222,.33)}
     .fab.hidden{display:none}
+    .shift-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
+    .shift-status-card{padding:15px;border-radius:17px;border:1px solid var(--line);position:relative;overflow:hidden}
+    .shift-status-card::after{content:"";position:absolute;width:80px;height:80px;border-radius:50%;left:-28px;top:-34px;background:rgba(255,255,255,.25)}
+    .shift-status-card .shift-card-label{font-size:11px;color:#536174;margin-bottom:7px}
+    .shift-status-card strong{display:block;font-size:19px;color:#172033}.shift-status-card .meta{font-size:11px;color:#536174}
+    .shift-night{background:#fff2a8!important;border-color:#efd977!important;color:#765d00!important}
+    .shift-afternoon{background:#f8c0cf!important;border-color:#e99aad!important;color:#8f2944!important}
+    .shift-morning{background:#edc2f5!important;border-color:#d89be5!important;color:#7b268c!important}
+    .shift-off{background:#e7ecf2!important;border-color:#d4dce6!important;color:#667386!important}
+    .schedule-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .schedule-actions{display:flex;gap:7px}.schedule-title{font-size:20px;font-weight:850;color:#1a2639}
+    .schedule-weekdays,.schedule-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+    .schedule-calendar{border:1px solid #d4dde8;border-radius:17px;overflow:hidden;background:#f8fafc}
+    .schedule-weekday{padding:10px 3px;text-align:center;background:#e9eef5;color:#4e5e73;font-size:11px;font-weight:800;border-bottom:1px solid #d9e0e9}
+    .schedule-day{min-height:84px;padding:7px;border-inline-start:1px solid #dfe5ec;border-bottom:1px solid #dfe5ec;background:#fbfcfe;position:relative}
+    .schedule-day:nth-child(7n+1){border-inline-start:none}.schedule-day.empty{background:#eef2f6}
+    .schedule-day.today{box-shadow:inset 0 0 0 3px #326af1;z-index:1}
+    .schedule-day-number{font-size:12px;font-weight:850;color:#29364a;margin-bottom:9px}
+    .schedule-shift-code{display:grid;place-items:center;min-height:31px;border-radius:10px;font-size:13px;font-weight:950;letter-spacing:.5px}
+    .schedule-shift-name{text-align:center;font-size:8px;font-weight:750;margin-top:4px;opacity:.72}
+    .shift-today-mini{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-radius:15px;margin-bottom:10px;border:1px solid var(--line)}
+    .shift-today-mini span{font-size:11px}.shift-today-mini strong{font-size:15px}
 
     /* Mobile layout fixes */
     @media(max-width:899px){
@@ -422,6 +451,10 @@
       #leaveList .meta{font-size:10px;white-space:nowrap}
       #leaveList .row>div:last-child{width:100%;display:grid!important;grid-template-columns:repeat(3,1fr);gap:7px!important}
       #leaveList .row>div:last-child>*{width:100%;min-width:0;margin:0;text-align:center;display:grid;place-items:center;min-height:38px;padding:7px 5px}
+      .shift-overview{grid-template-columns:1fr 1fr}.shift-status-card{padding:12px}.shift-status-card strong{font-size:16px}
+      .schedule-day{min-height:62px;padding:4px}.schedule-weekday{font-size:9px;padding:8px 1px}
+      .schedule-day-number{font-size:10px;margin-bottom:5px}.schedule-shift-code{min-height:25px;font-size:11px;border-radius:8px}.schedule-shift-name{display:none}
+      .calendar-shift-tag{padding:4px 5px}.calendar-shift-tag small{display:none}
       .bottom-nav{
         bottom:calc(8px + env(safe-area-inset-bottom,0px));width:calc(100% - 20px);padding:6px;border-radius:20px;
       }
@@ -594,6 +627,31 @@
 
     <section id="shiftView" class="view">
       <div class="section">
+        <div class="schedule-toolbar">
+          <div><span class="section-kicker">دورة Group A</span><div class="schedule-title" id="scheduleTitle">جدول الدوام</div></div>
+          <div class="schedule-actions">
+            <button class="secondary" onclick="changeScheduleMonth(-1)">السابق</button>
+            <button class="secondary" onclick="goScheduleToday()">اليوم</button>
+            <button class="secondary" onclick="changeScheduleMonth(1)">التالي</button>
+          </div>
+        </div>
+        <div class="shift-overview">
+          <div class="shift-status-card" id="todayShiftCard"></div>
+          <div class="shift-status-card" id="nextShiftCard"></div>
+        </div>
+        <div class="status-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#efd45b"></span>Night</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#e993aa"></span>Afternoon</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#d68ce4"></span>Morning</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#aab4c2"></span>Off</span>
+        </div>
+        <div class="schedule-calendar">
+          <div class="schedule-weekdays" id="scheduleWeekdays"></div>
+          <div class="schedule-grid" id="scheduleGrid"></div>
+        </div>
+      </div>
+
+      <div class="section">
         <div class="section-head"><h2>توزيع الشفت</h2><button onclick="openShiftModal()">+ توزيع</button></div>
         <div id="shiftList"></div>
       </div>
@@ -615,6 +673,13 @@
           <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>بداية الإجازة</span>
           <span class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>في إجازة</span>
           <span class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>نهاية الإجازة</span>
+        </div>
+        <div class="combined-calendar-note">يظهر دوام Group A أعلى كل يوم، وتظهر أسماء الموظفين المجازين تحته.</div>
+        <div class="status-legend" style="margin-bottom:12px">
+          <span class="legend-item"><span class="legend-dot" style="background:#efd45b"></span>N · Night</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#e993aa"></span>A · Afternoon</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#d68ce4"></span>M · Morning</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#aab4c2"></span>OFF</span>
         </div>
         <div class="calendar-scroll"><div class="calendar-inner">
           <div class="calendar-weekdays" id="calendarWeekdays"></div>
@@ -1253,6 +1318,7 @@ if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
 let selectedEmployeeId=null;
 let editingLeaveId=null;
 let calendarMonth=todayISO().slice(0,7);
+let scheduleMonth=todayISO().slice(0,7);
 let session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
 let syncTimer=null;
 let cloudReady=false;
@@ -1406,13 +1472,13 @@ function prepareCalendarEmail(){
   renderLeaveCalendar();
   const monthName=document.getElementById('calendarTitle').textContent;
   const originalTitle=document.title;
-  document.title=`Group A Leave Calendar - ${monthName}`;
+  document.title=`Group A Leave and Shift Calendar - ${monthName}`;
   window.print();
   document.title=originalTitle;
   setTimeout(()=>{
     if(!confirm('بعد حفظ التقويم بصيغة PDF، اضغط موافق لفتح رسالة البريد وإرفاق الملف.'))return;
-    const subject=`Group A Leave Calendar - ${monthName}`;
-    const body=`Dear Sir,\n\nPlease find attached the Group A leave calendar for ${monthName}.\n\nBest regards,`;
+    const subject=`Group A Leave and Shift Calendar - ${monthName}`;
+    const body=`Dear Sir,\n\nPlease find attached the Group A leave and shift calendar for ${monthName}.\n\nBest regards,`;
     window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   },250);
 }
@@ -1429,6 +1495,7 @@ function renderLeaveCalendar(){
     const day=i-firstDay+1;
     if(day<1||day>daysInMonth){html+='<div class="calendar-day other"></div>';continue}
     const date=calendarDateISO(year,month,day);
+    const groupShift=groupShiftForDate(date);
     const dayLeaves=state.leaves.filter(l=>l.start<=date&&l.end>=date).sort((a,b)=>a.start.localeCompare(b.start));
     const capacityClass=dayLeaves.length>6?'capacity-exceeded':dayLeaves.length===6?'capacity-full':'';
     const capacityLabel=dayLeaves.length>6?`<span class="capacity-label exceeded">تجاوز ${dayLeaves.length}/6</span>`:dayLeaves.length===6?'<span class="capacity-label">مكتمل 6/6</span>':'';
@@ -1438,9 +1505,72 @@ function renderLeaveCalendar(){
       const shortName=e.name.trim().split(/\s+/).slice(0,2).join(' ');
       return `<button class="calendar-event ${type}" title="${esc(e.name)}" onclick="openEmployeeProfile('${e.id}')">${esc(shortName)}</button>`;
     }).join('');
-    html+=`<div class="calendar-day ${date===todayISO()?'today':''} ${capacityClass}"><div class="calendar-day-number">${day.toLocaleString('ar-SA')}</div>${capacityLabel}${events}</div>`;
+    const shiftTag=`<div class="calendar-shift-tag ${groupShift.cls}" title="${groupShift.name}"><span>${groupShift.code}</span><small>${groupShift.arabic}</small></div>`;
+    html+=`<div class="calendar-day ${date===todayISO()?'today':''} ${capacityClass}"><div class="calendar-day-number">${day.toLocaleString('ar-SA')}</div>${shiftTag}${capacityLabel}${events}</div>`;
   }
   box.innerHTML=html;
+}
+
+const SHIFT_ANCHOR='2026-08-30';
+const SHIFT_CYCLE=[
+  {from:0,to:6,code:'N',name:'Night',arabic:'ليلي',cls:'shift-night'},
+  {from:7,to:8,code:'OFF',name:'Off',arabic:'راحة',cls:'shift-off'},
+  {from:9,to:14,code:'A',name:'Afternoon',arabic:'مسائي',cls:'shift-afternoon'},
+  {from:15,to:17,code:'OFF',name:'Off',arabic:'راحة',cls:'shift-off'},
+  {from:18,to:24,code:'M',name:'Morning',arabic:'صباحي',cls:'shift-morning'},
+  {from:25,to:27,code:'OFF',name:'Off',arabic:'راحة',cls:'shift-off'}
+];
+function groupShiftForDate(date){
+  const raw=diffDays(date,SHIFT_ANCHOR),day=((raw%28)+28)%28;
+  return SHIFT_CYCLE.find(s=>day>=s.from&&day<=s.to)||SHIFT_CYCLE[0];
+}
+function addDaysISO(date,days){
+  const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+days);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function shortDate(date){
+  return new Date(date+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'long'});
+}
+function shiftPeriodEnd(date,code){
+  let end=date;
+  for(let i=1;i<=28;i++){
+    const next=addDaysISO(date,i);if(groupShiftForDate(next).code!==code)break;end=next;
+  }
+  return end;
+}
+function nextWorkingShift(date,currentCode){
+  for(let i=1;i<=35;i++){
+    const nextDate=addDaysISO(date,i),info=groupShiftForDate(nextDate);
+    if(info.code!=='OFF'&&info.code!==currentCode)return {date:nextDate,...info};
+  }
+  return null;
+}
+function changeScheduleMonth(step){
+  let [year,month]=scheduleMonth.split('-').map(Number);month+=step;
+  if(month<1){month=12;year--}if(month>12){month=1;year++}
+  scheduleMonth=`${year}-${String(month).padStart(2,'0')}`;renderShiftSchedule();
+}
+function goScheduleToday(){scheduleMonth=todayISO().slice(0,7);renderShiftSchedule()}
+function renderShiftSchedule(){
+  const grid=document.getElementById('scheduleGrid'),weekdays=document.getElementById('scheduleWeekdays');
+  if(!grid||!weekdays)return;
+  const t=todayISO(),current=groupShiftForDate(t),currentEnd=shiftPeriodEnd(t,current.code),next=nextWorkingShift(t,current.code);
+  const currentCard=document.getElementById('todayShiftCard'),nextCard=document.getElementById('nextShiftCard');
+  currentCard.className=`shift-status-card ${current.cls}`;
+  currentCard.innerHTML=`<div class="shift-card-label">دوام اليوم</div><strong>${current.code} · ${current.name}</strong><div class="meta">${current.arabic} حتى ${shortDate(currentEnd)}</div>`;
+  nextCard.className=`shift-status-card ${next.cls}`;
+  nextCard.innerHTML=`<div class="shift-card-label">الشفت القادم</div><strong>${next.code} · ${next.name}</strong><div class="meta">يبدأ ${shortDate(next.date)}</div>`;
+  const [year,month]=scheduleMonth.split('-').map(Number),firstDay=new Date(year,month-1,1).getDay(),daysInMonth=new Date(year,month,0).getDate();
+  document.getElementById('scheduleTitle').textContent=new Date(year,month-1,1).toLocaleDateString('ar-SA-u-ca-gregory',{month:'long',year:'numeric'});
+  weekdays.innerHTML=['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'].map(d=>`<div class="schedule-weekday">${d}</div>`).join('');
+  let html='';
+  for(let i=0;i<42;i++){
+    const day=i-firstDay+1;
+    if(day<1||day>daysInMonth){html+='<div class="schedule-day empty"></div>';continue}
+    const date=calendarDateISO(year,month,day),info=groupShiftForDate(date);
+    html+=`<div class="schedule-day ${date===t?'today':''}"><div class="schedule-day-number">${day.toLocaleString('ar-SA')}</div><div class="schedule-shift-code ${info.cls}">${info.code}</div><div class="schedule-shift-name">${info.arabic}</div></div>`;
+  }
+  grid.innerHTML=html;
 }
 function selectGlobalEmployee(id){
   document.getElementById('globalSearchInput').value='';document.getElementById('globalSearchResults').classList.remove('show');openEmployeeProfile(id);
@@ -1752,8 +1882,10 @@ function renderShift(){
 function renderShiftPreview(){
   const box=document.getElementById('currentShiftPreview');
   const rows=state.shifts.slice(0,4);
-  if(!rows.length){box.innerHTML='<div class="empty">أضف توزيع الشفت من قسم الشفت</div>';return}
-  box.innerHTML=rows.map(s=>{
+  const current=groupShiftForDate(todayISO());
+  const summary=`<div class="shift-today-mini ${current.cls}"><span>دوام Group A اليوم</span><strong>${current.code} · ${current.name}</strong></div>`;
+  if(!rows.length){box.innerHTML=summary+'<div class="empty">لا يوجد توزيع مواقع محفوظ</div>';return}
+  box.innerHTML=summary+rows.map(s=>{
     const e=state.employees.find(x=>x.id===s.employeeId);
     return `<div class="row"><div><div class="name">${esc(s.post)}</div><div class="meta">${esc(e?e.name:'-')} · ${esc(s.shift)}</div></div></div>`;
   }).join('');
@@ -1767,7 +1899,7 @@ function refreshSelects(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderStats(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
+  renderStats(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
 }
 
 function showView(id,btn){
