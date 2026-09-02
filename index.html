@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#f5f7fb" />
   <title>Shift Manager</title>
   <style>
     :root{
@@ -271,6 +271,62 @@
       .modal{align-items:center}
       .row{min-height:72px}
       .employee-click{cursor:pointer}
+    }
+
+    /* Light professional theme */
+    :root{
+      --bg:#f5f7fb;--card:#ffffff;--card2:#f8fafc;--text:#172033;--muted:#697586;
+      --line:#e3e8ef;--primary:#2563eb;--green:#10b981;--yellow:#f59e0b;
+      --red:#ef4444;--blue:#3b82f6;--shadow:0 10px 28px rgba(30,41,59,.07);--radius:20px;
+    }
+    body{background:radial-gradient(circle at 92% 0,rgba(37,99,235,.08),transparent 26%),linear-gradient(180deg,#f8faff,#f2f5f9 56%,#eef2f7);color:var(--text)}
+    .topbar{padding:12px 14px;margin-bottom:18px;background:rgba(255,255,255,.9);border:1px solid rgba(227,232,239,.9);border-radius:0 0 20px 20px;box-shadow:0 8px 24px rgba(30,41,59,.05)}
+    .brand-mark,.auth-logo{background:linear-gradient(135deg,#2563eb,#06b6d4);color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.22)}
+    .title h1{color:#111827}.iconbtn{background:#fff;color:#334155;border-color:#dfe5ec;box-shadow:0 4px 12px rgba(30,41,59,.05)}
+    .iconbtn:hover{border-color:#93c5fd;background:#eff6ff}.notify-count{border-color:#fff}
+    .auth-screen{background:radial-gradient(circle at 75% 0,rgba(37,99,235,.12),transparent 36%),#f5f7fb}
+    .auth-card{background:#fff;border-color:#e2e8f0;box-shadow:0 24px 70px rgba(30,41,59,.13)}
+    .auth-card h2{color:#172033}
+    .global-search input{background:#fff;border-color:#dfe5ec;color:#172033;box-shadow:0 8px 22px rgba(30,41,59,.06)}
+    .global-search input:focus,input:focus,select:focus,textarea:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+    .search-results{background:#fff;border-color:#dfe5ec}.search-result:hover{background:#eff6ff}
+    .stat{background:#fff;border-color:transparent;box-shadow:var(--shadow);transition:.2s ease}
+    .stat:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(30,41,59,.1)}
+    .stat:nth-child(1){background:linear-gradient(135deg,#eef2ff,#fff);border-color:#dfe3ff}
+    .stat:nth-child(2){background:linear-gradient(135deg,#ecfdf5,#fff);border-color:#c9f4df}
+    .stat:nth-child(3){background:linear-gradient(135deg,#eff6ff,#fff);border-color:#d6e8ff}
+    .stat:nth-child(4){background:linear-gradient(135deg,#fff7ed,#fff);border-color:#fee2c6}
+    .stat:nth-child(1) .stat-icon{background:#e0e7ff;color:#4f46e5}.stat:nth-child(2) .stat-icon{background:#d1fae5;color:#059669}
+    .stat:nth-child(3) .stat-icon{background:#dbeafe;color:#2563eb}.stat:nth-child(4) .stat-icon{background:#ffedd5;color:#ea580c}
+    .stat::after{opacity:.42}.stat .num{color:#172033}.stat-icon{background:#eef2f7}
+    .section{background:#fff;border-color:#e3e8ef;box-shadow:var(--shadow)}
+    .section-head h2,.name,.note-text,.days-remaining,.calendar-title{color:#172033}
+    .section-head button,.primary{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 6px 16px rgba(37,99,235,.16)}
+    .row,.note-row,.shift-card,.notification-item{background:#fbfcfe;border-color:#e6ebf1}
+    .row:hover,.note-row:hover{background:#f7faff;border-color:#d9e4f2}
+    .avatar{background:linear-gradient(135deg,#2563eb,#06b6d4);box-shadow:0 6px 14px rgba(37,99,235,.16)}
+    .b-green{background:#ecfdf5;color:#047857;border-color:#a7f3d0}.b-yellow{background:#fffbeb;color:#b45309;border-color:#fde68a}
+    .b-blue{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}.b-red{background:#fef2f2;color:#b91c1c;border-color:#fecaca}
+    .b-neutral{background:#f1f5f9;color:#475569;border-color:#dbe3ec}
+    .leave-table-wrap{background:#fff;border-color:#e3e8ef}.leave-table th{background:#f8fafc;color:#64748b}.leave-table td{color:#273244}
+    .leave-table tr.status-yellow{background:linear-gradient(90deg,#fffaf0,transparent 62%)}
+    .leave-table tr.status-blue{background:linear-gradient(90deg,#f3f8ff,transparent 62%)}
+    .leave-table tr.status-green{background:linear-gradient(90deg,#f0fdf7,transparent 62%)}
+    .legend-item,.chip{background:#f8fafc;color:#64748b;border-color:#e1e7ee}
+    .bottom-nav{background:rgba(255,255,255,.94);border-color:#dfe5ec;box-shadow:0 14px 36px rgba(30,41,59,.12)}
+    .navbtn{color:#718096}.navbtn.active{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 7px 18px rgba(37,99,235,.22)}
+    input,select,textarea{background:#fff;color:#172033;border-color:#dfe5ec}
+    .secondary{background:#fff;color:#334155;border-color:#d8e0e8;box-shadow:0 3px 9px rgba(30,41,59,.04)}
+    .secondary:hover{background:#f8fafc}.danger{background:#fff1f2!important;color:#be123c!important;border-color:#fecdd3!important}
+    .modal{background:rgba(15,23,42,.32);backdrop-filter:blur(5px)}.sheet{background:#fff;border-color:#e3e8ef;box-shadow:0 24px 70px rgba(15,23,42,.18)}
+    .sheet h3{color:#172033}.calendar-scroll{background:#fff;border-color:#dfe5ec}.calendar-weekday{background:#f8fafc;color:#536174}
+    .calendar-day{background:#fff;border-color:#e5eaf0}.calendar-day.other{background:#f8fafc}
+    .calendar-event{color:#243043}.calendar-event.start{background:#fef3c7}.calendar-event.active{background:#dbeafe}.calendar-event.end{background:#d1fae5}
+    .capacity-label{background:#fff7ed}.capacity-label.exceeded{background:#fff1f2}
+    .fab{background:linear-gradient(135deg,#2563eb,#06b6d4);color:#fff;box-shadow:0 14px 30px rgba(37,99,235,.28)}
+    @media(min-width:900px){
+      body{background:radial-gradient(circle at 92% 0,rgba(37,99,235,.08),transparent 26%),linear-gradient(180deg,#f8faff,#eef2f7)!important}
+      .topbar{border-radius:20px;padding:14px 18px}.bottom-nav{background:rgba(255,255,255,.95)}
     }
   </style>
 </head>
