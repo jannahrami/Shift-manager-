@@ -155,7 +155,7 @@
     .note-date{display:flex;align-items:center;gap:7px;margin-top:6px;font-size:12px;color:var(--muted)}
     .bottom-nav{
       position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
-      width:min(398px,calc(100% - 24px));display:grid;grid-template-columns:repeat(4,1fr);
+      width:min(430px,calc(100% - 18px));display:grid;grid-template-columns:repeat(5,1fr);
       background:rgba(8,18,34,.96);border:1px solid var(--line);border-radius:22px;padding:8px;
       backdrop-filter:blur(18px);box-shadow:var(--shadow);z-index:30
     }
@@ -208,6 +208,20 @@
       padding:14px;border:1px solid var(--line);border-radius:16px;background:#0d1526;margin-bottom:10px
     }
     .shift-card strong{display:block;margin-bottom:6px}
+    .calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .calendar-toolbar-actions{display:flex;gap:7px}.calendar-title{font-size:20px;font-weight:850}
+    .calendar-scroll{overflow:auto;border:1px solid var(--line);border-radius:17px;background:#0a1424}
+    .calendar-inner{min-width:760px}
+    .calendar-weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+    .calendar-weekday{padding:11px;text-align:center;color:var(--muted);font-size:12px;font-weight:750;border-bottom:1px solid var(--line)}
+    .calendar-day{min-height:116px;padding:8px;border-inline-start:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(11,23,40,.6)}
+    .calendar-day:nth-child(7n+1){border-inline-start:none}.calendar-day.other{background:rgba(5,12,22,.55)}
+    .calendar-day.today{box-shadow:inset 0 0 0 2px var(--primary)}
+    .calendar-day-number{font-size:12px;color:var(--muted);margin-bottom:6px}.calendar-day.today .calendar-day-number{color:var(--primary);font-weight:900}
+    .calendar-event{display:block;width:100%;border:0;border-radius:8px;padding:5px 6px;margin-top:4px;text-align:right;color:#fff;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+    .calendar-event.start{background:rgba(247,185,85,.3);box-shadow:inset -3px 0 var(--yellow)}
+    .calendar-event.active{background:rgba(96,165,250,.27);box-shadow:inset -3px 0 var(--blue)}
+    .calendar-event.end{background:rgba(45,212,163,.3);box-shadow:inset -3px 0 var(--green)}
     .fab{
       position:fixed;bottom:88px;left:calc(50% + 140px);transform:translateX(-50%);
       width:52px;height:52px;border-radius:17px;border:none;background:var(--primary);
@@ -227,11 +241,11 @@
       #homeView.active{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;align-items:start}
       #homeView .grid4{grid-column:1/-1}
       #homeView .section{margin-top:0}
-      #employeesView .section,#leaveView .section,#shiftView .section{margin-top:0}
+      #employeesView .section,#leaveView .section,#calendarView .section,#shiftView .section{margin-top:0}
       .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
       #employeesList{grid-template-columns:repeat(2,minmax(0,1fr))}
       #leaveList{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .bottom-nav{position:sticky;bottom:auto;left:auto;transform:none;width:100%;margin:20px 0 0;grid-template-columns:repeat(4,160px);justify-content:center;background:rgba(9,21,39,.94)}
+      .bottom-nav{position:sticky;bottom:auto;left:auto;transform:none;width:100%;margin:20px 0 0;grid-template-columns:repeat(5,150px);justify-content:center;background:rgba(9,21,39,.94)}
       .fab{right:32px;left:auto;bottom:32px;transform:none}
       .sheet{width:min(640px,100%);border-radius:24px}
       .modal{align-items:center}
@@ -382,6 +396,28 @@
         <div id="shiftList"></div>
       </div>
     </section>
+
+    <section id="calendarView" class="view">
+      <div class="section">
+        <div class="calendar-toolbar">
+          <div><span class="section-kicker">نظرة شهرية</span><div class="calendar-title" id="calendarTitle">تقويم الإجازات</div></div>
+          <div class="calendar-toolbar-actions">
+            <button class="secondary" onclick="changeCalendarMonth(-1)">السابق</button>
+            <button class="secondary" onclick="goCalendarToday()">اليوم</button>
+            <button class="secondary" onclick="changeCalendarMonth(1)">التالي</button>
+          </div>
+        </div>
+        <div class="status-legend" style="margin-bottom:12px">
+          <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>بداية الإجازة</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>في إجازة</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>نهاية الإجازة</span>
+        </div>
+        <div class="calendar-scroll"><div class="calendar-inner">
+          <div class="calendar-weekdays" id="calendarWeekdays"></div>
+          <div class="calendar-grid" id="leaveCalendar"></div>
+        </div></div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -391,6 +427,7 @@
   <button class="navbtn active" data-view="homeView" onclick="showView('homeView',this)"><span>⌂</span>الرئيسية</button>
   <button class="navbtn" data-view="employeesView" onclick="showView('employeesView',this)"><span>👥</span>الموظفون</button>
   <button class="navbtn" data-view="leaveView" onclick="showView('leaveView',this)"><span>🗓️</span>الإجازات</button>
+  <button class="navbtn" data-view="calendarView" onclick="showView('calendarView',this)"><span>▦</span>التقويم</button>
   <button class="navbtn" data-view="shiftView" onclick="showView('shiftView',this)"><span>🛡️</span>الشفت</button>
 </nav>
 
@@ -1010,6 +1047,7 @@ let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
 if(!Array.isArray(state.records)) state.records=[];
 if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
 let selectedEmployeeId=null;
+let calendarMonth=todayISO().slice(0,7);
 let session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
 let syncTimer=null;
 let cloudReady=false;
@@ -1148,6 +1186,40 @@ function renderGlobalSearch(){
     return `<div class="search-result" onclick="selectGlobalEmployee('${e.id}')"><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)} · ${leaves} إجازة · ${records} ملاحظة</div></div>`;
   }).join(''):'<div class="empty">لا يوجد موظف مطابق</div>';
   box.classList.add('show');
+}
+
+function calendarDateISO(year,month,day){
+  return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function changeCalendarMonth(step){
+  let [year,month]=calendarMonth.split('-').map(Number);
+  month+=step;if(month<1){month=12;year--}if(month>12){month=1;year++}
+  calendarMonth=`${year}-${String(month).padStart(2,'0')}`;renderLeaveCalendar();
+}
+function goCalendarToday(){calendarMonth=todayISO().slice(0,7);renderLeaveCalendar()}
+function renderLeaveCalendar(){
+  const box=document.getElementById('leaveCalendar'),weekdays=document.getElementById('calendarWeekdays');
+  if(!box||!weekdays)return;
+  const [year,month]=calendarMonth.split('-').map(Number);
+  const firstDay=new Date(year,month-1,1).getDay();
+  const daysInMonth=new Date(year,month,0).getDate();
+  document.getElementById('calendarTitle').textContent=new Date(year,month-1,1).toLocaleDateString('ar-SA-u-ca-gregory',{month:'long',year:'numeric'});
+  weekdays.innerHTML=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'].map(d=>`<div class="calendar-weekday">${d}</div>`).join('');
+  let html='';
+  for(let i=0;i<42;i++){
+    const day=i-firstDay+1;
+    if(day<1||day>daysInMonth){html+='<div class="calendar-day other"></div>';continue}
+    const date=calendarDateISO(year,month,day);
+    const dayLeaves=state.leaves.filter(l=>l.start<=date&&l.end>=date).sort((a,b)=>a.start.localeCompare(b.start));
+    const events=dayLeaves.map(l=>{
+      const e=state.employees.find(x=>x.id===l.employeeId);if(!e)return '';
+      const type=l.start===date?'start':l.end===date?'end':'active';
+      const shortName=e.name.trim().split(/\s+/).slice(0,2).join(' ');
+      return `<button class="calendar-event ${type}" title="${esc(e.name)}" onclick="openEmployeeProfile('${e.id}')">${esc(shortName)}</button>`;
+    }).join('');
+    html+=`<div class="calendar-day ${date===todayISO()?'today':''}"><div class="calendar-day-number">${day.toLocaleString('ar-SA')}</div>${events}</div>`;
+  }
+  box.innerHTML=html;
 }
 function selectGlobalEmployee(id){
   document.getElementById('globalSearchInput').value='';document.getElementById('globalSearchResults').classList.remove('show');openEmployeeProfile(id);
@@ -1445,7 +1517,7 @@ function refreshSelects(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderStats(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
+  renderStats(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
 }
 
 function showView(id,btn){
