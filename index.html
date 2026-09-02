@@ -228,6 +228,22 @@
       color:#06131d;font-size:28px;font-weight:700;box-shadow:var(--shadow);cursor:pointer;z-index:35
     }
     @media(max-width:380px){.fab{left:auto;right:18px;transform:none}}
+    @media print{
+      @page{size:A4 landscape;margin:8mm}
+      *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+      body{background:#fff!important;color:#111!important}
+      .auth-screen,.topbar,.global-search,.bottom-nav,.fab,.no-print{display:none!important}
+      .app{max-width:none!important;min-height:auto!important;padding:0!important;margin:0!important}
+      main>.view{display:none!important}#calendarView{display:block!important}
+      #calendarView .section{margin:0!important;padding:0!important;background:#fff!important;border:0!important;box-shadow:none!important}
+      .calendar-title{color:#111!important;font-size:20px}.section-kicker{color:#555!important}
+      .status-legend{color:#222!important}.legend-item{color:#222!important;background:#fff!important;border-color:#bbb!important}
+      .calendar-scroll{overflow:visible!important;border-color:#999!important;background:#fff!important}.calendar-inner{min-width:0!important}
+      .calendar-weekday{color:#222!important;border-color:#aaa!important;padding:6px!important;font-size:9px!important}
+      .calendar-day{min-height:76px!important;padding:4px!important;background:#fff!important;border-color:#bbb!important}
+      .calendar-day-number{color:#333!important;font-size:9px!important;margin-bottom:2px!important}
+      .calendar-event{font-size:7px!important;padding:3px 4px!important;margin-top:2px!important;color:#111!important}
+    }
 
     /* Desktop / tablet layout */
     @media(min-width:900px){
@@ -402,9 +418,10 @@
         <div class="calendar-toolbar">
           <div><span class="section-kicker">نظرة شهرية</span><div class="calendar-title" id="calendarTitle">تقويم الإجازات</div></div>
           <div class="calendar-toolbar-actions">
-            <button class="secondary" onclick="changeCalendarMonth(-1)">السابق</button>
-            <button class="secondary" onclick="goCalendarToday()">اليوم</button>
-            <button class="secondary" onclick="changeCalendarMonth(1)">التالي</button>
+            <button class="secondary no-print" onclick="changeCalendarMonth(-1)">السابق</button>
+            <button class="secondary no-print" onclick="goCalendarToday()">اليوم</button>
+            <button class="secondary no-print" onclick="changeCalendarMonth(1)">التالي</button>
+            <button class="primary no-print" onclick="prepareCalendarEmail()">📧 إرسال التقويم</button>
           </div>
         </div>
         <div class="status-legend" style="margin-bottom:12px">
@@ -1197,6 +1214,20 @@ function changeCalendarMonth(step){
   calendarMonth=`${year}-${String(month).padStart(2,'0')}`;renderLeaveCalendar();
 }
 function goCalendarToday(){calendarMonth=todayISO().slice(0,7);renderLeaveCalendar()}
+function prepareCalendarEmail(){
+  renderLeaveCalendar();
+  const monthName=document.getElementById('calendarTitle').textContent;
+  const originalTitle=document.title;
+  document.title=`Group A Leave Calendar - ${monthName}`;
+  window.print();
+  document.title=originalTitle;
+  setTimeout(()=>{
+    if(!confirm('بعد حفظ التقويم بصيغة PDF، اضغط موافق لفتح رسالة البريد وإرفاق الملف.'))return;
+    const subject=`Group A Leave Calendar - ${monthName}`;
+    const body=`Dear Sir,\n\nPlease find attached the Group A leave calendar for ${monthName}.\n\nBest regards,`;
+    window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  },250);
+}
 function renderLeaveCalendar(){
   const box=document.getElementById('leaveCalendar'),weekdays=document.getElementById('calendarWeekdays');
   if(!box||!weekdays)return;
