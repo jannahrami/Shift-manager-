@@ -1972,9 +1972,8 @@ function saveLeave(){
   if(check.blocked.length){
     const dates=check.blocked.slice(0,5).map(x=>`${fmtDate(x.date)} (${x.total} موظفين)`).join('\n');
     const more=check.blocked.length>5?`\nو${check.blocked.length-5} أيام أخرى`:'';
-    alert(`لا يمكن الحفظ: سيتجاوز عدد المجازين الحد الأعلى وهو 6.\n\nالأيام المتعارضة:\n${dates}${more}`);return;
-  }
-  if(check.full.length&&!confirm(`تنبيه: سيصل عدد المجازين إلى الحد الأعلى 6 موظفين خلال ${check.full.length} يوم. هل تريد المتابعة؟`))return;
+    if(!confirm(`تنبيه: سيتجاوز عدد المجازين الحد الأعلى وهو 6.\n\nالأيام المتعارضة:\n${dates}${more}\n\nهل تريد الإضافة رغم ذلك؟`))return;
+  }else if(check.full.length&&!confirm(`تنبيه: سيصل عدد المجازين إلى الحد الأعلى 6 موظفين خلال ${check.full.length} يوم. هل تريد المتابعة والإضافة؟`))return;
   const leaveData={employeeId,start,end,note:document.getElementById('leaveNote').value.trim()};
   if(editingLeaveId){
     const index=state.leaves.findIndex(l=>l.id===editingLeaveId);
