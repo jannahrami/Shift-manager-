@@ -217,6 +217,10 @@
     .calendar-day{min-height:116px;padding:8px;border-inline-start:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(11,23,40,.6)}
     .calendar-day:nth-child(7n+1){border-inline-start:none}.calendar-day.other{background:rgba(5,12,22,.55)}
     .calendar-day.today{box-shadow:inset 0 0 0 2px var(--primary)}
+    .calendar-day.capacity-full{box-shadow:inset 0 0 0 2px var(--yellow)}
+    .calendar-day.capacity-exceeded{box-shadow:inset 0 0 0 2px var(--red);background:rgba(251,113,133,.08)}
+    .capacity-label{display:inline-block;padding:2px 5px;border-radius:7px;background:rgba(247,185,85,.16);color:var(--yellow);font-size:8px;font-weight:800;margin-bottom:3px}
+    .capacity-label.exceeded{background:rgba(251,113,133,.16);color:var(--red)}
     .calendar-day-number{font-size:12px;color:var(--muted);margin-bottom:6px}.calendar-day.today .calendar-day-number{color:var(--primary);font-weight:900}
     .calendar-event{display:block;width:100%;border:0;border-radius:8px;padding:5px 6px;margin-top:4px;text-align:right;color:#fff;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
     .calendar-event.start{background:rgba(247,185,85,.3);box-shadow:inset -3px 0 var(--yellow)}
@@ -471,7 +475,7 @@
 
 <div class="modal" id="leaveModal">
   <div class="sheet">
-    <h3>إضافة إجازة</h3>
+    <h3 id="leaveModalTitle">إضافة إجازة</h3>
     <div class="form">
       <select id="leaveEmployee"></select>
       <label class="small-note">بداية الإجازة</label>
@@ -480,7 +484,7 @@
       <input type="date" id="leaveEnd">
       <textarea id="leaveNote" placeholder="ملاحظة اختيارية"></textarea>
       <div class="form-actions">
-        <button class="primary" onclick="saveLeave()">حفظ</button>
+        <button class="primary" id="leaveSaveBtn" onclick="saveLeave()">حفظ</button>
         <button class="secondary" onclick="closeModal('leaveModal')">إلغاء</button>
       </div>
     </div>
@@ -1066,6 +1070,7 @@ let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
 if(!Array.isArray(state.records)) state.records=[];
 if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
 let selectedEmployeeId=null;
+let editingLeaveId=null;
 let calendarMonth=todayISO().slice(0,7);
 let session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
 let syncTimer=null;
@@ -1244,13 +1249,15 @@ function renderLeaveCalendar(){
     if(day<1||day>daysInMonth){html+='<div class="calendar-day other"></div>';continue}
     const date=calendarDateISO(year,month,day);
     const dayLeaves=state.leaves.filter(l=>l.start<=date&&l.end>=date).sort((a,b)=>a.start.localeCompare(b.start));
+    const capacityClass=dayLeaves.length>6?'capacity-exceeded':dayLeaves.length===6?'capacity-full':'';
+    const capacityLabel=dayLeaves.length>6?`<span class="capacity-label exceeded">تجاوز ${dayLeaves.length}/6</span>`:dayLeaves.length===6?'<span class="capacity-label">مكتمل 6/6</span>':'';
     const events=dayLeaves.map(l=>{
       const e=state.employees.find(x=>x.id===l.employeeId);if(!e)return '';
       const type=l.start===date?'start':l.end===date?'end':'active';
       const shortName=e.name.trim().split(/\s+/).slice(0,2).join(' ');
       return `<button class="calendar-event ${type}" title="${esc(e.name)}" onclick="openEmployeeProfile('${e.id}')">${esc(shortName)}</button>`;
     }).join('');
-    html+=`<div class="calendar-day ${date===todayISO()?'today':''}"><div class="calendar-day-number">${day.toLocaleString('ar-SA')}</div>${events}</div>`;
+    html+=`<div class="calendar-day ${date===todayISO()?'today':''} ${capacityClass}"><div class="calendar-day-number">${day.toLocaleString('ar-SA')}</div>${capacityLabel}${events}</div>`;
   }
   box.innerHTML=html;
 }
@@ -1539,6 +1546,7 @@ function renderLeaves(){
         </div>
         <div style="display:flex;gap:6px;align-items:center">
           <span class="badge ${cls}">${label}</span>
+          <button class="secondary" onclick="openLeaveModal('${l.id}')">تعديل</button>
           <button class="secondary danger" onclick="deleteLeave('${l.id}')">حذف</button>
         </div>
       </div>`);
@@ -1588,7 +1596,17 @@ function showView(id,btn){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function openEmployeeModal(){document.getElementById('employeeModal').classList.add('show')}
-function openLeaveModal(){refreshSelects();document.getElementById('leaveModal').classList.add('show')}
+function openLeaveModal(id=null){
+  refreshSelects();editingLeaveId=id;
+  const leave=id?state.leaves.find(l=>l.id===id):null;
+  document.getElementById('leaveModalTitle').textContent=leave?'تعديل الإجازة':'إضافة إجازة';
+  document.getElementById('leaveSaveBtn').textContent=leave?'حفظ التعديل':'حفظ';
+  document.getElementById('leaveEmployee').value=leave?.employeeId||state.employees[0]?.id||'';
+  document.getElementById('leaveStart').value=leave?.start||'';
+  document.getElementById('leaveEnd').value=leave?.end||'';
+  document.getElementById('leaveNote').value=leave?.note||'';
+  document.getElementById('leaveModal').classList.add('show');
+}
 function openShiftModal(){refreshSelects();document.getElementById('shiftModal').classList.add('show')}
 function openPersonalNoteModal(){
   const date=document.getElementById('personalNoteDate');
@@ -1611,14 +1629,47 @@ function saveEmployee(){
   ['empName','empId','empLocation','empNote'].forEach(id=>document.getElementById(id).value='');
   closeModal('employeeModal'); save();
 }
+function datesBetween(start,end){
+  const dates=[],cursor=new Date(start+'T12:00:00'),last=new Date(end+'T12:00:00');
+  while(cursor<=last){
+    const y=cursor.getFullYear(),m=String(cursor.getMonth()+1).padStart(2,'0'),d=String(cursor.getDate()).padStart(2,'0');
+    dates.push(`${y}-${m}-${d}`);cursor.setDate(cursor.getDate()+1);
+  }
+  return dates;
+}
+function checkLeaveCapacity(employeeId,start,end,excludeId=null){
+  const otherLeaves=state.leaves.filter(l=>l.id!==excludeId);
+  const employeeConflict=otherLeaves.find(l=>l.employeeId===employeeId&&l.start<=end&&l.end>=start);
+  const blocked=[],full=[];
+  datesBetween(start,end).forEach(date=>{
+    const total=otherLeaves.filter(l=>l.start<=date&&l.end>=date).length+1;
+    if(total>6)blocked.push({date,total});else if(total===6)full.push({date,total});
+  });
+  return {employeeConflict,blocked,full};
+}
 function saveLeave(){
   const employeeId=document.getElementById('leaveEmployee').value;
   const start=document.getElementById('leaveStart').value;
   const end=document.getElementById('leaveEnd').value;
   if(!employeeId||!start||!end){alert('أكمل بيانات الإجازة');return}
   if(end<start){alert('تاريخ النهاية يجب أن يكون بعد البداية');return}
-  state.leaves.push({id:crypto.randomUUID(),employeeId,start,end,note:document.getElementById('leaveNote').value.trim()});
+  const check=checkLeaveCapacity(employeeId,start,end,editingLeaveId);
+  if(check.employeeConflict){alert(`هذا الموظف لديه إجازة متداخلة من ${fmtDate(check.employeeConflict.start)} إلى ${fmtDate(check.employeeConflict.end)}`);return}
+  if(check.blocked.length){
+    const dates=check.blocked.slice(0,5).map(x=>`${fmtDate(x.date)} (${x.total} موظفين)`).join('\n');
+    const more=check.blocked.length>5?`\nو${check.blocked.length-5} أيام أخرى`:'';
+    alert(`لا يمكن الحفظ: سيتجاوز عدد المجازين الحد الأعلى وهو 6.\n\nالأيام المتعارضة:\n${dates}${more}`);return;
+  }
+  if(check.full.length&&!confirm(`تنبيه: سيصل عدد المجازين إلى الحد الأعلى 6 موظفين خلال ${check.full.length} يوم. هل تريد المتابعة؟`))return;
+  const leaveData={employeeId,start,end,note:document.getElementById('leaveNote').value.trim()};
+  if(editingLeaveId){
+    const index=state.leaves.findIndex(l=>l.id===editingLeaveId);
+    if(index>=0)state.leaves[index]={...state.leaves[index],...leaveData};
+  }else{
+    state.leaves.push({id:crypto.randomUUID(),...leaveData});
+  }
   document.getElementById('leaveStart').value='';document.getElementById('leaveEnd').value='';document.getElementById('leaveNote').value='';
+  editingLeaveId=null;
   closeModal('leaveModal'); save();
 }
 function saveShift(){
