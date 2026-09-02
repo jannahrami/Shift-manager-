@@ -144,6 +144,8 @@
     .leave-table .employee-cell{display:flex;align-items:center;gap:9px}
     .leave-table .avatar{width:34px;height:34px;border-radius:11px;font-size:11px;flex:0 0 auto}
     .days-remaining{font-weight:850;color:var(--text)}
+    .return-shift{display:flex;align-items:center;gap:6px;width:max-content;margin-top:7px;padding:5px 7px;border-radius:8px;font-size:9px;font-weight:850;white-space:nowrap}
+    .return-shift small{font-size:8px;font-weight:700;opacity:.72}
     .status-legend{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
     .legend-item{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--line);border-radius:999px;background:rgba(5,14,28,.4)}
     .legend-dot{width:8px;height:8px;border-radius:50%}
@@ -1545,6 +1547,13 @@ function nextWorkingShift(date,currentCode){
   }
   return null;
 }
+function firstWorkDayAfterLeave(endDate){
+  for(let i=1;i<=7;i++){
+    const date=addDaysISO(endDate,i),shift=groupShiftForDate(date);
+    if(shift.code!=='OFF')return {date,...shift};
+  }
+  return null;
+}
 function changeScheduleMonth(step){
   let [year,month]=scheduleMonth.split('-').map(Number);month+=step;
   if(month<1){month=12;year--}if(month>12){month=1;year++}
@@ -1616,6 +1625,7 @@ function renderCurrentLeaveTable(){
     const e=state.employees.find(x=>x.id===l.employeeId);
     if(!e)return '';
     const untilStart=diffDays(l.start,t),remaining=Math.max(0,diffDays(l.end,t));
+    const returnDuty=firstWorkDayAfterLeave(l.end);
     let status,remainingText,rowClass;
     if(untilStart>0){
       status={cls:'b-yellow',text:'إجازته قريبة'};rowClass='status-yellow';
@@ -1631,7 +1641,7 @@ function renderCurrentLeaveTable(){
       <td><div class="employee-cell"><div class="avatar">${esc(initials(e.name))}</div><div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)}</div><span class="badge ${status.cls} employee-status-inline">${status.text}</span></div></div></td>
       <td>${fmtDate(l.start)}</td>
       <td>${fmtDate(l.end)}</td>
-      <td><span class="days-remaining">${remainingText}</span></td>
+      <td><span class="days-remaining">${remainingText}</span>${returnDuty?`<div class="return-shift ${returnDuty.cls}"><span>العودة: ${returnDuty.arabic}</span><small>${fmtDate(returnDuty.date)}</small></div>`:''}</td>
       <td><span class="badge ${status.cls}">${status.text}</span></td>
     </tr>`;
   }).join('');
