@@ -137,6 +137,10 @@
     .leave-table th{font-size:11px;color:var(--muted);font-weight:700;padding:12px 14px;background:rgba(255,255,255,.025);border-bottom:1px solid var(--line)}
     .leave-table td{font-size:13px;padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
     .leave-table tr:last-child td{border-bottom:none}
+    .leave-table tr.status-yellow{background:linear-gradient(90deg,rgba(247,185,85,.13),transparent 55%);box-shadow:inset -4px 0 var(--yellow)}
+    .leave-table tr.status-blue{background:linear-gradient(90deg,rgba(96,165,250,.11),transparent 55%);box-shadow:inset -4px 0 var(--blue)}
+    .leave-table tr.status-green{background:linear-gradient(90deg,rgba(45,212,163,.13),transparent 55%);box-shadow:inset -4px 0 var(--green)}
+    .employee-status-inline{display:inline-flex;margin-top:6px}
     .leave-table .employee-cell{display:flex;align-items:center;gap:9px}
     .leave-table .avatar{width:34px;height:34px;border-radius:11px;font-size:11px;flex:0 0 auto}
     .days-remaining{font-weight:850;color:var(--text)}
@@ -282,7 +286,7 @@
 
       <div class="section section-wide">
         <div class="section-head">
-          <div><span class="section-kicker">الحالة الحالية</span><h2>الموظفون في إجازة الآن</h2></div>
+          <div><span class="section-kicker">الحالة الحالية والقريبة</span><h2>متابعة الإجازات</h2></div>
           <span class="chip" id="currentLeaveCount">0 موظف</span>
         </div>
         <div class="status-legend">
@@ -1178,24 +1182,30 @@ function renderCurrentLeaveTable(){
   if(!box||!count)return;
   const t=todayISO();
   const active=state.leaves
-    .filter(l=>l.start<=t&&l.end>=t)
-    .sort((a,b)=>a.end.localeCompare(b.end));
+    .filter(l=>(l.start<=t&&l.end>=t)||(diffDays(l.start,t)>0&&diffDays(l.start,t)<=SOON_DAYS))
+    .sort((a,b)=>a.start.localeCompare(b.start));
   count.textContent=`${active.length} ${active.length===1?'موظف':'موظفين'}`;
   if(!active.length){
-    box.innerHTML='<div class="empty">لا يوجد موظفون في إجازة حاليًا</div>';
+    box.innerHTML='<div class="empty">لا توجد إجازات حالية أو تبدأ خلال 3 أيام</div>';
     return;
   }
   const rows=active.map(l=>{
     const e=state.employees.find(x=>x.id===l.employeeId);
     if(!e)return '';
-    const remaining=Math.max(0,diffDays(l.end,t));
-    const returningSoon=remaining<=SOON_DAYS;
-    const status=returningSoon
-      ? {cls:'b-green',text:'راجع قريب'}
-      : {cls:'b-blue',text:'في إجازة'};
-    const remainingText=remaining===0?'اليوم آخر يوم':remaining===1?'يوم واحد':`${remaining} يوم`;
-    return `<tr>
-      <td><div class="employee-cell"><div class="avatar">${esc(initials(e.name))}</div><div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)}</div></div></div></td>
+    const untilStart=diffDays(l.start,t),remaining=Math.max(0,diffDays(l.end,t));
+    let status,remainingText,rowClass;
+    if(untilStart>0){
+      status={cls:'b-yellow',text:'إجازته قريبة'};rowClass='status-yellow';
+      remainingText=untilStart===1?'تبدأ غدًا':`تبدأ بعد ${untilStart} أيام`;
+    }else if(remaining<=SOON_DAYS){
+      status={cls:'b-green',text:'راجع قريب'};rowClass='status-green';
+      remainingText=remaining===0?'اليوم آخر يوم':remaining===1?'يوم واحد':`${remaining} يوم`;
+    }else{
+      status={cls:'b-blue',text:'في إجازة'};rowClass='status-blue';
+      remainingText=`${remaining} يوم`;
+    }
+    return `<tr class="${rowClass}">
+      <td><div class="employee-cell"><div class="avatar">${esc(initials(e.name))}</div><div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)}</div><span class="badge ${status.cls} employee-status-inline">${status.text}</span></div></div></td>
       <td>${fmtDate(l.start)}</td>
       <td>${fmtDate(l.end)}</td>
       <td><span class="days-remaining">${remainingText}</span></td>
