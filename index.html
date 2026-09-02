@@ -1625,6 +1625,7 @@ function renderCurrentLeaveTable(){
     const e=state.employees.find(x=>x.id===l.employeeId);
     if(!e)return '';
     const untilStart=diffDays(l.start,t),remaining=Math.max(0,diffDays(l.end,t));
+    const startDuty={date:l.start,...groupShiftForDate(l.start)};
     const returnDuty=firstWorkDayAfterLeave(l.end);
     let status,remainingText,rowClass;
     if(untilStart>0){
@@ -1639,7 +1640,7 @@ function renderCurrentLeaveTable(){
     }
     return `<tr class="${rowClass}">
       <td><div class="employee-cell"><div class="avatar">${esc(initials(e.name))}</div><div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)}</div><span class="badge ${status.cls} employee-status-inline">${status.text}</span></div></div></td>
-      <td>${fmtDate(l.start)}</td>
+      <td>${fmtDate(l.start)}<div class="return-shift ${startDuty.cls}"><span>بداية الإجازة: ${startDuty.arabic}</span></div></td>
       <td>${fmtDate(l.end)}</td>
       <td><span class="days-remaining">${remainingText}</span>${returnDuty?`<div class="return-shift ${returnDuty.cls}"><span>العودة: ${returnDuty.arabic}</span><small>${fmtDate(returnDuty.date)}</small></div>`:''}</td>
       <td><span class="badge ${status.cls}">${status.text}</span></td>
