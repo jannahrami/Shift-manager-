@@ -525,6 +525,15 @@
     .report-choice.active{background:linear-gradient(135deg,#315fe7,#2448bd);color:#fff;border-color:transparent;box-shadow:0 10px 22px rgba(40,78,196,.24)}
     .report-choice.active>span{background:rgba(255,255,255,.16)}.report-choice.active small{color:#dbe5ff}
     .report-panel{display:none}.report-panel.active{display:block}
+    .leave-insights{display:grid;grid-template-columns:repeat(2,minmax(220px,.55fr)) minmax(280px,1.25fr);gap:14px;align-items:stretch}
+    .insight-chart-card,.liquidation-list{border:1px solid #dbe2eb;border-radius:16px;background:#f8fafc;padding:15px}
+    .insight-chart-card{display:flex;align-items:center;gap:15px}
+    .insight-donut{--pct:0;--color:#315fe7;width:92px;height:92px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--color) calc(var(--pct)*1%),#e2e8f0 0);position:relative}
+    .insight-donut::before{content:"";position:absolute;inset:10px;border-radius:50%;background:#fff}
+    .insight-donut strong{position:relative;z-index:1;font-size:19px;color:#172033}
+    .insight-copy h3{font-size:14px;margin:0 0 6px;color:#1f2c41}.insight-copy p{font-size:11px;line-height:1.6;color:#69778a;margin:0}.insight-copy b{display:block;font-size:13px;margin-top:7px;color:#27364e}
+    .liquidation-list h3{font-size:14px;margin:0 0 9px}.liquidation-person{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid #e2e8f0}.liquidation-person:last-child{border-bottom:0}.liquidation-person .name{font-size:11px}.liquidation-person .meta{font-size:9px}.liquidation-excess{font-size:10px;font-weight:900;color:#b45309;background:#fff5d9;border:1px solid #f6d781;border-radius:8px;padding:5px 7px;align-self:center}
+    @media(max-width:780px){.leave-insights{grid-template-columns:1fr}.insight-chart-card{justify-content:flex-start}.insight-donut{width:82px;height:82px}}
     @media(max-width:560px){.report-summary{grid-template-columns:1fr}.report-table{min-width:720px}}
     @media(max-width:650px){.report-picker{grid-template-columns:1fr}.report-choice{padding:12px}.report-choice>span{width:36px;height:36px}}
     .date-picker-sheet{width:min(620px,100%)}
@@ -647,6 +656,14 @@
         <div class="stat" style="--stat-glow:rgba(45,212,163,.16)"><div class="stat-top"><div class="stat-icon">✓</div><div class="num" id="workingCount">0</div></div><div class="label">على رأس العمل</div></div>
         <div class="stat" style="--stat-glow:rgba(96,165,250,.16)"><div class="stat-top"><div class="stat-icon">☂</div><div class="num" id="leaveCount">0</div></div><div class="label">في إجازة الآن</div></div>
         <div class="stat" style="--stat-glow:rgba(247,185,85,.16)"><div class="stat-top"><div class="stat-icon">◷</div><div class="num" id="soonCount">0</div></div><div class="label">تنبيهات خلال 3 أيام</div></div>
+      </div>
+
+      <div class="section section-wide leave-insights-section">
+        <div class="section-head">
+          <div><span class="section-kicker">مؤشرات السنة الحالية</span><h2>متابعة استخدام وتصفية رصيد الإجازات</h2></div>
+          <span class="chip" id="leaveInsightsYear"></span>
+        </div>
+        <div class="leave-insights" id="leaveBalanceInsights"></div>
       </div>
 
       <div class="section section-wide">
@@ -1510,11 +1527,15 @@ function ensureAnnualLeaveCredit(){
     return true;
   }
   if(lastYear>=currentYear)return false;
-  const yearsToAdd=currentYear-lastYear;
-  const addedDays=30*yearsToAdd;
-  state.employees.forEach(e=>{e.leaveBalance=(Number(e.leaveBalance)||0)+addedDays});
   for(let year=lastYear+1;year<=currentYear;year++){
-    state.leaveBalanceHistory.push({id:`annual-credit-${year}`,year,days:30,appliedAt:new Date().toISOString(),employeeCount:state.employees.length});
+    let expiredDays=0;
+    state.employees.forEach(e=>{
+      const previous=Math.max(0,Number(e.leaveBalance)||0);
+      const carried=Math.min(previous,9);
+      expiredDays+=Math.max(0,previous-carried);
+      e.leaveBalance=carried+30;
+    });
+    state.leaveBalanceHistory.push({id:`annual-credit-${year}`,year,days:30,maxCarryOver:9,expiredDays,appliedAt:new Date().toISOString(),employeeCount:state.employees.length});
   }
   state.leaveBalanceAccrualYear=currentYear;
   return true;
@@ -1624,6 +1645,22 @@ function renderStats(){
     return d>=0&&d<=SOON_DAYS;
   }).length;
   document.getElementById('soonCount').textContent=soon;
+}
+
+function renderLeaveBalanceInsights(){
+  const box=document.getElementById('leaveBalanceInsights');if(!box)return;
+  const today=todayISO(),year=today.slice(0,4),yearStart=year+'-01-01',total=state.employees.length;
+  const tookIds=new Set(state.leaves.filter(l=>l.start<=today&&l.end>=yearStart).map(l=>l.employeeId));
+  const tookCount=state.employees.filter(e=>tookIds.has(e.id)).length;
+  const needs=state.employees.filter(e=>(Number(e.leaveBalance)||0)>9).sort((a,b)=>Number(b.leaveBalance)-Number(a.leaveBalance));
+  const excessDays=needs.reduce((sum,e)=>sum+Math.max(0,(Number(e.leaveBalance)||0)-9),0);
+  const tookPct=total?Math.round(tookCount/total*100):0,needsPct=total?Math.round(needs.length/total*100):0;
+  document.getElementById('leaveInsightsYear').textContent=year;
+  const names=needs.slice(0,6).map(e=>`<div class="liquidation-person"><div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)} · الرصيد ${formatDays(e.leaveBalance)} يوم</div></div><span class="liquidation-excess">تصفية ${formatDays(Number(e.leaveBalance)-9)} يوم</span></div>`).join('');
+  box.innerHTML=`
+    <div class="insight-chart-card"><div class="insight-donut" style="--pct:${tookPct};--color:#16a085"><strong>${tookPct}%</strong></div><div class="insight-copy"><h3>أخذوا إجازة هذه السنة</h3><p>الموظفون الذين بدأت لهم إجازة فعلية خلال ${year}</p><b>${tookCount} من ${total} موظف</b></div></div>
+    <div class="insight-chart-card"><div class="insight-donut" style="--pct:${needsPct};--color:#f59e0b"><strong>${needsPct}%</strong></div><div class="insight-copy"><h3>يحتاجون تصفية الرصيد</h3><p>رصيدهم الحالي يتجاوز الحد المسموح ترحيله وهو 9 أيام</p><b>${needs.length} موظف · ${formatDays(excessDays)} يوم للتصفية</b></div></div>
+    <div class="liquidation-list"><h3>أعلى الأرصدة المطلوب تصفيتها</h3>${names||'<div class="empty">جميع الأرصدة ضمن حد الترحيل 👌</div>'}${needs.length>6?`<div class="small-note" style="margin-top:8px">و${needs.length-6} موظفين آخرين — التفاصيل الكاملة في تقرير الأرصدة</div>`:''}</div>`;
 }
 
 function getUpcomingNotifications(days=7){
@@ -2240,7 +2277,7 @@ function openEmployeeAnnualReport(id){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderStats(); renderDashboardShift(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
+  renderStats(); renderLeaveBalanceInsights(); renderDashboardShift(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
 }
 
 function showView(id,btn){
