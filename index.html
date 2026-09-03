@@ -267,7 +267,7 @@
       .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
       #employeesList{grid-template-columns:repeat(2,minmax(0,1fr))}
       #leaveList{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .bottom-nav{position:sticky;bottom:auto;left:auto;transform:none;width:100%;margin:20px 0 0;grid-template-columns:repeat(5,150px);justify-content:center;background:rgba(9,21,39,.94)}
+      .bottom-nav{position:sticky;bottom:auto;left:auto;transform:none;width:100%;margin:20px 0 0;grid-template-columns:repeat(6,140px);justify-content:center;background:rgba(9,21,39,.94)}
       .fab{right:32px;left:auto;bottom:32px;transform:none}
       .sheet{width:min(640px,100%);border-radius:24px}
       .modal{align-items:center}
@@ -514,6 +514,11 @@
     }
 
     @media(max-width:899px){.dashboard-hero{display:none}}
+    @media(max-width:899px){.bottom-nav{grid-template-columns:repeat(6,1fr);overflow-x:auto}.navbtn{min-width:58px}}
+    .report-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+    .report-summary>div{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card2);text-align:center}
+    .report-summary strong{display:block;font-size:22px;margin-bottom:4px}.report-summary span{font-size:11px;color:var(--muted)}
+    @media(max-width:560px){.report-summary{grid-template-columns:1fr}.report-table{min-width:720px}}
   </style>
 </head>
 <body>
@@ -668,6 +673,36 @@
       </div>
     </section>
 
+    <section id="reportsView" class="view">
+      <div class="section">
+        <div class="section-head"><div><span class="section-kicker">تقارير قابلة للطباعة والتصدير</span><h2>التقارير</h2></div></div>
+        <div class="form" style="margin-bottom:20px">
+          <h3>تقرير الإجازات الشهري</h3>
+          <div class="month-filter">
+            <input type="month" id="monthlyReportMonth" aria-label="شهر التقرير">
+            <button class="primary" onclick="renderMonthlyReport()">عرض التقرير</button>
+            <button class="secondary" onclick="exportMonthlyReportExcel()">⬇ Excel</button>
+            <button class="secondary" onclick="printReport('monthlyReportBox','تقرير الإجازات الشهري')">🖨 طباعة / PDF</button>
+          </div>
+        </div>
+        <div id="monthlyReportBox"></div>
+      </div>
+
+      <div class="section">
+        <div class="form" style="margin-bottom:20px">
+          <h3>التقرير السنوي للموظف</h3>
+          <div class="month-filter">
+            <select id="annualReportEmployee"></select>
+            <input type="number" id="annualReportYear" min="2020" max="2100" aria-label="السنة">
+            <button class="primary" onclick="renderAnnualEmployeeReport()">عرض التقرير</button>
+            <button class="secondary" onclick="exportAnnualEmployeeReport()">⬇ Excel</button>
+            <button class="secondary" onclick="printReport('annualReportBox','التقرير السنوي للموظف')">🖨 طباعة / PDF</button>
+          </div>
+        </div>
+        <div id="annualReportBox"></div>
+      </div>
+    </section>
+
     <section id="shiftView" class="view">
       <div class="section">
         <div class="schedule-toolbar">
@@ -741,6 +776,7 @@
   <button class="navbtn" data-view="leaveView" onclick="showView('leaveView',this)"><span>🗓️</span>الإجازات</button>
   <button class="navbtn" data-view="calendarView" onclick="showView('calendarView',this)"><span>▦</span>التقويم</button>
   <button class="navbtn" data-view="shiftView" onclick="showView('shiftView',this)"><span>🛡️</span>الشفت</button>
+  <button class="navbtn" data-view="reportsView" onclick="showView('reportsView',this)"><span>📊</span>التقارير</button>
 </nav>
 
 <div class="modal" id="employeeModal">
@@ -749,6 +785,7 @@
     <div class="form">
       <input id="empName" placeholder="اسم الموظف">
       <input id="empId" placeholder="الرقم الوظيفي">
+      <input type="number" min="0" step="1" id="empLeaveBalance" placeholder="رصيد الإجازة المتبقي بالأيام">
       <select id="empShift">
         <option>Morning</option><option>Afternoon</option><option>Night</option>
       </select>
@@ -1358,6 +1395,7 @@ let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
 
 if(!Array.isArray(state.records)) state.records=[];
 if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
+state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
 let selectedEmployeeId=null;
 let editingLeaveId=null;
 let calendarMonth=todayISO().slice(0,7);
@@ -1410,6 +1448,7 @@ async function loadCloudState(){
     }
     if(!Array.isArray(state.records))state.records=[];
     if(!Array.isArray(state.personalNotes))state.personalNotes=[];
+    state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
     cloudReady=true;document.getElementById('authScreen').classList.add('hidden');setCloudStatus('online','تمت المزامنة');renderAll();
   }catch(e){setCloudStatus('offline','تعذر الاتصال');document.getElementById('authError').textContent=e.message;document.getElementById('authScreen').classList.remove('hidden')}
 }
@@ -1433,6 +1472,7 @@ function logout(){
 
 function fmtDate(s){ if(!s)return ''; return new Date(s+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{day:'2-digit',month:'2-digit',year:'numeric'}); }
 function diffDays(a,b){ const x=new Date(a+'T12:00:00'),y=new Date(b+'T12:00:00'); return Math.round((x-y)/86400000); }
+function formatDays(value){const n=Number(value)||0;return Number.isInteger(n)?String(n):n.toFixed(1)}
 function todayISO(){
   const d=new Date(), y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${day}`;
@@ -1741,7 +1781,7 @@ function renderEmployees(){
     <div class="row employee-click" onclick="openEmployeeProfile('${e.id}')">
       <div class="row-main">
         <div class="avatar">${esc(initials(e.name))}</div>
-        <div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)} · GC ${esc(e.gc||'-')} · ${esc(e.position||e.shift||'-')}</div></div>
+        <div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)} · GC ${esc(e.gc||'-')} · ${esc(e.position||e.shift||'-')}</div><div class="meta">رصيد الإجازة: <strong>${formatDays(e.leaveBalance)}</strong> يوم</div></div>
       </div>
       <div style="display:flex;gap:6px;align-items:center">
         <span class="badge ${st.cls}">${st.text}</span>
@@ -1787,9 +1827,10 @@ function renderEmployeeProfile(){
           <div class="name">${esc(e.name)}</div>
           <div class="meta">Badge #${esc(e.empId)} · GC ${esc(e.gc||'-')}</div>
           <div class="meta">${esc(e.position||e.shift||'-')}</div>
+          <div class="meta" style="margin-top:6px">رصيد الإجازة المتبقي: <strong>${formatDays(e.leaveBalance)}</strong> يوم <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editLeaveBalance('${e.id}')">تعديل الرصيد</button></div>
         </div>
       </div>
-      <span class="badge ${st.cls}">${st.text}</span>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span class="badge ${st.cls}">${st.text}</span><button class="secondary" onclick="openEmployeeAnnualReport('${e.id}')">📊 التقرير السنوي</button></div>
     </div>`;
 
   const employeeLeaves=state.leaves.filter(l=>l.employeeId===e.id).sort((a,b)=>b.start.localeCompare(a.start));
@@ -1797,7 +1838,7 @@ function renderEmployeeProfile(){
   leaveList.innerHTML=employeeLeaves.length?employeeLeaves.map(l=>{
     const t=todayISO();let label='قادمة',cls='b-yellow';
     if(l.start<=t&&l.end>=t){label='في إجازة';cls='b-blue'}else if(l.end<t){label='منتهية';cls='b-neutral'}
-    return `<div class="row"><div><div class="name">${fmtDate(l.start)} ← ${fmtDate(l.end)}</div><div class="meta">${esc(l.note||'بدون ملاحظة')}</div></div><span class="badge ${cls}">${label}</span></div>`;
+    return `<div class="row"><div><div class="name">${fmtDate(l.start)} ← ${fmtDate(l.end)}</div><div class="meta">${diffDays(l.end,l.start)+1} يوم · ${esc(l.note||'بدون ملاحظة')}</div></div><span class="badge ${cls}">${label}</span></div>`;
   }).join(''):'<div class="empty">لا توجد إجازات مسجلة لهذا الموظف</div>';
 
   const records=state.records
@@ -1859,28 +1900,75 @@ function csvCell(value){
   if(/^[=+@-]/.test(text))text="'"+text;
   return `"${text.replace(/"/g,'""')}"`;
 }
+function downloadCsv(filename,header,rows){
+  const lines=[header.map(csvCell).join(','),...rows.map(row=>row.map(csvCell).join(','))];
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function monthBounds(month){
+  if(!month)return null;const [year,monthNo]=month.split('-').map(Number);
+  return {start:month+'-01',end:month+'-'+String(new Date(year,monthNo,0).getDate()).padStart(2,'0')};
+}
+function reportRowsForMonth(month){
+  const bounds=monthBounds(month);if(!bounds)return [];
+  return state.leaves.filter(l=>l.start<=bounds.end&&l.end>=bounds.start)
+    .map(l=>({leave:l,employee:state.employees.find(e=>e.id===l.employeeId)})).filter(x=>x.employee)
+    .sort((a,b)=>a.leave.start.localeCompare(b.leave.start)||a.employee.name.localeCompare(b.employee.name));
+}
+function reportTable(title,subtitle,rows){
+  const totalDays=rows.reduce((sum,x)=>sum+(x.days??diffDays(x.leave.end,x.leave.start)+1),0);
+  const people=new Set(rows.map(x=>x.employee.id)).size;
+  return `<div class="report-document" dir="rtl"><div class="section-head"><div><h2>${esc(title)}</h2><div class="small-note">${esc(subtitle)}</div></div></div>
+    <div class="report-summary"><div><strong>${people}</strong><span>عدد الموظفين</span></div><div><strong>${rows.length}</strong><span>عدد الإجازات</span></div><div><strong>${totalDays}</strong><span>إجمالي الأيام</span></div></div>
+    <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>اسم الموظف</th><th>رقم الباج</th><th>من</th><th>إلى</th><th>الأيام</th><th>الملاحظة</th></tr></thead><tbody>${rows.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.employee.name)}</td><td>${esc(x.employee.empId)}</td><td>${fmtDate(x.leave.start)}</td><td>${fmtDate(x.leave.end)}</td><td>${x.days??diffDays(x.leave.end,x.leave.start)+1}</td><td>${esc(x.leave.note||'-')}</td></tr>`).join('')}</tbody></table></div></div>`;
+}
+function renderMonthlyReport(){
+  const month=document.getElementById('monthlyReportMonth').value;
+  if(!month){alert('اختر شهر التقرير');return}
+  const rows=reportRowsForMonth(month),box=document.getElementById('monthlyReportBox');
+  box.innerHTML=rows.length?reportTable('تقرير الإجازات الشهري',monthLabel(month),rows):'<div class="empty">لا توجد إجازات في هذا الشهر</div>';
+}
+function exportMonthlyReportExcel(){
+  const month=document.getElementById('monthlyReportMonth').value;if(!month){alert('اختر شهر التقرير');return}
+  const rows=reportRowsForMonth(month);if(!rows.length){alert('لا توجد إجازات في هذا الشهر');return}
+  downloadCsv(`Monthly_Leave_Report_${month}.csv`,['م','اسم الموظف','رقم الباج','من','إلى','عدد الأيام','الملاحظة'],rows.map((x,i)=>[i+1,x.employee.name,x.employee.empId,x.leave.start,x.leave.end,diffDays(x.leave.end,x.leave.start)+1,x.leave.note||'']));
+}
+function annualReportRows(employeeId,year){
+  const yearStart=`${year}-01-01`,yearEnd=`${year}-12-31`,employee=state.employees.find(e=>e.id===employeeId);
+  if(!employee)return [];
+  return state.leaves.filter(l=>l.employeeId===employeeId&&l.start<=yearEnd&&l.end>=yearStart).sort((a,b)=>a.start.localeCompare(b.start)).map(leave=>{
+    const clippedStart=leave.start<yearStart?yearStart:leave.start,clippedEnd=leave.end>yearEnd?yearEnd:leave.end;
+    return {leave,employee,days:diffDays(clippedEnd,clippedStart)+1};
+  });
+}
+function renderAnnualEmployeeReport(){
+  const employeeId=document.getElementById('annualReportEmployee').value,year=Number(document.getElementById('annualReportYear').value);
+  if(!employeeId||!year){alert('اختر الموظف والسنة');return}
+  const employee=state.employees.find(e=>e.id===employeeId),rows=annualReportRows(employeeId,year),box=document.getElementById('annualReportBox');
+  const header=`${employee.name} · Badge #${employee.empId} · الرصيد الحالي ${formatDays(employee.leaveBalance)} يوم`;
+  box.innerHTML=rows.length?reportTable(`تقرير إجازات الموظف لعام ${year}`,header,rows):`<div class="empty">لا توجد إجازات مسجلة للموظف خلال ${year}<br>الرصيد الحالي: ${formatDays(employee.leaveBalance)} يوم</div>`;
+}
+function exportAnnualEmployeeReport(){
+  const employeeId=document.getElementById('annualReportEmployee').value,year=Number(document.getElementById('annualReportYear').value);
+  if(!employeeId||!year){alert('اختر الموظف والسنة');return}
+  const employee=state.employees.find(e=>e.id===employeeId),rows=annualReportRows(employeeId,year);if(!rows.length){alert('لا توجد إجازات في السنة المحددة');return}
+  downloadCsv(`Employee_Leave_Report_${employee.empId}_${year}.csv`,['م','اسم الموظف','رقم الباج','من','إلى','أيام ضمن السنة','الملاحظة','الرصيد الحالي'],rows.map((x,i)=>[i+1,employee.name,employee.empId,x.leave.start,x.leave.end,x.days,x.leave.note||'',employee.leaveBalance]));
+}
+function printReport(boxId,title){
+  const box=document.getElementById(boxId);if(!box||!box.querySelector('table')){alert('اعرض التقرير أولًا');return}
+  const win=window.open('','_blank');if(!win){alert('اسمح بالنوافذ المنبثقة للطباعة');return}
+  win.document.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#172033}h2{margin-bottom:4px}.small-note{color:#64748b}.report-summary{display:flex;gap:10px;margin:18px 0}.report-summary div{flex:1;border:1px solid #d8dee8;border-radius:10px;padding:12px;text-align:center}.report-summary strong{display:block;font-size:22px}.report-summary span{font-size:11px;color:#64748b}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #d8dee8;padding:9px;text-align:right;font-size:12px}th{background:#eef2f7}@page{size:A4 landscape;margin:12mm}</style></head><body>${box.innerHTML}</body></html>`);
+  win.document.close();win.focus();setTimeout(()=>win.print(),250);
+}
 function exportLeavesExcel(requestedMonth=''){
   const month=requestedMonth||document.getElementById('leaveMonthFilter')?.value||'';
   if(!month){alert('اختر الشهر أولًا ثم اضغط Export Excel');return}
-  const [year,monthNo]=month.split('-').map(Number);
-  const monthStart=month+'-01';
-  const monthEnd=month+'-'+String(new Date(year,monthNo,0).getDate()).padStart(2,'0');
-  const rows=state.leaves
-    .filter(l=>l.start<=monthEnd&&l.end>=monthStart)
-    .map(l=>({leave:l,employee:state.employees.find(e=>e.id===l.employeeId)}))
-    .filter(x=>x.employee)
-    .sort((a,b)=>a.leave.start.localeCompare(b.leave.start)||a.employee.name.localeCompare(b.employee.name));
+  const rows=reportRowsForMonth(month);
   if(!rows.length){alert('لا توجد إجازات في الشهر المحدد');return}
   const header=['Employee Name / اسم الموظف','Badge Number / رقم الباج','Leave From / من','Leave To / إلى','Total Days / عدد الأيام'];
-  const lines=[header.map(csvCell).join(',')];
-  rows.forEach(({leave,employee})=>{
-    const totalDays=diffDays(leave.end,leave.start)+1;
-    lines.push([employee.name,employee.empId,leave.start,leave.end,totalDays].map(csvCell).join(','));
-  });
-  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download=`Group_A_Leaves_${month}.csv`;document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  downloadCsv(`Group_A_Leaves_${month}.csv`,header,rows.map(({leave,employee})=>[employee.name,employee.empId,leave.start,leave.end,diffDays(leave.end,leave.start)+1]));
 }
 function monthLabel(value){
   if(!value)return 'جميع الإجازات';
@@ -1955,6 +2043,14 @@ function refreshSelects(){
   const opts=state.employees.map(e=>`<option value="${e.id}">${esc(e.name)} (#${esc(e.empId)})</option>`).join('');
   document.getElementById('leaveEmployee').innerHTML=opts;
   document.getElementById('shiftEmployee').innerHTML=opts;
+  const annual=document.getElementById('annualReportEmployee');if(annual){const current=annual.value;annual.innerHTML=opts;if(current)annual.value=current}
+}
+
+function openEmployeeAnnualReport(id){
+  showView('reportsView');refreshSelects();
+  document.getElementById('annualReportEmployee').value=id;
+  document.getElementById('annualReportYear').value=new Date().getFullYear();
+  renderAnnualEmployeeReport();
 }
 
 function renderAll(){
@@ -1967,9 +2063,21 @@ function showView(id,btn){
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
   document.querySelector('.fab')?.classList.toggle('hidden',!['homeView','employeesView'].includes(id));
+  if(id==='reportsView'){
+    const month=document.getElementById('monthlyReportMonth'),year=document.getElementById('annualReportYear');
+    if(month&&!month.value)month.value=currentMonthValue();if(year&&!year.value)year.value=new Date().getFullYear();refreshSelects();renderMonthlyReport();
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function openEmployeeModal(){document.getElementById('employeeModal').classList.add('show')}
+function editLeaveBalance(id){
+  const e=state.employees.find(x=>x.id===id);if(!e)return;
+  const value=prompt(`أدخل رصيد الإجازة المتبقي للموظف ${e.name}`,formatDays(e.leaveBalance));
+  if(value===null)return;
+  const balance=Number(value);
+  if(!Number.isFinite(balance)||balance<0){alert('أدخل رصيدًا صحيحًا');return}
+  e.leaveBalance=balance;save();
+}
 function openLeaveModal(id=null){
   refreshSelects();editingLeaveId=id;
   const leave=id?state.leaves.find(l=>l.id===id):null;
@@ -1994,13 +2102,15 @@ function saveEmployee(){
   const name=document.getElementById('empName').value.trim();
   const empId=document.getElementById('empId').value.trim();
   if(!name||!empId){alert('أدخل الاسم والرقم الوظيفي');return}
+  const leaveBalance=Number(document.getElementById('empLeaveBalance').value||0);
+  if(!Number.isFinite(leaveBalance)||leaveBalance<0){alert('أدخل رصيد إجازة صحيحًا');return}
   state.employees.push({
     id:crypto.randomUUID(),name,empId,gc:'',position:'',
     shift:document.getElementById('empShift').value,
     location:document.getElementById('empLocation').value.trim(),
-    note:document.getElementById('empNote').value.trim()
+    note:document.getElementById('empNote').value.trim(),leaveBalance
   });
-  ['empName','empId','empLocation','empNote'].forEach(id=>document.getElementById(id).value='');
+  ['empName','empId','empLocation','empNote','empLeaveBalance'].forEach(id=>document.getElementById(id).value='');
   closeModal('employeeModal'); save();
 }
 function datesBetween(start,end){
@@ -2034,7 +2144,16 @@ function saveLeave(){
     const more=check.blocked.length>5?`\nو${check.blocked.length-5} أيام أخرى`:'';
     if(!confirm(`تنبيه: سيتجاوز عدد المجازين الحد الأعلى وهو 6.\n\nالأيام المتعارضة:\n${dates}${more}\n\nهل تريد الإضافة رغم ذلك؟`))return;
   }else if(check.full.length&&!confirm(`تنبيه: سيصل عدد المجازين إلى الحد الأعلى 6 موظفين خلال ${check.full.length} يوم. هل تريد المتابعة والإضافة؟`))return;
-  const leaveData={employeeId,start,end,note:document.getElementById('leaveNote').value.trim()};
+  const newDays=diffDays(end,start)+1;
+  const oldLeave=editingLeaveId?state.leaves.find(l=>l.id===editingLeaveId):null;
+  const oldCharged=Number(oldLeave?.balanceDaysCharged||0);
+  const oldEmployee=oldLeave?state.employees.find(e=>e.id===oldLeave.employeeId):null;
+  const employee=state.employees.find(e=>e.id===employeeId);
+  const available=(Number(employee?.leaveBalance)||0)+(oldLeave?.employeeId===employeeId?oldCharged:0);
+  if(newDays>available&&!confirm(`تنبيه: مدة الإجازة ${newDays} يوم بينما الرصيد المتاح ${formatDays(available)} يوم.\nسيصبح الرصيد سالبًا. هل تريد المتابعة؟`))return;
+  if(oldLeave&&oldEmployee)oldEmployee.leaveBalance=(Number(oldEmployee.leaveBalance)||0)+oldCharged;
+  if(employee)employee.leaveBalance=(Number(employee.leaveBalance)||0)-newDays;
+  const leaveData={employeeId,start,end,note:document.getElementById('leaveNote').value.trim(),balanceDaysCharged:newDays};
   if(editingLeaveId){
     const index=state.leaves.findIndex(l=>l.id===editingLeaveId);
     if(index>=0)state.leaves[index]={...state.leaves[index],...leaveData};
@@ -2077,7 +2196,12 @@ function deleteEmployee(id){
   state.leaves=state.leaves.filter(l=>l.employeeId!==id);
   state.shifts=state.shifts.filter(s=>s.employeeId!==id); state.records=state.records.filter(r=>r.employeeId!==id); save();
 }
-function deleteLeave(id){ if(confirm('حذف الإجازة؟')){state.leaves=state.leaves.filter(x=>x.id!==id);save()} }
+function deleteLeave(id){
+  if(!confirm('حذف الإجازة؟'))return;
+  const leave=state.leaves.find(x=>x.id===id);
+  if(leave?.balanceDaysCharged){const e=state.employees.find(x=>x.id===leave.employeeId);if(e)e.leaveBalance=(Number(e.leaveBalance)||0)+Number(leave.balanceDaysCharged)}
+  state.leaves=state.leaves.filter(x=>x.id!==id);save();
+}
 function deleteShift(id){ if(confirm('حذف التوزيع؟')){state.shifts=state.shifts.filter(x=>x.id!==id);save()} }
 
 document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
