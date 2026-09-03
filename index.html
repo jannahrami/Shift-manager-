@@ -527,6 +527,20 @@
     .report-panel{display:none}.report-panel.active{display:block}
     @media(max-width:560px){.report-summary{grid-template-columns:1fr}.report-table{min-width:720px}}
     @media(max-width:650px){.report-picker{grid-template-columns:1fr}.report-choice{padding:12px}.report-choice>span{width:36px;height:36px}}
+    .date-picker-sheet{width:min(620px,100%)}
+    .date-picker-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;text-align:center;margin-bottom:12px}
+    .date-picker-head h3{margin:3px 0 0;font-size:20px}
+    .date-picker-legend{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+    .date-picker-legend span{padding:6px 9px;border-radius:9px;font-size:10px;font-weight:850;border:1px solid}
+    .shift-date-weekdays,.shift-date-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+    .shift-date-weekdays{border:1px solid #d5dde8;border-bottom:0;border-radius:14px 14px 0 0;overflow:hidden}
+    .shift-date-weekdays div{padding:8px 2px;text-align:center;background:#e8edf4;color:#536174;font-size:10px;font-weight:800}
+    .shift-date-grid{border:1px solid #d5dde8;border-radius:0 0 14px 14px;overflow:hidden;background:#dfe5ec;gap:1px}
+    .shift-date-day{min-height:70px;padding:5px;border:0;background:#fff;color:#1f2937;cursor:pointer;display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;text-align:right}
+    .shift-date-day:hover{box-shadow:inset 0 0 0 2px #3b67eb;z-index:1}.shift-date-day.empty{background:#edf1f5;cursor:default}
+    .shift-date-day.selected{box-shadow:inset 0 0 0 3px #2448bd;background:#eff4ff;z-index:2}
+    .shift-date-number{font-size:12px;font-weight:900}.shift-date-label{padding:5px 3px;border-radius:7px;text-align:center;font-size:9px;font-weight:900}
+    @media(max-width:480px){.date-picker-sheet{padding:12px}.shift-date-day{min-height:56px;padding:3px}.shift-date-label{font-size:8px;padding:4px 1px}.date-picker-head .secondary{padding:8px}.date-picker-legend span{font-size:9px;padding:5px}}
 
     /* Desktop command-bar redesign */
     @media(min-width:900px){
@@ -867,14 +881,33 @@
     <div class="form">
       <select id="leaveEmployee"></select>
       <label class="small-note">بداية الإجازة</label>
-      <input type="date" id="leaveStart">
+      <input type="text" id="leaveStart" placeholder="اختر تاريخ البداية" readonly onclick="openShiftDatePicker('leaveStart')">
       <label class="small-note">نهاية الإجازة</label>
-      <input type="date" id="leaveEnd">
+      <input type="text" id="leaveEnd" placeholder="اختر تاريخ النهاية" readonly onclick="openShiftDatePicker('leaveEnd')">
       <textarea id="leaveNote" placeholder="ملاحظة اختيارية"></textarea>
       <div class="form-actions">
         <button class="primary" id="leaveSaveBtn" onclick="saveLeave()">حفظ</button>
         <button class="secondary" onclick="closeModal('leaveModal')">إلغاء</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="shiftDatePickerModal">
+  <div class="sheet date-picker-sheet">
+    <div class="date-picker-head">
+      <button class="secondary" onclick="changeDatePickerMonth(-1)">السابق</button>
+      <div><div class="small-note" id="datePickerTargetLabel">اختيار التاريخ</div><h3 id="datePickerTitle"></h3></div>
+      <button class="secondary" onclick="changeDatePickerMonth(1)">التالي</button>
+    </div>
+    <div class="date-picker-legend">
+      <span class="shift-morning">M · صباح</span><span class="shift-afternoon">A · مساء</span><span class="shift-night">N · ليل</span><span class="shift-off">OFF · إجازة</span>
+    </div>
+    <div class="shift-date-weekdays" id="shiftDateWeekdays"></div>
+    <div class="shift-date-grid" id="shiftDateGrid"></div>
+    <div class="form-actions" style="margin-top:12px">
+      <button class="secondary" onclick="goDatePickerToday()">اليوم</button>
+      <button class="secondary" onclick="closeModal('shiftDatePickerModal')">إلغاء</button>
     </div>
   </div>
 </div>
@@ -1463,6 +1496,8 @@ let selectedEmployeeId=null;
 let editingLeaveId=null;
 let calendarMonth=todayISO().slice(0,7);
 let scheduleMonth=todayISO().slice(0,7);
+let shiftDatePickerTarget='leaveStart';
+let shiftDatePickerMonth=todayISO().slice(0,7);
 let session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
 let syncTimer=null;
 let cloudReady=false;
@@ -1693,6 +1728,46 @@ const SHIFT_CYCLE=[
 function groupShiftForDate(date){
   const raw=diffDays(date,SHIFT_ANCHOR),day=((raw%28)+28)%28;
   return SHIFT_CYCLE.find(s=>day>=s.from&&day<=s.to)||SHIFT_CYCLE[0];
+}
+function shiftPickerLabel(shift){
+  if(shift.code==='M')return 'صباح';
+  if(shift.code==='A')return 'مساء';
+  if(shift.code==='N')return 'ليل';
+  return 'أوف';
+}
+function openShiftDatePicker(targetId){
+  shiftDatePickerTarget=targetId;
+  const selected=document.getElementById(targetId)?.value;
+  shiftDatePickerMonth=(selected&&/^\d{4}-\d{2}-\d{2}$/.test(selected)?selected:todayISO()).slice(0,7);
+  document.getElementById('datePickerTargetLabel').textContent=targetId==='leaveStart'?'اختيار بداية الإجازة':'اختيار نهاية الإجازة';
+  renderShiftDatePicker();document.getElementById('shiftDatePickerModal').classList.add('show');
+}
+function changeDatePickerMonth(step){
+  let [year,month]=shiftDatePickerMonth.split('-').map(Number);month+=step;
+  if(month<1){month=12;year--}if(month>12){month=1;year++}
+  shiftDatePickerMonth=`${year}-${String(month).padStart(2,'0')}`;renderShiftDatePicker();
+}
+function goDatePickerToday(){shiftDatePickerMonth=todayISO().slice(0,7);renderShiftDatePicker()}
+function chooseShiftDate(date){
+  const input=document.getElementById(shiftDatePickerTarget);if(!input)return;
+  input.value=date;
+  if(shiftDatePickerTarget==='leaveStart'){
+    const end=document.getElementById('leaveEnd');if(end.value&&end.value<date)end.value='';
+  }
+  closeModal('shiftDatePickerModal');
+}
+function renderShiftDatePicker(){
+  const grid=document.getElementById('shiftDateGrid'),weekdays=document.getElementById('shiftDateWeekdays');if(!grid||!weekdays)return;
+  const [year,month]=shiftDatePickerMonth.split('-').map(Number),firstDay=new Date(year,month-1,1).getDay(),daysInMonth=new Date(year,month,0).getDate();
+  document.getElementById('datePickerTitle').textContent=new Date(year,month-1,1).toLocaleDateString('ar-SA-u-ca-gregory',{month:'long',year:'numeric'});
+  weekdays.innerHTML=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'].map(x=>`<div>${x}</div>`).join('');
+  const selected=document.getElementById(shiftDatePickerTarget)?.value||'';let html='';
+  for(let i=0;i<42;i++){
+    const day=i-firstDay+1;if(day<1||day>daysInMonth){html+='<div class="shift-date-day empty"></div>';continue}
+    const date=calendarDateISO(year,month,day),shift=groupShiftForDate(date);
+    html+=`<button type="button" class="shift-date-day ${date===selected?'selected':''}" onclick="chooseShiftDate('${date}')"><span class="shift-date-number">${day}</span><span class="shift-date-label ${shift.cls}">${shift.code} · ${shiftPickerLabel(shift)}</span></button>`;
+  }
+  grid.innerHTML=html;
 }
 function addDaysISO(date,days){
   const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+days);
