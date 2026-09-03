@@ -518,7 +518,7 @@
     .report-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
     .report-summary>div{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card2);text-align:center}
     .report-summary strong{display:block;font-size:22px;margin-bottom:4px}.report-summary span{font-size:11px;color:var(--muted)}
-    .report-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+    .report-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
     .report-choice{border:1px solid #d2dbe6;border-radius:17px;padding:16px;background:#f8fafc;color:#253148;text-align:right;cursor:pointer;display:grid;grid-template-columns:auto 1fr;column-gap:11px;align-items:center;box-shadow:0 6px 16px rgba(31,44,64,.06)}
     .report-choice>span{grid-row:1/3;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#e8eefc;font-size:21px}
     .report-choice strong{font-size:14px}.report-choice small{font-size:10px;color:#718096;margin-top:3px}
@@ -539,6 +539,7 @@
     .insight-compare{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;width:100%;margin-top:12px}.insight-compare span{text-align:center;background:rgba(255,255,255,.72);border:1px solid rgba(79,99,190,.22);border-radius:12px;padding:10px 6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}.insight-compare strong{display:block;font-size:24px;color:#293b99}.insight-compare small{font-size:10px;color:#5f6ca4}.insight-compare i{font-style:normal;font-size:18px;color:#6878c7}
     .liquidation-list{grid-column:1/-1;background:linear-gradient(110deg,#fffaf0 0%,#f8fafc 48%,#eef6ff 100%);border-color:#d9cda9;box-shadow:0 8px 22px rgba(43,58,87,.08);position:relative;overflow:hidden}.liquidation-list::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:linear-gradient(#f59e0b,#315fe7)}.liquidation-list h3{color:#70450a}
     .liquidation-list h3{font-size:14px;margin:0 0 9px}.liquidation-person{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid #e2e8f0}.liquidation-person:last-child{border-bottom:0}.liquidation-person .name{font-size:11px}.liquidation-person .meta{font-size:9px}.liquidation-excess{font-size:10px;font-weight:900;color:#b45309;background:#fff5d9;border:1px solid #f6d781;border-radius:8px;padding:5px 7px;align-self:center}
+    .achievement-section{background:linear-gradient(135deg,#fffdf5 0%,#f7fbff 55%,#f0fff9 100%);border-color:#d6c88f}.achievement-form{margin-bottom:14px}.achievement-list .row{border-color:#e7d898;background:rgba(255,255,255,.8);box-shadow:0 7px 18px rgba(107,83,13,.06)}.achievement-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,#f8c94c,#f59e0b);color:#fff;font-size:20px;box-shadow:0 7px 15px rgba(245,158,11,.2)}.achievement-actions{display:flex;gap:6px;flex-wrap:wrap}.achievement-type{color:#8a5704;background:#fff4cf;border-color:#f2d47a}
     @media(max-width:780px){.leave-insights{grid-template-columns:1fr}.insight-chart-card{justify-content:flex-start}.insight-donut{width:82px;height:82px}}
     @media(max-width:560px){.report-summary{grid-template-columns:1fr}.report-table{min-width:720px}}
     @media(max-width:650px){.report-picker{grid-template-columns:1fr}.report-choice{padding:12px}.report-choice>span{width:36px;height:36px}}
@@ -740,6 +741,23 @@
         </div>
       </div>
 
+      <div class="section achievement-section">
+        <div class="section-head"><div><span class="section-kicker">السجل الإيجابي</span><h2>إنجازات الموظف</h2></div><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span class="chip" id="achievementCount">0</span><button class="secondary" onclick="printEmployeeAchievements()">🖨 طباعة الإنجازات</button><button class="secondary" onclick="openAllAchievementsReport()">📊 تقرير الجميع</button></div></div>
+        <div class="form achievement-form">
+          <select id="achievementType">
+            <option value="بلاغ عن مشكلة">بلاغ عن مشكلة</option>
+            <option value="اقتراح تطويري">اقتراح تطويري</option>
+            <option value="تميّز في العمل">تميّز في العمل</option>
+            <option value="شكر وتقدير">شكر وتقدير</option>
+            <option value="إنجاز آخر">إنجاز آخر</option>
+          </select>
+          <input type="date" id="achievementDate">
+          <textarea id="achievementNote" placeholder="اكتب تفاصيل الإنجاز، مثل: أبلغ عن مشكلة وساهم في معالجتها"></textarea>
+          <div style="display:flex;gap:8px"><button class="primary" id="achievementSaveBtn" style="flex:1" onclick="saveEmployeeAchievement()">حفظ الإنجاز</button><button class="secondary" id="achievementCancelBtn" style="display:none" onclick="cancelAchievementEdit()">إلغاء التعديل</button></div>
+        </div>
+        <div class="list achievement-list" id="employeeAchievementsList"></div>
+      </div>
+
       <div class="section">
         <div class="section-head"><h2>الإجازات</h2><span class="chip" id="profileLeaveCount">0</span></div>
         <div class="list" id="employeeLeavesList"></div>
@@ -770,6 +788,7 @@
         <button class="report-choice active" data-report="balances" onclick="selectReportType('balances',this)"><span>💳</span><strong>أرصدة الموظفين</strong><small>رصيد جميع الموظفين</small></button>
         <button class="report-choice" data-report="monthly" onclick="selectReportType('monthly',this)"><span>🗓️</span><strong>إجازات الشهر</strong><small>تقرير شهري كامل</small></button>
         <button class="report-choice" data-report="annual" onclick="selectReportType('annual',this)"><span>👤</span><strong>التقرير السنوي</strong><small>تقرير موظف محدد</small></button>
+        <button class="report-choice" data-report="achievements" onclick="selectReportType('achievements',this)"><span>🏆</span><strong>تقرير الإنجازات</strong><small>جميع الموظفين المنجزين</small></button>
       </div>
 
       <div class="section report-panel active" id="balancesReportPanel">
@@ -808,6 +827,16 @@
           </div>
         </div>
         <div id="annualReportBox"></div>
+      </div>
+
+      <div class="section report-panel" id="achievementsReportPanel">
+        <div class="section-head"><div><span class="section-kicker">السجل الإيجابي</span><h2>تقرير إنجازات الموظفين</h2></div></div>
+        <div class="month-filter">
+          <button class="primary" onclick="renderAchievementsReport()">عرض التقرير</button>
+          <button class="secondary" onclick="exportAchievementsReportExcel()">⬇ Excel</button>
+          <button class="secondary" onclick="printReport('achievementsReportBox','تقرير إنجازات الموظفين')">🖨 طباعة / PDF</button>
+        </div>
+        <div id="achievementsReportBox"></div>
       </div>
     </section>
 
@@ -1508,14 +1537,17 @@ let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
 ],
   shifts:[],
   records:[],
+  achievements:[],
   personalNotes:[]
 };
 
 if(!Array.isArray(state.records)) state.records=[];
+if(!Array.isArray(state.achievements)) state.achievements=[];
 if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
 state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
 if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
 let selectedEmployeeId=null;
+let editingAchievementId=null;
 let editingLeaveId=null;
 let calendarMonth=todayISO().slice(0,7);
 let scheduleMonth=todayISO().slice(0,7);
@@ -1592,6 +1624,7 @@ async function loadCloudState(){
       await uploadCloudState();
     }
     if(!Array.isArray(state.records))state.records=[];
+    if(!Array.isArray(state.achievements))state.achievements=[];
     if(!Array.isArray(state.personalNotes))state.personalNotes=[];
     state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
     if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
@@ -2026,8 +2059,11 @@ function recordBadgeClass(type){
 
 function openEmployeeProfile(id){
   selectedEmployeeId=id;
+  editingAchievementId=null;
   const dateInput=document.getElementById('recordDate');
   if(dateInput && !dateInput.value) dateInput.value=todayISO();
+  const achievementDate=document.getElementById('achievementDate');
+  if(achievementDate && !achievementDate.value) achievementDate.value=todayISO();
   renderEmployeeProfile();
   showView('employeeProfileView');
 }
@@ -2036,11 +2072,12 @@ function renderEmployeeProfile(){
   const head=document.getElementById('employeeProfileHeader');
   const list=document.getElementById('employeeRecordsList');
   const leaveList=document.getElementById('employeeLeavesList');
+  const achievementList=document.getElementById('employeeAchievementsList');
   if(!head||!list)return;
   const e=state.employees.find(x=>x.id===selectedEmployeeId);
   if(!e){
     head.innerHTML='<div class="empty">اختر موظفًا من قائمة الموظفين</div>';
-    list.innerHTML='';if(leaveList)leaveList.innerHTML='';
+    list.innerHTML='';if(leaveList)leaveList.innerHTML='';if(achievementList)achievementList.innerHTML='';
     return;
   }
   const st=employeeStatus(e);
@@ -2065,6 +2102,22 @@ function renderEmployeeProfile(){
     if(l.start<=t&&l.end>=t){label='في إجازة';cls='b-blue'}else if(l.end<t){label='منتهية';cls='b-neutral'}
     return `<div class="row"><div><div class="name">${fmtDate(l.start)} ← ${fmtDate(l.end)}</div><div class="meta">${diffDays(l.end,l.start)+1} يوم · ${esc(l.note||'بدون ملاحظة')}</div></div><span class="badge ${cls}">${label}</span></div>`;
   }).join(''):'<div class="empty">لا توجد إجازات مسجلة لهذا الموظف</div>';
+
+  const achievements=state.achievements
+    .filter(a=>a.employeeId===e.id)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  document.getElementById('achievementCount').textContent=achievements.length;
+  achievementList.innerHTML=achievements.length?achievements.map(a=>`
+    <div class="row">
+      <div class="row-main">
+        <div class="achievement-icon">🏆</div>
+        <div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge achievement-type">${esc(a.type)}</span><span class="meta">${fmtDate(a.date)}</span></div>
+          <div class="meta" style="margin-top:8px;color:var(--text);line-height:1.7">${esc(a.note)}</div>
+        </div>
+      </div>
+      <div class="achievement-actions"><button class="secondary" onclick="editEmployeeAchievement('${a.id}')">تعديل</button><button class="secondary danger" onclick="deleteEmployeeAchievement('${a.id}')">حذف</button></div>
+    </div>`).join(''):'<div class="empty">لا توجد إنجازات مسجلة لهذا الموظف حتى الآن</div>';
 
   const records=state.records
     .filter(r=>r.employeeId===e.id)
@@ -2112,6 +2165,49 @@ function deleteEmployeeRecord(id){
   renderEmployeeProfile();
 }
 
+function resetAchievementForm(){
+  editingAchievementId=null;
+  const type=document.getElementById('achievementType'),date=document.getElementById('achievementDate'),note=document.getElementById('achievementNote');
+  if(type)type.value='بلاغ عن مشكلة';if(date)date.value=todayISO();if(note)note.value='';
+  const saveBtn=document.getElementById('achievementSaveBtn'),cancelBtn=document.getElementById('achievementCancelBtn');
+  if(saveBtn)saveBtn.textContent='حفظ الإنجاز';if(cancelBtn)cancelBtn.style.display='none';
+}
+
+function saveEmployeeAchievement(){
+  if(!selectedEmployeeId){alert('اختر موظفًا أولًا');return}
+  const type=document.getElementById('achievementType').value;
+  const date=document.getElementById('achievementDate').value||todayISO();
+  const note=document.getElementById('achievementNote').value.trim();
+  if(!note){alert('اكتب تفاصيل الإنجاز');return}
+  if(editingAchievementId){
+    const achievement=state.achievements.find(a=>a.id===editingAchievementId);
+    if(achievement)Object.assign(achievement,{type,date,note,updatedAt:new Date().toISOString()});
+  }else{
+    state.achievements.push({id:(crypto.randomUUID?crypto.randomUUID():('ach-'+Date.now())),employeeId:selectedEmployeeId,type,date,note,createdAt:new Date().toISOString()});
+  }
+  resetAchievementForm();save();renderEmployeeProfile();
+}
+
+function editEmployeeAchievement(id){
+  const achievement=state.achievements.find(a=>a.id===id);if(!achievement)return;
+  editingAchievementId=id;
+  document.getElementById('achievementType').value=achievement.type;
+  document.getElementById('achievementDate').value=achievement.date||todayISO();
+  document.getElementById('achievementNote').value=achievement.note||'';
+  document.getElementById('achievementSaveBtn').textContent='حفظ التعديل';
+  document.getElementById('achievementCancelBtn').style.display='inline-flex';
+  document.getElementById('achievementNote').focus();
+}
+
+function cancelAchievementEdit(){resetAchievementForm()}
+
+function deleteEmployeeAchievement(id){
+  if(!confirm('حذف هذا الإنجاز؟'))return;
+  state.achievements=state.achievements.filter(a=>a.id!==id);
+  if(editingAchievementId===id)resetAchievementForm();
+  save();renderEmployeeProfile();
+}
+
 
 function currentMonthValue(){return todayISO().slice(0,7)}
 function showCurrentLeaveMonth(){
@@ -2143,6 +2239,7 @@ function selectReportType(type,button){
   if(type==='balances')renderBalancesReport();
   if(type==='monthly')renderMonthlyReport();
   if(type==='annual'&&document.getElementById('annualReportEmployee').value)renderAnnualEmployeeReport();
+  if(type==='achievements')renderAchievementsReport();
 }
 function balanceReportEmployees(){
   return [...state.employees].sort((a,b)=>a.name.localeCompare(b.name));
@@ -2203,6 +2300,36 @@ function exportAnnualEmployeeReport(){
   if(!employeeId||!year){alert('اختر الموظف والسنة');return}
   const employee=state.employees.find(e=>e.id===employeeId),rows=annualReportRows(employeeId,year);if(!rows.length){alert('لا توجد إجازات في السنة المحددة');return}
   downloadCsv(`Employee_Leave_Report_${employee.empId}_${year}.csv`,['م','اسم الموظف','رقم الباج','من','إلى','أيام ضمن السنة','الملاحظة','الرصيد الحالي'],rows.map((x,i)=>[i+1,employee.name,employee.empId,x.leave.start,x.leave.end,x.days,x.leave.note||'',employee.leaveBalance]));
+}
+function achievementReportRows(employeeId=''){
+  return state.achievements.map(achievement=>({achievement,employee:state.employees.find(e=>e.id===achievement.employeeId)}))
+    .filter(x=>x.employee&&(!employeeId||x.employee.id===employeeId))
+    .sort((a,b)=>(b.achievement.date||'').localeCompare(a.achievement.date||'')||a.employee.name.localeCompare(b.employee.name));
+}
+function achievementReportDocument(rows,title='تقرير إنجازات الموظفين'){
+  const people=new Set(rows.map(x=>x.employee.id)).size;
+  return `<div class="report-document" dir="rtl"><div class="section-head"><div><h2>${esc(title)}</h2><div class="small-note">سجل الإنجازات مرتب من الأحدث إلى الأقدم</div></div></div>
+    <div class="report-summary"><div><strong>${people}</strong><span>عدد الموظفين</span></div><div><strong>${rows.length}</strong><span>إجمالي الإنجازات</span></div><div><strong>${new Set(rows.map(x=>x.achievement.type)).size}</strong><span>أنواع الإنجازات</span></div></div>
+    <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>اسم الموظف</th><th>رقم الباج</th><th>التاريخ</th><th>نوع الإنجاز</th><th>التفاصيل</th></tr></thead><tbody>${rows.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.employee.name)}</td><td>${esc(x.employee.empId)}</td><td>${fmtDate(x.achievement.date)}</td><td><span class="badge achievement-type">${esc(x.achievement.type)}</span></td><td>${esc(x.achievement.note)}</td></tr>`).join('')}</tbody></table></div></div>`;
+}
+function renderAchievementsReport(){
+  const box=document.getElementById('achievementsReportBox');if(!box)return;
+  const rows=achievementReportRows();
+  box.innerHTML=rows.length?achievementReportDocument(rows):'<div class="empty">لا توجد إنجازات مسجلة لأي موظف</div>';
+}
+function exportAchievementsReportExcel(){
+  const rows=achievementReportRows();if(!rows.length){alert('لا توجد إنجازات مسجلة');return}
+  downloadCsv(`All_Employee_Achievements_${todayISO()}.csv`,['م','اسم الموظف','رقم الباج','التاريخ','نوع الإنجاز','التفاصيل'],rows.map((x,i)=>[i+1,x.employee.name,x.employee.empId,x.achievement.date,x.achievement.type,x.achievement.note]));
+}
+function printEmployeeAchievements(){
+  if(!selectedEmployeeId){alert('اختر موظفًا أولًا');return}
+  const employee=state.employees.find(e=>e.id===selectedEmployeeId),rows=achievementReportRows(selectedEmployeeId);
+  if(!employee||!rows.length){alert('لا توجد إنجازات مسجلة لهذا الموظف');return}
+  const temp=document.createElement('div');temp.id='employeeAchievementPrint';temp.style.display='none';temp.innerHTML=achievementReportDocument(rows,`إنجازات الموظف: ${employee.name}`);document.body.appendChild(temp);
+  printReport(temp.id,`إنجازات الموظف ${employee.name}`);setTimeout(()=>temp.remove(),1000);
+}
+function openAllAchievementsReport(){
+  showView('reportsView');selectReportType('achievements');renderAchievementsReport();
 }
 function printReport(boxId,title){
   const box=document.getElementById(boxId);if(!box||!box.querySelector('table')){alert('اعرض التقرير أولًا');return}
