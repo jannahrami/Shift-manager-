@@ -661,7 +661,7 @@
       <div class="section section-wide leave-insights-section">
         <div class="section-head">
           <div><span class="section-kicker">مؤشرات السنة الحالية</span><h2>متابعة استخدام وتصفية رصيد الإجازات</h2></div>
-          <span class="chip" id="leaveInsightsYear"></span>
+          <div style="display:flex;gap:8px;align-items:center"><span class="chip" id="leaveInsightsYear"></span><button class="secondary" onclick="exportLeaveInsightsPDF()">⬇ PDF</button></div>
         </div>
         <div class="leave-insights" id="leaveBalanceInsights"></div>
       </div>
@@ -1661,6 +1661,25 @@ function renderLeaveBalanceInsights(){
     <div class="insight-chart-card"><div class="insight-donut" style="--pct:${tookPct};--color:#16a085"><strong>${tookPct}%</strong></div><div class="insight-copy"><h3>أخذوا إجازة هذه السنة</h3><p>الموظفون الذين بدأت لهم إجازة فعلية خلال ${year}</p><b>${tookCount} من ${total} موظف</b></div></div>
     <div class="insight-chart-card"><div class="insight-donut" style="--pct:${needsPct};--color:#f59e0b"><strong>${needsPct}%</strong></div><div class="insight-copy"><h3>يحتاجون تصفية الرصيد</h3><p>رصيدهم الحالي يتجاوز الحد المسموح ترحيله وهو 9 أيام</p><b>${needs.length} موظف · ${formatDays(excessDays)} يوم للتصفية</b></div></div>
     <div class="liquidation-list"><h3>أعلى الأرصدة المطلوب تصفيتها</h3>${names||'<div class="empty">جميع الأرصدة ضمن حد الترحيل 👌</div>'}${needs.length>6?`<div class="small-note" style="margin-top:8px">و${needs.length-6} موظفين آخرين — التفاصيل الكاملة في تقرير الأرصدة</div>`:''}</div>`;
+}
+
+function exportLeaveInsightsPDF(){
+  const today=todayISO(),year=today.slice(0,4),yearStart=year+'-01-01',total=state.employees.length;
+  const tookIds=new Set(state.leaves.filter(l=>l.start<=today&&l.end>=yearStart).map(l=>l.employeeId));
+  const tookCount=state.employees.filter(e=>tookIds.has(e.id)).length;
+  const needs=state.employees.filter(e=>(Number(e.leaveBalance)||0)>9).sort((a,b)=>Number(b.leaveBalance)-Number(a.leaveBalance));
+  const excessDays=needs.reduce((sum,e)=>sum+Math.max(0,(Number(e.leaveBalance)||0)-9),0);
+  const tookPct=total?Math.round(tookCount/total*100):0,needsPct=total?Math.round(needs.length/total*100):0;
+  const rows=needs.map((e,i)=>`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(e.empId)}</td><td>${formatDays(e.leaveBalance)} يوم</td><td>${formatDays(Number(e.leaveBalance)-9)} يوم</td></tr>`).join('');
+  const win=window.open('','_blank');if(!win){alert('اسمح بالنوافذ المنبثقة لتصدير PDF');return}
+  win.document.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>Leave Balance Indicators ${year}</title><style>
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Tahoma,sans-serif;margin:0;padding:28px;color:#172033;background:#fff}header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #315fe7;padding-bottom:14px;margin-bottom:20px}h1{font-size:23px;margin:0 0 5px}.sub{font-size:11px;color:#64748b}.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}.card{border:1px solid #d8e0ea;border-radius:16px;padding:18px;display:flex;align-items:center;gap:17px}.donut{--pct:0;--color:#315fe7;width:104px;height:104px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--color) calc(var(--pct)*1%),#e2e8f0 0);position:relative}.donut:before{content:"";position:absolute;inset:12px;border-radius:50%;background:#fff}.donut b{position:relative;font-size:21px}.card h2{font-size:16px;margin:0 0 7px}.card p{font-size:12px;color:#64748b;line-height:1.6;margin:0}.card strong{display:block;margin-top:8px;font-size:14px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}.summary div{background:#eef3fb;border-radius:12px;padding:13px;text-align:center}.summary b{display:block;font-size:22px}.summary span{font-size:10px;color:#64748b}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #d8e0ea;text-align:right;font-size:11px}th{background:#e9eef6}h3{font-size:16px;margin:0 0 10px}.empty{padding:24px;text-align:center;background:#f1f5f9;border-radius:12px;color:#64748b}@page{size:A4 landscape;margin:10mm}
+  </style></head><body><header><div><h1>مؤشرات استخدام وتصفية رصيد الإجازات</h1><div class="sub">Group A · السنة ${year}</div></div><div class="sub">تاريخ التقرير: ${fmtDate(today)}</div></header>
+  <div class="charts"><div class="card"><div class="donut" style="--pct:${tookPct};--color:#16a085"><b>${tookPct}%</b></div><div><h2>أخذوا إجازة هذه السنة</h2><p>نسبة الموظفين الذين بدأت لهم إجازة فعلية خلال السنة.</p><strong>${tookCount} من ${total} موظف</strong></div></div><div class="card"><div class="donut" style="--pct:${needsPct};--color:#f59e0b"><b>${needsPct}%</b></div><div><h2>يحتاجون تصفية الرصيد</h2><p>رصيدهم يتجاوز الحد المسموح ترحيله وهو 9 أيام.</p><strong>${needs.length} من ${total} موظف</strong></div></div></div>
+  <div class="summary"><div><b>${total}</b><span>إجمالي الموظفين</span></div><div><b>${needs.length}</b><span>يحتاجون تصفية</span></div><div><b>${formatDays(excessDays)}</b><span>إجمالي أيام التصفية</span></div></div>
+  <h3>تفاصيل الموظفين المطلوب تصفية أرصدتهم</h3>${needs.length?`<table><thead><tr><th>#</th><th>الموظف</th><th>رقم الباج</th><th>الرصيد الحالي</th><th>المطلوب تصفيته</th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">جميع أرصدة الموظفين ضمن حد الترحيل</div>'}
+  </body></html>`);
+  win.document.close();win.focus();setTimeout(()=>win.print(),300);
 }
 
 function getUpcomingNotifications(days=7){
