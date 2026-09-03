@@ -1573,6 +1573,53 @@ let session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
 let syncTimer=null;
 let cloudReady=false;
 
+const VACATION_PLAN_2026_IMPORT=[
+  ['102297','2026-02-24','2026-03-14'],
+  ['102299','2026-03-05','2026-03-23'],
+  ['101702','2026-03-24','2026-04-11'],
+  ['104121','2026-04-02','2026-04-20'],
+  ['101697','2026-04-02','2026-04-20'],
+  ['104165','2026-04-12','2026-04-26'],
+  ['103409','2026-04-12','2026-04-29'],
+  ['104495','2026-05-10','2026-06-06'],
+  ['101701','2026-05-10','2026-06-06'],
+  ['103409','2026-05-19','2026-06-06'],
+  ['104116','2026-05-19','2026-06-06'],
+  ['101631','2026-06-07','2026-07-04'],
+  ['102286','2026-06-07','2026-07-04'],
+  ['101988','2026-06-07','2026-07-04'],
+  ['101634','2026-07-05','2026-08-01'],
+  ['103871','2026-07-05','2026-08-01'],
+  ['102301','2026-07-05','2026-08-01'],
+  ['104165','2026-07-05','2026-07-13'],
+  ['102293','2026-07-05','2026-08-01'],
+  ['101725','2026-08-02','2026-08-28'],
+  ['101632','2026-08-02','2026-08-28'],
+  ['101703','2026-08-02','2026-08-28'],
+  ['101655','2026-08-11','2026-09-04'],
+  ['101698','2026-08-11','2026-08-29'],
+  ['103661','2026-08-30','2026-09-27'],
+  ['101694','2026-08-30','2026-09-16']
+];
+
+function applyVacationPlan2026Import(){
+  if(Number(state.vacationPlan2026ImportVersion)>=1)return false;
+  let changed=false;
+  if(!state.employees.some(e=>String(e.empId)==='102293')){
+    state.employees.push({id:'emp-102293',name:'FAHAD AL YUBI',empId:'102293',gc:'',position:'',shift:'Group A',location:'',note:'',leaveBalance:0});
+    changed=true;
+  }
+  const existing=new Set(state.leaves.map(l=>`${l.employeeId}|${l.start}|${l.end}`));
+  VACATION_PLAN_2026_IMPORT.forEach(([empId,start,end])=>{
+    const employee=state.employees.find(e=>String(e.empId)===empId);if(!employee)return;
+    const key=`${employee.id}|${start}|${end}`;if(existing.has(key))return;
+    state.leaves.push({id:`leave-${empId}-${start}`,employeeId:employee.id,start,end,note:'2026 Vacation Plan · Imported'});
+    existing.add(key);changed=true;
+  });
+  state.vacationPlan2026ImportVersion=1;
+  return true;
+}
+
 function ensureAnnualLeaveCredit(){
   const currentYear=new Date().getFullYear();
   const lastYear=Number(state.leaveBalanceAccrualYear);
@@ -1594,6 +1641,7 @@ function ensureAnnualLeaveCredit(){
   state.leaveBalanceAccrualYear=currentYear;
   return true;
 }
+applyVacationPlan2026Import();
 ensureAnnualLeaveCredit();
 localStorage.setItem(KEY,JSON.stringify(state));
 
@@ -1644,9 +1692,10 @@ async function loadCloudState(){
     if(!Array.isArray(state.personalNotes))state.personalNotes=[];
     state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
     if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
+    const vacationImportChanged=applyVacationPlan2026Import();
     const annualCreditChanged=ensureAnnualLeaveCredit();
     localStorage.setItem(KEY,JSON.stringify(state));
-    if(annualCreditChanged)await uploadCloudState();
+    if(vacationImportChanged||annualCreditChanged)await uploadCloudState();
     cloudReady=true;document.getElementById('authScreen').classList.add('hidden');setCloudStatus('online','تمت المزامنة');renderAll();
   }catch(e){setCloudStatus('offline','تعذر الاتصال');document.getElementById('authError').textContent=e.message;document.getElementById('authScreen').classList.remove('hidden')}
 }
