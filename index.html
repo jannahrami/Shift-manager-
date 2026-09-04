@@ -893,6 +893,7 @@
             <button class="secondary no-print" onclick="changeMonthlyRosterMonth(1)">التالي</button>
             <button class="primary no-print auto-roster-btn" onclick="previewAutoMonthlyRoster()">⚡ Auto Generate</button>
             <button class="primary no-print" onclick="saveMonthlyRosterPeriod()">💾 حفظ الجدول</button>
+            <button class="secondary danger no-print" onclick="cancelMonthlyRoster()">🗑 إلغاء الجدول</button>
             <button class="primary no-print" onclick="printMonthlyRoster()">🖨 طباعة / PDF</button>
           </div>
         </div>
@@ -2608,8 +2609,7 @@ function rosterPostKey(groupKey,post){return groupKey+'|'+post}
 function monthlyRosterData(){
   if(!state.monthlySchedules[monthlyRosterMonth])state.monthlySchedules[monthlyRosterMonth]={};
   const data=state.monthlySchedules[monthlyRosterMonth];
-  Object.keys(data).forEach(key=>data[key]=(data[key]||[]).filter(id=>!rosterLeaveStatus(id).blocked||isRosterReturnReplacement(id,key,data)));
-  Object.entries(FIXED_ROSTER_POSTS).forEach(([employeeId,postKey])=>{if(!state.employees.some(e=>e.id===employeeId))return;Object.keys(data).forEach(key=>data[key]=(data[key]||[]).filter(id=>id!==employeeId));if(!rosterLeaveStatus(employeeId).blocked){data[postKey]=data[postKey]||[];if(!data[postKey].includes(employeeId))data[postKey].push(employeeId)}});
+  Object.keys(data).forEach(key=>data[key]=(data[key]||[]).filter(id=>!rosterLeaveStatus(id).blocked||isDesignatedBackupAssignment(id,key)));
   return data;
 }
 function monthlyRosterRequirements(){if(!state.monthlyScheduleRequirements[monthlyRosterMonth])state.monthlyScheduleRequirements[monthlyRosterMonth]={};return state.monthlyScheduleRequirements[monthlyRosterMonth]}
@@ -2619,6 +2619,11 @@ function syncMonthlyRosterPeriodInputs(){const p=monthlyRosterPeriod(),start=doc
 function saveMonthlyRosterPeriod(){
   const start=document.getElementById('monthlyRosterStart').value,end=document.getElementById('monthlyRosterEnd').value;if(!start||!end){alert('حدد بداية ونهاية فترة الجدول');return}if(end<start){alert('نهاية الفترة يجب أن تكون بعد البداية');return}
   state.monthlySchedulePeriods[monthlyRosterMonth]={start,end};save();alert('تم حفظ الجدول وفترته')
+}
+function cancelMonthlyRoster(){
+  const data=monthlyRosterData(),hasAssignments=Object.values(data).some(ids=>Array.isArray(ids)&&ids.length);if(!hasAssignments){alert('لا يوجد جدول محفوظ لإلغائه');return}
+  const label=monthLabel(monthlyRosterMonth).replace('إجازات ','');if(!confirm(`هل تريد إلغاء جدول ${label} بالكامل؟\nسيتم حذف التوزيع المحفوظ فقط، ولن تُحذف الإجازات أو أعداد الاحتياج.`))return;
+  state.monthlySchedules[monthlyRosterMonth]={};pendingAutoRoster=null;save();alert('تم إلغاء الجدول، ويمكنك إنشاء توزيع جديد');
 }
 function updateMonthlyRosterPeriodDraft(){const start=document.getElementById('monthlyRosterStart').value,end=document.getElementById('monthlyRosterEnd').value;if(start&&end&&end>=start)state.monthlySchedulePeriods[monthlyRosterMonth]={start,end}}
 function rosterLeaveStatus(employeeId,period=monthlyRosterPeriod()){
@@ -2633,16 +2638,18 @@ function fixedRosterPost(employeeId){return FIXED_ROSTER_POSTS[employeeId]||''}
 function rosterBackupAvailable(employeeId,coverageStart,period=monthlyRosterPeriod()){
   const status=rosterLeaveStatus(employeeId,period);return !status.blocked||(status.returning&&addDaysISO(status.returning.end,1)<=coverageStart);
 }
-function isRosterReturnReplacement(employeeId,key,data,period=monthlyRosterPeriod()){
-  const status=rosterLeaveStatus(employeeId,period);if(!status.returning)return false;const availableFrom=addDaysISO(status.returning.end,1);
-  return (data[key]||[]).some(id=>id!==employeeId&&rosterLeaveStatus(id,period).upcoming?.start>=availableFrom);
+function isDesignatedBackupAssignment(employeeId,key,period=monthlyRosterPeriod()){
+  if(employeeId===ASSISTANT_BACKUP_ID&&key===ASSISTANT_POST_KEY){const leave=rosterLeaveStatus(ASSISTANT_PRIMARY_ID,period).upcoming;return !!leave&&rosterBackupAvailable(employeeId,leave.start,period)}
+  if(SCC_BACKUP_IDS.includes(employeeId)&&key===SCC_POST_KEY){const leave=SCC_PRIMARY_IDS.map(id=>rosterLeaveStatus(id,period).upcoming).filter(Boolean).sort((a,b)=>a.start.localeCompare(b.start))[0];return !!leave&&rosterBackupAvailable(employeeId,leave.start,period)}
+  if(employeeId===COMMUNITY_BACKUP_ID&&key===COMMUNITY_POST_KEY){const leave=rosterLeaveStatus(COMMUNITY_PRIMARY_ID,period).upcoming;return !!leave&&rosterBackupAvailable(employeeId,leave.start,period)}
+  return false;
 }
 function rosterEmployeesOnLeave(period=monthlyRosterPeriod()){
   return state.employees.map(employee=>{const leaves=state.leaves.filter(l=>l.employeeId===employee.id&&l.start<=period.end&&l.end>=period.start).sort((a,b)=>a.start.localeCompare(b.start));return leaves.length?{employee,leaves}:null}).filter(Boolean).sort((a,b)=>a.employee.name.localeCompare(b.employee.name));
 }
 function rosterLeaveSectionRows(columns=4){
   const entries=rosterEmployeesOnLeave();if(!entries.length)return '';
-  const people=entries.map(({employee,leaves})=>{const dates=leaves.map(l=>`${fmtDate(l.start)} → ${fmtDate(l.end)}`).join('، ');return `<span class="roster-person roster-leave-person" title="${esc(dates)}">${esc(employee.name)}</span>`}).join('');
+  const people=entries.map(({employee,leaves})=>{const dates=leaves.map(l=>`${fmtDate(l.start)} → ${fmtDate(l.end)}`).join('، '),status=rosterLeaveStatus(employee.id),returning=status.returning,cls=returning?'roster-returning':'roster-leave-person',title=returning?`${dates} — متاح بعد العودة ${fmtDate(addDaysISO(returning.end,1))}`:dates;return `<span class="roster-person ${cls}" title="${esc(title)}">${esc(employee.name)}</span>`}).join('');
   return `<tr class="roster-group leave"><td colspan="${columns}">Leave / إجازة (${entries.length})</td></tr><tr class="roster-leave-row"><td class="roster-post">Leave / إجازة</td><td>${entries.length}</td><td colspan="${Math.max(1,columns-2)}"><div class="roster-people">${people}</div></td></tr>`;
 }
 function setMonthlyRosterRequirement(key,value){const n=Math.max(0,Math.min(99,Number(value)||0)),req=monthlyRosterRequirements();if(n)req[key]=n;else delete req[key];localStorage.setItem(KEY,JSON.stringify(state));clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450);renderMonthlyRosterSummary()}
@@ -2720,9 +2727,7 @@ function buildAutoMonthlyRoster(){
   targets.filter(t=>isLeaderGate(t.group,t.post)).forEach(t=>{result[t.key]=result[t.key]||[];const hasLeader=result[t.key].some(id=>state.employees.find(e=>e.id===id)?.dutyRole==='leader');if(!hasLeader&&result[t.key].length<t.count){const id=takeRosterEmployee(pools,['leader'],used);if(id)result[t.key].unshift(id);else shortages.push(`${t.post}: لا يوجد ليدر متاح`)}else if(!hasLeader)shortages.push(`${t.post}: العدد المحدد لا يتسع لليدر مع الموظف الثابت`)});
   targets.filter(t=>t.group.key==='patrol').forEach(t=>{result[t.key]=result[t.key]||[];while(result[t.key].length<t.count){const id=takeRosterEmployee(pools,['patrol','flex'],used);if(!id)break;result[t.key].push(id)}if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length}`)});
   targets.filter(t=>t.group.key!=='patrol'&&!specialRoleForPost(t.post)).forEach(t=>{result[t.key]=result[t.key]||[];while(result[t.key].length<t.count){const id=takeRosterEmployee(pools,['officer','flex','leader','patrol'],used);if(!id)break;result[t.key].push(id)}if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length}`)});
-  const replacements=[];
-  Object.entries(result).filter(([key])=>![ASSISTANT_POST_KEY,SCC_POST_KEY,COMMUNITY_POST_KEY].includes(key)).forEach(([key,ids])=>ids.filter(id=>rosterLeaveStatus(id,period).upcoming).forEach(outgoingId=>{const leaveStart=rosterLeaveStatus(outgoingId,period).upcoming.start,candidates=state.employees.filter(e=>!used.has(e.id)&&rosterLeaveStatus(e.id,period).returning&&addDaysISO(rosterLeaveStatus(e.id,period).returning.end,1)<=leaveStart&&(!fixedRosterPost(e.id)||fixedRosterPost(e.id)===key));const [groupKey,post]=key.split('|'),special=specialRoleForPost(post),replacement=candidates.find(e=>special?e.dutyRole===special:groupKey==='patrol'?['patrol','flex'].includes(e.dutyRole):['officer','flex','leader','patrol'].includes(e.dutyRole));if(replacement){result[key].push(replacement.id);used.add(replacement.id);replacements.push(`${replacement.name}: بديل متاح من ${fmtDate(addDaysISO(rosterLeaveStatus(replacement.id,period).returning.end,1))}`)}}));
-  const leaveWarnings=[...used].map(id=>{const e=state.employees.find(x=>x.id===id),leave=rosterLeaveStatus(id,period).upcoming;return leave?`${e.name}: تبدأ إجازته ${fmtDate(leave.start)} أثناء فترة الجدول`:''}).filter(Boolean).concat(replacements);
+  const leaveWarnings=[...used].map(id=>{const e=state.employees.find(x=>x.id===id),leave=rosterLeaveStatus(id,period).upcoming;return leave?`${e.name}: تبدأ إجازته ${fmtDate(leave.start)} أثناء فترة الجدول`:''}).filter(Boolean);
   return {result,shortages,leaveWarnings,used,required:targets.reduce((s,t)=>s+t.count,0),unclassified:state.employees.filter(e=>!e.dutyRole).length};
 }
 function previewAutoMonthlyRoster(){
