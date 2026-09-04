@@ -613,7 +613,7 @@
     }
     .monthly-roster-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
     .monthly-roster-title{font-size:20px;font-weight:950;color:#172033}.monthly-roster-actions{display:flex;gap:7px;flex-wrap:wrap}
-    .roster-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0 16px}
+    .roster-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0 16px}
     .roster-summary div{padding:13px;border-radius:14px;border:1px solid #dce4ee;background:linear-gradient(145deg,#f8fbff,#eef4fb)}
     .roster-summary strong{display:block;font-size:20px;color:#172033}.roster-summary span{font-size:10px;color:#657287}
     .monthly-roster-wrap{overflow:auto;border:1px solid #d9e2ec;border-radius:17px;background:#fff}
@@ -622,9 +622,11 @@
     .monthly-roster-table th{background:#edf2f8;color:#526176;font-size:11px}.monthly-roster-table tr:last-child td{border-bottom:0}
     .monthly-roster-table .roster-group td{padding:9px 13px;background:linear-gradient(90deg,#173453,#13778b);color:#fff;font-weight:900}
     .monthly-roster-table .roster-group.patrol td{background:linear-gradient(90deg,#a44915,#d97922)}
+    .monthly-roster-table .roster-group.leave td{background:linear-gradient(90deg,#9f1239,#e11d48)}
     .monthly-roster-table .roster-group.support td{background:linear-gradient(90deg,#455468,#687990)}
     .roster-post{font-weight:900;color:#2448bd;white-space:nowrap}.roster-people{display:flex;gap:6px;flex-wrap:wrap}
     .roster-person{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:10px;background:#edf3ff;color:#284b9b;font-size:10px;font-weight:800;border:1px solid #d3e0ff;cursor:grab}.roster-person:active{cursor:grabbing}.roster-person.roster-leader{background:#fee7e7;color:#b4232f;border-color:#f3aeb4}
+    .roster-person.roster-leave-person{background:#fff1f2;color:#9f1239;border-color:#fecdd3;cursor:default}
     .roster-empty{color:#9aa6b5;font-size:11px}.roster-edit{white-space:nowrap}
     .roster-employee-search{margin-bottom:10px}.roster-employee-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:390px;overflow:auto;padding:3px}
     .roster-check{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid #dfe6ee;border-radius:12px;background:#fbfcfe;cursor:pointer}
@@ -2618,13 +2620,22 @@ function rosterLeaveStatus(employeeId,period=monthlyRosterPeriod()){
   const overlaps=state.leaves.filter(l=>l.employeeId===employeeId&&l.start<=period.end&&l.end>=period.start).sort((a,b)=>a.start.localeCompare(b.start));
   const blocked=overlaps.find(l=>l.start<=period.start&&l.end>=period.start);const upcoming=overlaps.find(l=>l.start>period.start&&l.start<=period.end);return {blocked,upcoming,overlaps};
 }
+function rosterEmployeesOnLeave(period=monthlyRosterPeriod()){
+  return state.employees.map(employee=>{const leaves=state.leaves.filter(l=>l.employeeId===employee.id&&l.start<=period.end&&l.end>=period.start).sort((a,b)=>a.start.localeCompare(b.start));return leaves.length?{employee,leaves}:null}).filter(Boolean).sort((a,b)=>a.employee.name.localeCompare(b.employee.name));
+}
+function rosterLeaveSectionRows(columns=4){
+  const entries=rosterEmployeesOnLeave();if(!entries.length)return '';
+  const people=entries.map(({employee,leaves})=>{const dates=leaves.map(l=>`${fmtDate(l.start)} → ${fmtDate(l.end)}`).join('، ');return `<span class="roster-person roster-leave-person" title="${esc(dates)}">${esc(employee.name)}</span>`}).join('');
+  return `<tr class="roster-group leave"><td colspan="${columns}">Leave / إجازة (${entries.length})</td></tr><tr class="roster-leave-row"><td class="roster-post">Leave / إجازة</td><td>${entries.length}</td><td colspan="${Math.max(1,columns-2)}"><div class="roster-people">${people}</div></td></tr>`;
+}
 function setMonthlyRosterRequirement(key,value){const n=Math.max(0,Math.min(99,Number(value)||0)),req=monthlyRosterRequirements();if(n)req[key]=n;else delete req[key];localStorage.setItem(KEY,JSON.stringify(state));clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450);renderMonthlyRosterSummary()}
 function changeMonthlyRosterMonth(delta){const [y,m]=monthlyRosterMonth.split('-').map(Number),d=new Date(y,m-1+delta,1);monthlyRosterMonth=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;renderMonthlyRoster()}
 function goMonthlyRosterToday(){monthlyRosterMonth=todayISO().slice(0,7);renderMonthlyRoster()}
 function renderMonthlyRosterSummary(){
   const summary=document.getElementById('monthlyRosterSummary');if(!summary)return;const data=monthlyRosterData(),requirements=monthlyRosterRequirements(),allIds=new Set(),assignedPosts=[];
   Object.values(data).forEach(ids=>{if(Array.isArray(ids)&&ids.length){assignedPosts.push(ids);ids.forEach(id=>allIds.add(id))}});const needed=Object.values(requirements).reduce((s,n)=>s+(Number(n)||0),0),unclassified=state.employees.filter(e=>!e.dutyRole).length;
-  summary.innerHTML=`<div><strong>${allIds.size} / ${needed||'—'}</strong><span>موزعون / الاحتياج</span></div><div><strong>${assignedPosts.length}</strong><span>موقع تم تعبئته</span></div><div><strong>${unclassified}</strong><span>موظف بلا مهمة</span></div>`;
+  const leaveCount=rosterEmployeesOnLeave().length;
+  summary.innerHTML=`<div><strong>${allIds.size} / ${needed||'—'}</strong><span>موزعون / الاحتياج</span></div><div><strong>${assignedPosts.length}</strong><span>موقع تم تعبئته</span></div><div><strong>${leaveCount}</strong><span>في إجازة خلال الفترة</span></div><div><strong>${unclassified}</strong><span>موظف بلا مهمة</span></div>`;
 }
 function renderMonthlyRoster(){
   const title=document.getElementById('monthlyRosterTitle'),box=document.getElementById('monthlyRosterTable'),summary=document.getElementById('monthlyRosterSummary');if(!title||!box||!summary)return;
@@ -2638,6 +2649,7 @@ function renderMonthlyRoster(){
       html+=`<tr><td class="roster-post">${esc(post)}</td><td><input class="roster-required" type="number" min="0" max="99" value="${Number(requirements[key])||0}" onchange="setMonthlyRosterRequirement('${esc(key)}',this.value)" aria-label="العدد المطلوب في ${esc(post)}"></td><td><div class="roster-people roster-drop" ondragover="allowRosterDrop(event)" ondrop="dropRosterEmployee(event,'${esc(key)}','saved')">${people.length?people.map(e=>rosterPersonChip(e,key)).join(''):'<span class="roster-empty">غير موزع</span>'}</div></td><td class="roster-edit no-print"><button class="secondary" onclick="openMonthlyRosterModal('${esc(key)}')">تعديل</button></td></tr>`;
     });
   });
+  html+=rosterLeaveSectionRows(4);
   box.innerHTML=html+'</tbody></table></div>';
 }
 function openMonthlyRosterModal(key){
@@ -2699,12 +2711,13 @@ function renderAutoRosterPreview(){
   status.innerHTML=`<div class="auto-preview-alert ${warnings.length?'':'ok'}">${warnings.length?'<strong>تنبيهات قبل الاعتماد:</strong><br>'+warnings.map(esc).join('<br>'):`✓ تم توزيع ${pendingAutoRoster.used.size} موظف لتغطية ${pendingAutoRoster.required} خانة بدون تكرار.`}</div>`;
   let html='<div class="monthly-roster-wrap"><table class="monthly-roster-table"><thead><tr><th>الموقع</th><th>العدد</th><th>التوزيع المقترح</th></tr></thead><tbody>';
   MONTHLY_ROSTER_GROUPS.forEach(group=>group.posts.forEach(post=>{const key=rosterPostKey(group.key,post),ids=pendingAutoRoster.result[key];if(!ids)return;const people=ids.map(id=>state.employees.find(e=>e.id===id)).filter(Boolean);html+=`<tr><td class="roster-post">${esc(post)}</td><td>${Number(monthlyRosterRequirements()[key])||0}</td><td><div class="roster-people roster-drop" ondragover="allowRosterDrop(event)" ondrop="dropRosterEmployee(event,'${esc(key)}','preview')">${people.map(e=>rosterPersonChip(e,key,'preview')).join(' ')||'<span class="roster-empty">لم تتم التغطية</span>'}</div></td></tr>`}));
+  html+=rosterLeaveSectionRows(3);
   box.innerHTML=html+'</tbody></table></div>';document.getElementById('confirmAutoRosterBtn').disabled=!Object.keys(pendingAutoRoster.result).length;
 }
 function confirmAutoMonthlyRoster(){if(!pendingAutoRoster)return;state.monthlySchedules[monthlyRosterMonth]=pendingAutoRoster.result;pendingAutoRoster=null;closeModal('autoRosterPreviewModal');save();alert('تم اعتماد وحفظ التوزيع الشهري')}
 function printMonthlyRoster(){
   const box=document.getElementById('monthlyRosterTable');if(!box)return;const period=monthlyRosterPeriod(),win=window.open('','_blank');if(!win){alert('اسمح بالنوافذ المنبثقة للطباعة');return}
-  win.document.write(`<!doctype html><html dir="ltr"><head><meta charset="utf-8"><title>${esc(document.getElementById('monthlyRosterTitle').textContent)}</title><style>body{font-family:Arial,sans-serif;padding:22px;color:#172033}h1{text-align:center;margin:0 0 5px}.period{text-align:center;color:#64748b;margin-bottom:18px}table{width:100%;border-collapse:collapse;direction:ltr}th,td{border:1px solid #aeb8c5;padding:7px;text-align:left;font-size:11px}.roster-group td{background:#167590;color:#fff;font-weight:bold;text-align:center}.roster-group.patrol td{background:#c45d1b}.roster-person{display:inline-block;margin:2px 4px;padding:3px 6px;border-radius:5px}.roster-leader{color:#b4232f;font-weight:bold}.no-print{display:none}input{border:0;background:transparent;width:38px}.roster-fixed{box-shadow:none}@page{size:A4 portrait;margin:10mm}</style></head><body><h1>${esc(document.getElementById('monthlyRosterTitle').textContent)}</h1><div class="period">From ${fmtDate(period.start)} To ${fmtDate(period.end)}</div>${box.innerHTML}</body></html>`);win.document.close();win.focus();setTimeout(()=>win.print(),250);
+  win.document.write(`<!doctype html><html dir="ltr"><head><meta charset="utf-8"><title>${esc(document.getElementById('monthlyRosterTitle').textContent)}</title><style>body{font-family:Arial,sans-serif;padding:22px;color:#172033}h1{text-align:center;margin:0 0 5px}.period{text-align:center;color:#64748b;margin-bottom:18px}table{width:100%;border-collapse:collapse;direction:ltr}th,td{border:1px solid #aeb8c5;padding:7px;text-align:left;font-size:11px}.roster-group td{background:#167590;color:#fff;font-weight:bold;text-align:center}.roster-group.patrol td{background:#c45d1b}.roster-group.leave td{background:#be123c}.roster-person{display:inline-block;margin:2px 4px;padding:3px 6px;border-radius:5px}.roster-leader{color:#b4232f;font-weight:bold}.roster-leave-person{color:#9f1239;font-weight:bold}.no-print{display:none}input{border:0;background:transparent;width:38px}.roster-fixed{box-shadow:none}@page{size:A4 portrait;margin:10mm}</style></head><body><h1>${esc(document.getElementById('monthlyRosterTitle').textContent)}</h1><div class="period">From ${fmtDate(period.start)} To ${fmtDate(period.end)}</div>${box.innerHTML}</body></html>`);win.document.close();win.focus();setTimeout(()=>win.print(),250);
 }
 
 function renderAll(){
