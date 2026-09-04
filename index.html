@@ -2605,6 +2605,10 @@ const MONTHLY_ROSTER_GROUPS=[
   {name:'Stations',key:'stations',posts:['STN# 01','STN# 04','STN# 05','STN# 06','STN# 07','STN# 10','STN# 16A']},
   {name:'Patrols',key:'patrol',posts:['Patrol# (05)','Patrol# (06)','Patrol# (07)','Patrol# (08)','Patrol# (09)','Patrol# (010)','Patrol# (011)','Patrol# (012)','Patrol# (013)']}
 ];
+const ROSTER_STATION_LIMITS={
+  'stations|STN# 01':{min:4},'stations|STN# 04':{min:2,max:3},'stations|STN# 05':{min:3},
+  'stations|STN# 06':{min:1,max:1},'stations|STN# 07':{min:2,max:2},'stations|STN# 10':{min:3},'stations|STN# 16A':{min:3,max:4}
+};
 function rosterPostKey(groupKey,post){return groupKey+'|'+post}
 function monthlyRosterData(){
   if(!state.monthlySchedules[monthlyRosterMonth])state.monthlySchedules[monthlyRosterMonth]={};
@@ -2612,7 +2616,9 @@ function monthlyRosterData(){
   Object.keys(data).forEach(key=>data[key]=(data[key]||[]).filter(id=>!rosterLeaveStatus(id).blocked||isDesignatedBackupAssignment(id,key)));
   return data;
 }
-function monthlyRosterRequirements(){if(!state.monthlyScheduleRequirements[monthlyRosterMonth])state.monthlyScheduleRequirements[monthlyRosterMonth]={};return state.monthlyScheduleRequirements[monthlyRosterMonth]}
+function normalizeRosterRequirement(key,value){const rule=ROSTER_STATION_LIMITS[key],n=Math.max(0,Math.min(99,Number(value)||0));if(!rule)return n;return Math.min(rule.max??99,Math.max(rule.min,n))}
+function rosterRequirementHint(key){const r=ROSTER_STATION_LIMITS[key];if(!r)return '';return r.max===r.min?`${r.min} بالضبط`:r.max?`من ${r.min} إلى ${r.max}`:`الحد الأدنى ${r.min}`}
+function monthlyRosterRequirements(){if(!state.monthlyScheduleRequirements[monthlyRosterMonth])state.monthlyScheduleRequirements[monthlyRosterMonth]={};const req=state.monthlyScheduleRequirements[monthlyRosterMonth];Object.keys(ROSTER_STATION_LIMITS).forEach(key=>req[key]=normalizeRosterRequirement(key,req[key]));return req}
 function defaultMonthlyRosterPeriod(){const b=monthBounds(monthlyRosterMonth);return {start:b.start,end:b.end}}
 function monthlyRosterPeriod(){return state.monthlySchedulePeriods[monthlyRosterMonth]||defaultMonthlyRosterPeriod()}
 function syncMonthlyRosterPeriodInputs(){const p=monthlyRosterPeriod(),start=document.getElementById('monthlyRosterStart'),end=document.getElementById('monthlyRosterEnd');if(start)start.value=p.start;if(end)end.value=p.end}
@@ -2652,7 +2658,7 @@ function rosterLeaveSectionRows(columns=4){
   const people=entries.map(({employee,leaves})=>{const dates=leaves.map(l=>`${fmtDate(l.start)} → ${fmtDate(l.end)}`).join('، '),status=rosterLeaveStatus(employee.id),returning=status.returning,cls=returning?'roster-returning':'roster-leave-person',title=returning?`${dates} — متاح بعد العودة ${fmtDate(addDaysISO(returning.end,1))}`:dates;return `<span class="roster-person ${cls}" title="${esc(title)}">${esc(employee.name)}</span>`}).join('');
   return `<tr class="roster-group leave"><td colspan="${columns}">Leave / إجازة (${entries.length})</td></tr><tr class="roster-leave-row"><td class="roster-post">Leave / إجازة</td><td>${entries.length}</td><td colspan="${Math.max(1,columns-2)}"><div class="roster-people">${people}</div></td></tr>`;
 }
-function setMonthlyRosterRequirement(key,value){const n=Math.max(0,Math.min(99,Number(value)||0)),req=monthlyRosterRequirements();if(n)req[key]=n;else delete req[key];localStorage.setItem(KEY,JSON.stringify(state));clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450);renderMonthlyRosterSummary()}
+function setMonthlyRosterRequirement(key,value){const entered=Math.max(0,Math.min(99,Number(value)||0)),n=normalizeRosterRequirement(key,entered),req=monthlyRosterRequirements();if(n!==entered)alert(`تم تعديل العدد حسب قاعدة ${key.split('|')[1]}: ${rosterRequirementHint(key)}`);if(n)req[key]=n;else delete req[key];localStorage.setItem(KEY,JSON.stringify(state));clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450);renderMonthlyRoster()}
 function changeMonthlyRosterMonth(delta){const [y,m]=monthlyRosterMonth.split('-').map(Number),d=new Date(y,m-1+delta,1);monthlyRosterMonth=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;renderMonthlyRoster()}
 function goMonthlyRosterToday(){monthlyRosterMonth=todayISO().slice(0,7);renderMonthlyRoster()}
 function renderMonthlyRosterSummary(){
@@ -2670,7 +2676,7 @@ function renderMonthlyRoster(){
   MONTHLY_ROSTER_GROUPS.forEach(group=>{
     html+=`<tr class="roster-group ${group.key}"><td colspan="4">${esc(group.name)}</td></tr>`;
     group.posts.forEach(post=>{const key=rosterPostKey(group.key,post),ids=Array.isArray(data[key])?data[key]:[],people=ids.map(id=>state.employees.find(e=>e.id===id)).filter(Boolean);
-      html+=`<tr><td class="roster-post">${esc(post)}</td><td><input class="roster-required" type="number" min="0" max="99" value="${Number(requirements[key])||0}" onchange="setMonthlyRosterRequirement('${esc(key)}',this.value)" aria-label="العدد المطلوب في ${esc(post)}"></td><td><div class="roster-people roster-drop" ondragover="allowRosterDrop(event)" ondrop="dropRosterEmployee(event,'${esc(key)}','saved')">${people.length?people.map(e=>rosterPersonChip(e,key)).join(''):'<span class="roster-empty">غير موزع</span>'}</div></td><td class="roster-edit no-print"><button class="secondary" onclick="openMonthlyRosterModal('${esc(key)}')">تعديل</button></td></tr>`;
+      const rule=ROSTER_STATION_LIMITS[key],hint=rosterRequirementHint(key);html+=`<tr><td class="roster-post">${esc(post)}${hint?`<div class="small-note">${esc(hint)}</div>`:''}</td><td><input class="roster-required" type="number" min="${rule?.min??0}" max="${rule?.max??99}" value="${Number(requirements[key])||0}" onchange="setMonthlyRosterRequirement('${esc(key)}',this.value)" aria-label="العدد المطلوب في ${esc(post)}"></td><td><div class="roster-people roster-drop" ondragover="allowRosterDrop(event)" ondrop="dropRosterEmployee(event,'${esc(key)}','saved')">${people.length?people.map(e=>rosterPersonChip(e,key)).join(''):'<span class="roster-empty">غير موزع</span>'}</div></td><td class="roster-edit no-print"><button class="secondary" onclick="openMonthlyRosterModal('${esc(key)}')">تعديل</button></td></tr>`;
     });
   });
   html+=rosterLeaveSectionRows(4);
