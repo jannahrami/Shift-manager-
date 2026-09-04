@@ -611,6 +611,25 @@
       .leave-table th{padding:14px 16px;font-size:12px;background:#e8edf4}.leave-table td{padding:15px 16px;font-size:13px}
       .row{border-radius:12px}.fab{right:34px}
     }
+    .monthly-roster-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    .monthly-roster-title{font-size:20px;font-weight:950;color:#172033}.monthly-roster-actions{display:flex;gap:7px;flex-wrap:wrap}
+    .roster-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0 16px}
+    .roster-summary div{padding:13px;border-radius:14px;border:1px solid #dce4ee;background:linear-gradient(145deg,#f8fbff,#eef4fb)}
+    .roster-summary strong{display:block;font-size:20px;color:#172033}.roster-summary span{font-size:10px;color:#657287}
+    .monthly-roster-wrap{overflow:auto;border:1px solid #d9e2ec;border-radius:17px;background:#fff}
+    .monthly-roster-table{width:100%;border-collapse:collapse;min-width:720px}
+    .monthly-roster-table th,.monthly-roster-table td{padding:11px 13px;border-bottom:1px solid #e6ebf1;text-align:right;vertical-align:middle}
+    .monthly-roster-table th{background:#edf2f8;color:#526176;font-size:11px}.monthly-roster-table tr:last-child td{border-bottom:0}
+    .monthly-roster-table .roster-group td{padding:9px 13px;background:linear-gradient(90deg,#173453,#13778b);color:#fff;font-weight:900}
+    .monthly-roster-table .roster-group.patrol td{background:linear-gradient(90deg,#a44915,#d97922)}
+    .monthly-roster-table .roster-group.support td{background:linear-gradient(90deg,#455468,#687990)}
+    .roster-post{font-weight:900;color:#2448bd;white-space:nowrap}.roster-people{display:flex;gap:6px;flex-wrap:wrap}
+    .roster-person{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:10px;background:#edf3ff;color:#284b9b;font-size:10px;font-weight:800;border:1px solid #d3e0ff}
+    .roster-empty{color:#9aa6b5;font-size:11px}.roster-edit{white-space:nowrap}
+    .roster-employee-search{margin-bottom:10px}.roster-employee-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:390px;overflow:auto;padding:3px}
+    .roster-check{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid #dfe6ee;border-radius:12px;background:#fbfcfe;cursor:pointer}
+    .roster-check:hover{border-color:#9eb5ee;background:#f3f7ff}.roster-check input{width:17px;height:17px;accent-color:#315fe7}.roster-check strong{display:block;font-size:11px}.roster-check small{display:block;color:#7a8798;font-size:9px;margin-top:2px}
+    @media(max-width:600px){.roster-summary{grid-template-columns:1fr 1fr}.roster-employee-options{grid-template-columns:1fr}.monthly-roster-title{font-size:17px}}
   </style>
 </head>
 <body>
@@ -857,6 +876,21 @@
     </section>
 
     <section id="shiftView" class="view">
+      <div class="section" id="monthlyRosterSection">
+        <div class="monthly-roster-toolbar">
+          <div><span class="section-kicker">مرجع التوزيع المعتمد</span><div class="monthly-roster-title" id="monthlyRosterTitle">الجدول الشهري</div></div>
+          <div class="monthly-roster-actions">
+            <button class="secondary no-print" onclick="changeMonthlyRosterMonth(-1)">السابق</button>
+            <button class="secondary no-print" onclick="goMonthlyRosterToday()">هذا الشهر</button>
+            <button class="secondary no-print" onclick="changeMonthlyRosterMonth(1)">التالي</button>
+            <button class="primary no-print" onclick="printMonthlyRoster()">🖨 طباعة / PDF</button>
+          </div>
+        </div>
+        <div class="small-note">توزيع شهري يدوي مستقل. لا يتم إنشاء أو تعديل أي توزيع يومي تلقائيًا.</div>
+        <div class="roster-summary" id="monthlyRosterSummary"></div>
+        <div id="monthlyRosterTable"></div>
+      </div>
+
       <div class="section">
         <div class="schedule-toolbar">
           <div><span class="section-kicker">دورة Group A</span><div class="schedule-title" id="scheduleTitle">جدول الدوام</div></div>
@@ -991,6 +1025,20 @@
         <button class="primary" onclick="saveShift()">حفظ</button>
         <button class="secondary" onclick="closeModal('shiftModal')">إلغاء</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="monthlyRosterModal">
+  <div class="sheet">
+    <div class="section-head"><div><span class="section-kicker" id="monthlyRosterModalGroup"></span><h3 id="monthlyRosterModalTitle">توزيع الموقع</h3></div><button class="secondary" onclick="closeModal('monthlyRosterModal')">إغلاق</button></div>
+    <div class="small-note" id="monthlyRosterModalMonth" style="margin-bottom:12px"></div>
+    <input class="roster-employee-search" id="monthlyRosterEmployeeSearch" placeholder="ابحث باسم الموظف أو رقم الباج" oninput="renderMonthlyRosterEmployeeOptions()">
+    <div class="roster-employee-options" id="monthlyRosterEmployeeOptions"></div>
+    <div class="form-actions" style="margin-top:14px">
+      <button class="primary" onclick="saveMonthlyRosterAssignment()">حفظ التوزيع</button>
+      <button class="secondary danger" onclick="clearMonthlyRosterAssignment()">تفريغ الموقع</button>
+      <button class="secondary" onclick="closeModal('monthlyRosterModal')">إلغاء</button>
     </div>
   </div>
 </div>
@@ -1554,12 +1602,14 @@ let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
   shifts:[],
   records:[],
   achievements:[],
-  personalNotes:[]
+  personalNotes:[],
+  monthlySchedules:{}
 };
 
 if(!Array.isArray(state.records)) state.records=[];
 if(!Array.isArray(state.achievements)) state.achievements=[];
 if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
+if(!state.monthlySchedules||typeof state.monthlySchedules!=='object'||Array.isArray(state.monthlySchedules))state.monthlySchedules={};
 state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
 if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
 let selectedEmployeeId=null;
@@ -1567,6 +1617,9 @@ let editingAchievementId=null;
 let editingLeaveId=null;
 let calendarMonth=todayISO().slice(0,7);
 let scheduleMonth=todayISO().slice(0,7);
+let monthlyRosterMonth=todayISO().slice(0,7);
+let editingMonthlyRosterPost='';
+let editingMonthlyRosterSelection=new Set();
 let shiftDatePickerTarget='leaveStart';
 let shiftDatePickerMonth=todayISO().slice(0,7);
 let session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
@@ -1690,6 +1743,7 @@ async function loadCloudState(){
     if(!Array.isArray(state.records))state.records=[];
     if(!Array.isArray(state.achievements))state.achievements=[];
     if(!Array.isArray(state.personalNotes))state.personalNotes=[];
+    if(!state.monthlySchedules||typeof state.monthlySchedules!=='object'||Array.isArray(state.monthlySchedules))state.monthlySchedules={};
     state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
     if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
     const vacationImportChanged=applyVacationPlan2026Import();
@@ -2493,9 +2547,60 @@ function openEmployeeAnnualReport(id){
   selectReportType('annual');renderAnnualEmployeeReport();
 }
 
+const MONTHLY_ROSTER_GROUPS=[
+  {name:'Monthly Schedule',key:'leadership',posts:['Shift Chief (01)','Assistant Shift Chief (02)','SCC','Ind. Visitor']},
+  {name:'Stations',key:'stations',posts:['STN# 01','STN# 04','STN# 04 (X-Ray)','Package 6','STN# 04C','STN# 05','STN# 05 (X-Ray)','STN# 06','STN# 07','STN# 16','STN# 16A','STN# 17','STN# 18']},
+  {name:'Patrols',key:'patrol',posts:['Patrol# (04)','Patrol# (06)','Patrol# (09)','Patrol# (010)','Patrol# (011)','Patrol# (012)','Patrol# (013)','Patrol# (014)','Patrol# (015)','Patrol# (016)','Patrol# (017)','Patrol# (018)']},
+  {name:'Support',key:'support',posts:['Support ID Office']}
+];
+function rosterPostKey(groupKey,post){return groupKey+'|'+post}
+function monthlyRosterData(){
+  if(!state.monthlySchedules[monthlyRosterMonth])state.monthlySchedules[monthlyRosterMonth]={};
+  return state.monthlySchedules[monthlyRosterMonth];
+}
+function changeMonthlyRosterMonth(delta){const [y,m]=monthlyRosterMonth.split('-').map(Number),d=new Date(y,m-1+delta,1);monthlyRosterMonth=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;renderMonthlyRoster()}
+function goMonthlyRosterToday(){monthlyRosterMonth=todayISO().slice(0,7);renderMonthlyRoster()}
+function renderMonthlyRoster(){
+  const title=document.getElementById('monthlyRosterTitle'),box=document.getElementById('monthlyRosterTable'),summary=document.getElementById('monthlyRosterSummary');if(!title||!box||!summary)return;
+  title.textContent='الجدول الشهري · '+monthLabel(monthlyRosterMonth).replace('إجازات ','');
+  const data=monthlyRosterData(),allIds=new Set(),assignedPosts=[];
+  Object.values(data).forEach(ids=>{if(Array.isArray(ids)&&ids.length){assignedPosts.push(ids);ids.forEach(id=>allIds.add(id))}});
+  summary.innerHTML=`<div><strong>${allIds.size}</strong><span>موظف موزع</span></div><div><strong>${assignedPosts.length}</strong><span>موقع تم تعبئته</span></div><div><strong>${state.employees.length-allIds.size}</strong><span>موظف غير موزع</span></div>`;
+  let html='<div class="monthly-roster-wrap"><table class="monthly-roster-table"><thead><tr><th>الموقع / المهمة</th><th>الموظفون</th><th class="no-print">الإجراء</th></tr></thead><tbody>';
+  MONTHLY_ROSTER_GROUPS.forEach(group=>{
+    html+=`<tr class="roster-group ${group.key}"><td colspan="3">${esc(group.name)}</td></tr>`;
+    group.posts.forEach(post=>{const key=rosterPostKey(group.key,post),ids=Array.isArray(data[key])?data[key]:[],people=ids.map(id=>state.employees.find(e=>e.id===id)).filter(Boolean);
+      html+=`<tr><td class="roster-post">${esc(post)}</td><td><div class="roster-people">${people.length?people.map(e=>`<span class="roster-person">${esc(e.name)} <small>#${esc(e.empId)}</small></span>`).join(''):'<span class="roster-empty">غير موزع</span>'}</div></td><td class="roster-edit no-print"><button class="secondary" onclick="openMonthlyRosterModal('${esc(key)}')">تعديل</button></td></tr>`;
+    });
+  });
+  box.innerHTML=html+'</tbody></table></div>';
+}
+function openMonthlyRosterModal(key){
+  editingMonthlyRosterPost=key;const [groupKey,...postParts]=key.split('|'),post=postParts.join('|'),group=MONTHLY_ROSTER_GROUPS.find(g=>g.key===groupKey);
+  editingMonthlyRosterSelection=new Set(monthlyRosterData()[key]||[]);
+  document.getElementById('monthlyRosterModalGroup').textContent=group?.name||'';document.getElementById('monthlyRosterModalTitle').textContent=post;
+  document.getElementById('monthlyRosterModalMonth').textContent=monthLabel(monthlyRosterMonth).replace('إجازات ','');document.getElementById('monthlyRosterEmployeeSearch').value='';
+  renderMonthlyRosterEmployeeOptions();document.getElementById('monthlyRosterModal').classList.add('show');
+}
+function toggleMonthlyRosterEmployee(id,checked){if(checked)editingMonthlyRosterSelection.add(id);else editingMonthlyRosterSelection.delete(id)}
+function renderMonthlyRosterEmployeeOptions(){
+  const box=document.getElementById('monthlyRosterEmployeeOptions');if(!box||!editingMonthlyRosterPost)return;const q=(document.getElementById('monthlyRosterEmployeeSearch').value||'').trim().toLowerCase();
+  const employees=[...state.employees].filter(e=>!q||e.name.toLowerCase().includes(q)||String(e.empId).includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+  box.innerHTML=employees.length?employees.map(e=>`<label class="roster-check"><input type="checkbox" value="${esc(e.id)}" ${editingMonthlyRosterSelection.has(e.id)?'checked':''} onchange="toggleMonthlyRosterEmployee('${esc(e.id)}',this.checked)"><span><strong>${esc(e.name)}</strong><small>Badge #${esc(e.empId)}${e.position?' · '+esc(e.position):''}</small></span></label>`).join(''):'<div class="empty">لا توجد نتائج</div>';
+}
+function saveMonthlyRosterAssignment(){
+  if(!editingMonthlyRosterPost)return;const ids=[...editingMonthlyRosterSelection],data=monthlyRosterData();
+  if(ids.length)data[editingMonthlyRosterPost]=ids;else delete data[editingMonthlyRosterPost];closeModal('monthlyRosterModal');editingMonthlyRosterPost='';save();
+}
+function clearMonthlyRosterAssignment(){if(!editingMonthlyRosterPost)return;if(!confirm('تفريغ جميع الموظفين من هذا الموقع؟'))return;delete monthlyRosterData()[editingMonthlyRosterPost];closeModal('monthlyRosterModal');editingMonthlyRosterPost='';save()}
+function printMonthlyRoster(){
+  const box=document.getElementById('monthlyRosterTable');if(!box)return;const win=window.open('','_blank');if(!win){alert('اسمح بالنوافذ المنبثقة للطباعة');return}
+  win.document.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>${esc(document.getElementById('monthlyRosterTitle').textContent)}</title><style>body{font-family:Arial,sans-serif;padding:22px;color:#172033}h1{text-align:center;margin:0 0 18px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aeb8c5;padding:7px;text-align:right;font-size:11px}.roster-group td{background:#167590;color:#fff;font-weight:bold;text-align:center}.roster-group.patrol td{background:#c45d1b}.roster-group.support td{background:#59697d}.roster-person{display:inline-block;margin:2px 4px}.no-print{display:none}@page{size:A4 portrait;margin:10mm}</style></head><body><h1>${esc(document.getElementById('monthlyRosterTitle').textContent)}</h1>${box.innerHTML}</body></html>`);win.document.close();win.focus();setTimeout(()=>win.print(),250);
+}
+
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderStats(); renderLeaveBalanceInsights(); renderDashboardShift(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
+  renderStats(); renderLeaveBalanceInsights(); renderDashboardShift(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
 }
 
 function showView(id,btn){
