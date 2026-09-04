@@ -2711,6 +2711,10 @@ function seededRosterSort(employees,salt){return [...employees].sort((a,b)=>{con
 function isLeaderGate(group,post){return group.key==='stations'&&post.startsWith('STN#')&&!post.includes('X-Ray')}
 function specialRoleForPost(post){return ({'Shift Chief (01)':'chief','Assistant Shift Chief (02)':'assistant','Community Supervisor (03)':'community','Shift Clerk':'clerk','SCC':'scc','Ind. Visitor':'visitor','Comm. Visitor':'commVisitor'})[post]||''}
 function takeRosterEmployee(pools,preferred,used){for(const role of preferred){const found=pools[role].find(e=>!used.has(e.id));if(found){used.add(found.id);return found.id}}return null}
+function fillRosterTargetsRoundRobin(targets,result,pools,preferredRoles,used){
+  targets.forEach(t=>result[t.key]=result[t.key]||[]);let progress=true;
+  while(progress){progress=false;for(const t of targets){if(result[t.key].length>=t.count)continue;const id=takeRosterEmployee(pools,preferredRoles,used);if(id){result[t.key].push(id);progress=true}}}
+}
 function buildAutoMonthlyRoster(){
   const requirements=monthlyRosterRequirements(),result={},used=new Set(),shortages=[],period=monthlyRosterPeriod(),generationSeed=`${Date.now()}|${Math.random()}`,blockedIds=new Set(state.employees.filter(e=>rosterLeaveStatus(e.id,period).blocked).map(e=>e.id));
   const roleNames=['chief','assistant','community','clerk','scc','visitor','commVisitor','leader','officer','patrol','flex'],pools={};roleNames.forEach(role=>pools[role]=seededRosterSort(state.employees.filter(e=>e.dutyRole===role&&!blockedIds.has(e.id)),`${role}|${generationSeed}`));
@@ -2725,8 +2729,8 @@ function buildAutoMonthlyRoster(){
     if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length} من مهمة ${employeeDutyRoleLabel(role)}`)
   });
   targets.filter(t=>isLeaderGate(t.group,t.post)).forEach(t=>{result[t.key]=result[t.key]||[];const hasLeader=result[t.key].some(id=>state.employees.find(e=>e.id===id)?.dutyRole==='leader');if(!hasLeader&&result[t.key].length<t.count){const id=takeRosterEmployee(pools,['leader'],used);if(id)result[t.key].unshift(id);else shortages.push(`${t.post}: لا يوجد ليدر متاح`)}else if(!hasLeader)shortages.push(`${t.post}: العدد المحدد لا يتسع لليدر مع الموظف الثابت`)});
-  targets.filter(t=>t.group.key==='patrol').forEach(t=>{result[t.key]=result[t.key]||[];while(result[t.key].length<t.count){const id=takeRosterEmployee(pools,['patrol','flex'],used);if(!id)break;result[t.key].push(id)}if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length}`)});
-  targets.filter(t=>t.group.key!=='patrol'&&!specialRoleForPost(t.post)).forEach(t=>{result[t.key]=result[t.key]||[];while(result[t.key].length<t.count){const id=takeRosterEmployee(pools,['officer','flex','leader','patrol'],used);if(!id)break;result[t.key].push(id)}if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length}`)});
+  const patrolTargets=targets.filter(t=>t.group.key==='patrol');fillRosterTargetsRoundRobin(patrolTargets,result,pools,['patrol','flex'],used);patrolTargets.forEach(t=>{if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length}`)});
+  const stationTargets=targets.filter(t=>t.group.key!=='patrol'&&!specialRoleForPost(t.post));fillRosterTargetsRoundRobin(stationTargets,result,pools,['officer','flex','leader','patrol'],used);stationTargets.forEach(t=>{if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length}`)});
   const leaveWarnings=[...used].map(id=>{const e=state.employees.find(x=>x.id===id),leave=rosterLeaveStatus(id,period).upcoming;return leave?`${e.name}: تبدأ إجازته ${fmtDate(leave.start)} أثناء فترة الجدول`:''}).filter(Boolean);
   return {result,shortages,leaveWarnings,used,required:targets.reduce((s,t)=>s+t.count,0),unclassified:state.employees.filter(e=>!e.dutyRole).length};
 }
