@@ -649,17 +649,6 @@
   </style>
 </head>
 <body>
-<div class="auth-screen" id="authScreen">
-  <div class="auth-card">
-    <div class="auth-logo">S</div>
-    <h2>تسجيل الدخول</h2>
-    <p>أدخل الحساب الذي أنشأته في Supabase</p>
-    <input type="email" id="loginEmail" placeholder="Email" autocomplete="username">
-    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
-    <button class="primary" id="loginBtn" onclick="login()">دخول ومزامنة</button>
-    <div class="auth-error" id="authError"></div>
-  </div>
-</div>
 <div class="app">
   <div class="topbar">
     <div class="brand">
@@ -673,7 +662,6 @@
       <span class="cloud-status" id="cloudStatus" title="حالة المزامنة"></span>
       <div class="notify-wrap"><button class="iconbtn" id="notifyBtn" title="التنبيهات" onclick="openNotifications()">🔔</button><span class="notify-count" id="notifyCount">0</span></div>
       <button class="iconbtn" id="backupBtn" title="نسخة احتياطية">⤴︎</button>
-      <button class="iconbtn" id="logoutBtn" title="تسجيل الخروج">↪</button>
     </div>
   </div>
 
@@ -1817,8 +1805,8 @@ async function loadCloudState(){
     const annualCreditChanged=ensureAnnualLeaveCredit();
     localStorage.setItem(KEY,JSON.stringify(state));
     if(vacationImportChanged||rosterLocationsChanged||annualCreditChanged)await uploadCloudState();
-    cloudReady=true;document.getElementById('authScreen').classList.add('hidden');setCloudStatus('online','تمت المزامنة');renderAll();
-  }catch(e){setCloudStatus('offline','تعذر الاتصال');document.getElementById('authError').textContent=e.message;document.getElementById('authScreen').classList.remove('hidden')}
+    cloudReady=true;setCloudStatus('online','تمت المزامنة');renderAll();
+  }catch(e){cloudReady=false;setCloudStatus('offline','حُفظ محليًا وتعذرت المزامنة');renderAll()}
 }
 async function uploadCloudState(){
   const res=await supabaseFetch('/rest/v1/shift_manager_state?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'main',data:state,updated_at:new Date().toISOString()})});
@@ -1835,7 +1823,7 @@ function save(){
   clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450);
 }
 function logout(){
-  session=null;cloudReady=false;localStorage.removeItem(SESSION_KEY);document.getElementById('authScreen').classList.remove('hidden');setCloudStatus('offline','غير مسجل');
+  session=null;cloudReady=false;localStorage.removeItem(SESSION_KEY);setCloudStatus('offline','حفظ محلي');renderAll();
 }
 
 function fmtDate(s){ if(!s)return ''; return new Date(s+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{day:'2-digit',month:'2-digit',year:'numeric'}); }
@@ -2967,15 +2955,12 @@ document.getElementById('backupBtn').addEventListener('click',()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='shift-manager-backup.json';a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 });
-document.getElementById('logoutBtn').addEventListener('click',()=>{if(confirm('تسجيل الخروج من المزامنة؟'))logout()});
-document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
-
 renderAll();
 if(document.getElementById('recordDate')) document.getElementById('recordDate').value=todayISO();
 if(session){
-  refreshSession().then(ok=>ok?loadCloudState():logout());
+  refreshSession().then(ok=>ok?loadCloudState():logout()).catch(()=>logout());
 }else{
-  setCloudStatus('offline','سجّل الدخول للمزامنة');
+  setCloudStatus('offline','حفظ محلي');
 }
 </script>
 </body>
