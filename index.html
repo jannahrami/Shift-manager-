@@ -246,9 +246,9 @@
       .status-legend{color:#222!important;margin:0 0 3px!important;gap:3px!important}.legend-item{color:#222!important;background:#fff!important;border-color:#bbb!important;padding:2px 5px!important;font-size:7px!important}.combined-calendar-note{display:none!important}
       .calendar-scroll{overflow:visible!important;border-color:#999!important;background:#fff!important}.calendar-inner{min-width:0!important}
       .calendar-weekday{color:#222!important;border-color:#aaa!important;padding:3px!important;font-size:7px!important;line-height:1!important}
-      .calendar-grid{grid-template-rows:repeat(6,72px)!important}.calendar-day{height:72px!important;min-height:0!important;padding:2px!important;background:#fff!important;border-color:#bbb!important;overflow:hidden!important;line-height:1!important}
-      .calendar-day-number{display:inline-block;color:#333!important;font-size:7px!important;margin:0 2px 1px 0!important;vertical-align:top}.calendar-shift-tag{display:inline-flex!important;width:38px!important;padding:1px 3px!important;margin:0 0 1px!important;font-size:6px!important;vertical-align:top}.calendar-shift-tag small{font-size:5px!important}
-      .capacity-label{font-size:5px!important;padding:1px 2px!important;margin:0!important}.calendar-event{display:inline-block!important;width:calc(50% - 2px)!important;font-size:5.5px!important;line-height:1!important;padding:1px 2px!important;margin:1px!important;color:#111!important;border-radius:3px!important;vertical-align:top!important}
+      .calendar-grid{grid-auto-rows:98px!important}.calendar-day{height:98px!important;min-height:0!important;padding:3px!important;background:#fff!important;border-color:#bbb!important;overflow:hidden!important;line-height:1!important}
+      .calendar-day-number{display:inline-block;color:#333!important;font-size:9px!important;font-weight:800!important;margin:0 3px 2px 0!important;vertical-align:top}.calendar-shift-tag{display:inline-flex!important;width:45px!important;padding:2px 4px!important;margin:0 0 2px!important;font-size:8px!important;vertical-align:top}.calendar-shift-tag small{font-size:7px!important}
+      .capacity-label{font-size:7px!important;padding:1px 3px!important;margin:0!important}.calendar-event{display:inline-block!important;width:calc(50% - 2px)!important;font-size:8px!important;font-weight:700!important;line-height:1.05!important;padding:2px 3px!important;margin:1px!important;color:#111!important;border-radius:4px!important;vertical-align:top!important}
     }
 
     /* Desktop / tablet layout */
@@ -1965,8 +1965,8 @@ function renderLeaveCalendar(){
   const daysInMonth=new Date(year,month,0).getDate();
   document.getElementById('calendarTitle').textContent=new Date(year,month-1,1).toLocaleDateString('ar-SA-u-ca-gregory',{month:'long',year:'numeric'});
   weekdays.innerHTML=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'].map(d=>`<div class="calendar-weekday">${d}</div>`).join('');
-  let html='';
-  for(let i=0;i<42;i++){
+  let html='';const totalCells=Math.ceil((firstDay+daysInMonth)/7)*7;
+  for(let i=0;i<totalCells;i++){
     const day=i-firstDay+1;
     if(day<1||day>daysInMonth){html+='<div class="calendar-day other"></div>';continue}
     const date=calendarDateISO(year,month,day);
