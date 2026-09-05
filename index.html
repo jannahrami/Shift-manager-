@@ -824,10 +824,18 @@
       <div class="section">
         <div class="section-head"><h2>الإجازات</h2><button onclick="openLeaveModal()">+ إجازة</button></div>
         <div class="month-filter">
-          <input type="month" id="leaveMonthFilter" aria-label="اختر شهر الإجازات" onchange="renderLeaves()">
+          <input type="month" id="leaveMonthFilter" aria-label="اختر شهر الإجازات" onchange="clearLeaveRange(false);renderLeaves()">
           <button class="secondary" onclick="showCurrentLeaveMonth()">هذا الشهر</button>
           <button class="secondary" onclick="clearLeaveMonth()">عرض الكل</button>
           <button class="primary" onclick="exportLeavesExcel()">⬇ Export Excel</button>
+        </div>
+        <div class="month-filter" style="margin-top:10px">
+          <label class="small-note">الإجازات خلال الفترة من</label>
+          <input type="date" id="leaveRangeStart" aria-label="بداية فترة البحث">
+          <label class="small-note">إلى</label>
+          <input type="date" id="leaveRangeEnd" aria-label="نهاية فترة البحث">
+          <button class="primary" onclick="applyLeaveRange()">عرض الموظفين</button>
+          <button class="secondary" onclick="clearLeaveRange()">مسح الفترة</button>
         </div>
         <div class="section-head"><span class="small-note" id="leaveMonthTitle">جميع الإجازات</span><span class="chip" id="leaveMonthCount">0 موظف</span></div>
         <div class="list" id="leaveList"></div>
@@ -979,9 +987,10 @@
 
 <div class="modal" id="employeeModal">
   <div class="sheet">
-    <h3>إضافة موظف</h3>
+    <h3 id="employeeModalTitle">إضافة موظف</h3>
     <div class="form">
-      <input id="empName" placeholder="اسم الموظف">
+      <input id="empName" placeholder="اسم الموظف بالإنجليزي">
+      <input id="empNameAr" placeholder="اسم الموظف بالعربي">
       <input id="empId" placeholder="الرقم الوظيفي">
       <input type="number" min="0" step="1" id="empLeaveBalance" placeholder="رصيد الإجازة المتبقي بالأيام">
       <select id="empDutyRole">
@@ -993,8 +1002,8 @@
       <input id="empLocation" placeholder="الموقع / البوابة">
       <textarea id="empNote" placeholder="ملاحظة اختيارية"></textarea>
       <div class="form-actions">
-        <button class="primary" onclick="saveEmployee()">حفظ</button>
-        <button class="secondary" onclick="closeModal('employeeModal')">إلغاء</button>
+        <button class="primary" id="employeeSaveBtn" onclick="saveEmployee()">حفظ</button>
+        <button class="secondary" onclick="closeEmployeeModal()">إلغاء</button>
       </div>
     </div>
   </div>
@@ -1653,6 +1662,7 @@ state.employees.forEach(e=>{if(!['chief','assistant','community','clerk','scc','
 state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
 if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
 let selectedEmployeeId=null;
+let editingEmployeeId=null;
 let editingAchievementId=null;
 let editingLeaveId=null;
 let calendarMonth=todayISO().slice(0,7);
@@ -2207,7 +2217,7 @@ function renderPersonalNotes(){
 function renderEmployees(){
   const box=document.getElementById('employeesList'); box.innerHTML='';
   const q=(document.getElementById('searchInput')?.value||'').trim().toLowerCase();
-  const list=state.employees.filter(e=>!q || e.name.toLowerCase().includes(q) || (e.empId||'').toLowerCase().includes(q) || (e.gc||'').toLowerCase().includes(q) || (e.position||'').toLowerCase().includes(q));
+  const list=state.employees.filter(e=>!q || e.name.toLowerCase().includes(q) || (e.nameAr||'').toLowerCase().includes(q) || (e.empId||'').toLowerCase().includes(q) || (e.gc||'').toLowerCase().includes(q) || (e.position||'').toLowerCase().includes(q));
   if(!list.length){box.innerHTML='<div class="empty">لا يوجد موظفون</div>';return}
   list.forEach(e=>{
     const st=employeeStatus(e);
@@ -2215,13 +2225,14 @@ function renderEmployees(){
     <div class="row employee-click" onclick="openEmployeeProfile('${e.id}')">
       <div class="row-main">
         <div class="avatar">${esc(initials(e.name))}</div>
-        <div><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)} · GC ${esc(e.gc||'-')} · ${esc(e.position||e.shift||'-')}</div><div class="meta">رصيد الإجازة: <strong>${formatDays(e.leaveBalance)}</strong> يوم · <span class="badge role-badge">${employeeDutyRoleLabel(e.dutyRole)}</span></div></div>
+        <div><div class="name">${esc(e.nameAr||e.name)}</div>${e.nameAr?`<div class="meta">${esc(e.name)}</div>`:''}<div class="meta">#${esc(e.empId)} · GC ${esc(e.gc||'-')} · ${esc(e.position||e.shift||'-')}</div><div class="meta">رصيد الإجازة: <strong>${formatDays(e.leaveBalance)}</strong> يوم · <span class="badge role-badge">${employeeDutyRoleLabel(e.dutyRole)}</span></div></div>
       </div>
       <div class="employee-actions" style="display:flex;gap:6px;align-items:center">
         <span class="badge ${st.cls}">${st.text}</span>
         <select class="employee-role-select" aria-label="مهمة الموظف" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateEmployeeDutyRole('${e.id}',this.value)" style="width:auto;min-width:105px;padding:7px 9px">
           <option value="" ${!e.dutyRole?'selected':''}>حدد المهمة</option><option value="chief" ${e.dutyRole==='chief'?'selected':''}>Shift Chief</option><option value="assistant" ${e.dutyRole==='assistant'?'selected':''}>Assistant</option><option value="community" ${e.dutyRole==='community'?'selected':''}>Community Supervisor</option><option value="clerk" ${e.dutyRole==='clerk'?'selected':''}>Shift Clerk</option><option value="scc" ${e.dutyRole==='scc'?'selected':''}>SCC</option><option value="visitor" ${e.dutyRole==='visitor'?'selected':''}>Ind. Visitor</option><option value="commVisitor" ${e.dutyRole==='commVisitor'?'selected':''}>Comm. Visitor</option><option value="leader" ${e.dutyRole==='leader'?'selected':''}>ليدر</option><option value="officer" ${e.dutyRole==='officer'?'selected':''}>فرد</option><option value="patrol" ${e.dutyRole==='patrol'?'selected':''}>دورية</option><option value="flex" ${e.dutyRole==='flex'?'selected':''}>فرد + دورية</option>
         </select>
+        <button class="secondary" onclick="event.stopPropagation();openEmployeeModal('${e.id}')">تعديل الاسم</button>
         <button class="secondary danger" onclick="event.stopPropagation();deleteEmployee('${e.id}')">حذف</button>
       </div>
     </div>`);
@@ -2265,14 +2276,15 @@ function renderEmployeeProfile(){
       <div class="row-main">
         <div class="avatar">${esc(initials(e.name))}</div>
         <div>
-          <div class="name">${esc(e.name)}</div>
+          <div class="name">${esc(e.nameAr||e.name)}</div>
+          ${e.nameAr?`<div class="meta">${esc(e.name)}</div>`:''}
           <div class="meta">Badge #${esc(e.empId)} · GC ${esc(e.gc||'-')}</div>
           <div class="meta">${esc(e.position||e.shift||'-')}</div>
           <div class="meta" style="margin-top:6px">رصيد الإجازة المتبقي: <strong>${formatDays(e.leaveBalance)}</strong> يوم <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editLeaveBalance('${e.id}')">تعديل الرصيد</button></div>
           <div class="meta" style="margin-top:7px">المهمة: <span class="badge role-badge">${employeeDutyRoleLabel(e.dutyRole)}</span> <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editEmployeeDutyRole('${e.id}')">تعديل المهمة</button></div>
         </div>
       </div>
-      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span class="badge ${st.cls}">${st.text}</span><button class="secondary" onclick="openEmployeeAnnualReport('${e.id}')">📊 التقرير السنوي</button></div>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span class="badge ${st.cls}">${st.text}</span><button class="secondary" onclick="openEmployeeModal('${e.id}')">✏️ تعديل البيانات</button><button class="secondary" onclick="openEmployeeAnnualReport('${e.id}')">📊 التقرير السنوي</button></div>
     </div>`;
 
   const employeeLeaves=state.leaves.filter(l=>l.employeeId===e.id).sort((a,b)=>b.start.localeCompare(a.start));
@@ -2391,10 +2403,19 @@ function deleteEmployeeAchievement(id){
 
 function currentMonthValue(){return todayISO().slice(0,7)}
 function showCurrentLeaveMonth(){
-  document.getElementById('leaveMonthFilter').value=currentMonthValue();renderLeaves();
+  clearLeaveRange(false);document.getElementById('leaveMonthFilter').value=currentMonthValue();renderLeaves();
 }
 function clearLeaveMonth(){
+  document.getElementById('leaveMonthFilter').value='';clearLeaveRange(false);renderLeaves();
+}
+function applyLeaveRange(){
+  const start=document.getElementById('leaveRangeStart').value,end=document.getElementById('leaveRangeEnd').value;
+  if(!start||!end){alert('حدد تاريخ البداية والنهاية');return}
+  if(end<start){alert('تاريخ النهاية يجب أن يكون بعد تاريخ البداية');return}
   document.getElementById('leaveMonthFilter').value='';renderLeaves();
+}
+function clearLeaveRange(render=true){
+  const start=document.getElementById('leaveRangeStart'),end=document.getElementById('leaveRangeEnd');if(start)start.value='';if(end)end.value='';if(render)renderLeaves();
 }
 function csvCell(value){
   let text=String(value??'');
@@ -2533,14 +2554,15 @@ function monthLabel(value){
 function renderLeaves(){
   const box=document.getElementById('leaveList'); box.innerHTML='';
   const month=document.getElementById('leaveMonthFilter')?.value||'';
+  const rangeStart=document.getElementById('leaveRangeStart')?.value||'',rangeEnd=document.getElementById('leaveRangeEnd')?.value||'',hasRange=!!(rangeStart&&rangeEnd&&rangeEnd>=rangeStart);
   const monthStart=month?month+'-01':'';
   const monthEnd=month?month+'-'+String(new Date(Number(month.slice(0,4)),Number(month.slice(5,7)),0).getDate()).padStart(2,'0'):'';
   const list=state.leaves
-    .filter(l=>!month||(l.start<=monthEnd&&l.end>=monthStart))
+    .filter(l=>hasRange?(l.start<=rangeEnd&&l.end>=rangeStart):(!month||(l.start<=monthEnd&&l.end>=monthStart)))
     .sort((a,b)=>a.start.localeCompare(b.start));
-  document.getElementById('leaveMonthTitle').textContent=monthLabel(month);
-  document.getElementById('leaveMonthCount').textContent=list.length+' موظف';
-  if(!list.length){box.innerHTML='<div class="empty">لا توجد إجازات في الشهر المحدد</div>';return}
+  document.getElementById('leaveMonthTitle').textContent=hasRange?`الإجازات المتقاطعة مع الفترة ${fmtDate(rangeStart)} إلى ${fmtDate(rangeEnd)}`:monthLabel(month);
+  document.getElementById('leaveMonthCount').textContent=new Set(list.map(l=>l.employeeId)).size+' موظف';
+  if(!list.length){box.innerHTML='<div class="empty">لا توجد إجازات في الفترة المحددة</div>';return}
   const t=todayISO();
   list.forEach(l=>{
     const e=state.employees.find(x=>x.id===l.employeeId); if(!e)return;
@@ -2645,6 +2667,10 @@ function rosterLeaveStatus(employeeId,period=monthlyRosterPeriod()){
   const activeAtStart=overlaps.find(l=>l.start<=period.start&&l.end>=period.start),returning=activeAtStart&&activeAtStart.end<period.end?activeAtStart:null,blocked=activeAtStart||null;const upcoming=overlaps.find(l=>l.start>period.start&&l.start<=period.end);return {blocked,upcoming,returning,activeAtStart,overlaps};
 }
 const FIXED_ROSTER_POSTS={'emp-102593':'stations|STN# 06','emp-103871':'stations|STN# 07'};
+const ROSTER_ARABIC_NAMES={
+  '102862':'نعيم قاسم عوفي','101771':'رامي منصور جنة','101725':'عادل عبدالله البلادي','101702':'أسامة مدني ينبعاوي','103630':'أحمد حسن الشهري','101655':'رياض عيد الحربي','103389':'رامي عبدالرحمن الشماسي','101650':'ناصر مرزوق اليوبي','101662':'ثامر نايف المالكي','104121':'حسن عزيزالله طاش','101738':'سلطان محمد الطويرقي','102305':'حسن علي السعدي','101634':'أحمد محمد السليحبي','102299':'محمد منور القرقري','103661':'محمد عايض المطيري','101631':'غازي عبدالحفيظ الزنبقي','103871':'عبدالملك سراج الزنبقي','102301':'أشرف عبدالمعطي الجحدلي','101690':'يوسف بركي الفارسي','101632':'ماجد أحمد الغانمي','101708':'عادل بريك صبحي','104165':'عمار ذياب اللهيبي','104722':'عثمان حمد السهلي','102593':'محمد ب. المولد','101718':'سعد مثيب النافعي','104495':'محمد سالم البلادي','104116':'تركي سعد الجهني','101749':'حسام حميد الفارسي','104666':'عبدالعزيز يحيى الثوري','101741':'حميدي ذياب البلادي','101694':'ريان ناصر الظاهري','101697':'هاني عابد الغانمي','102297':'بطل حسن الحجري','102286':'نزار علي الهدهدي','101988':'رامي أحمد الزهراني','101700':'متعب عطية المولد','103619':'عبدالله صالح الغامدي','101703':'نادر إبراهيم المحمدي','101701':'محمد عبدالله الغانمي','103409':'محمد يوسف محمد يوسف','101698':'عبدالرحيم أحمد الفارسي'
+};
+function rosterEmployeeName(employee){return employee?.nameAr||ROSTER_ARABIC_NAMES[String(employee?.empId||'')]||employee?.name||''}
 const ASSISTANT_PRIMARY_ID='emp-101771',ASSISTANT_BACKUP_ID='emp-103389',ASSISTANT_POST_KEY='leadership|Assistant Shift Chief (02)';
 const SCC_PRIMARY_IDS=['emp-101702','emp-103630'],SCC_BACKUP_IDS=['emp-101655','emp-101988'],SCC_POST_KEY='leadership|SCC';
 const COMMUNITY_PRIMARY_ID='emp-101725',COMMUNITY_BACKUP_ID='emp-101988',COMMUNITY_POST_KEY='leadership|Community Supervisor (03)';
@@ -2663,7 +2689,7 @@ function rosterEmployeesOnLeave(period=monthlyRosterPeriod()){
 }
 function rosterLeaveSectionRows(columns=4){
   const entries=rosterEmployeesOnLeave();if(!entries.length)return '';
-  const people=entries.map(({employee,leaves})=>{const dates=leaves.map(l=>`${fmtDate(l.start)} → ${fmtDate(l.end)}`).join('، '),status=rosterLeaveStatus(employee.id),returning=status.returning,cls=returning?'roster-returning':'roster-leave-person',title=returning?`${dates} — متاح بعد العودة ${fmtDate(addDaysISO(returning.end,1))}`:dates;return `<span class="roster-person ${cls}" title="${esc(title)}">${esc(employee.name)}</span>`}).join('');
+  const people=entries.map(({employee,leaves})=>{const dates=leaves.map(l=>`${fmtDate(l.start)} → ${fmtDate(l.end)}`).join('، '),status=rosterLeaveStatus(employee.id),returning=status.returning,cls=returning?'roster-returning':'roster-leave-person',title=returning?`${dates} — متاح بعد العودة ${fmtDate(addDaysISO(returning.end,1))}`:dates;return `<span class="roster-person ${cls}" title="${esc(title)}">${esc(rosterEmployeeName(employee))}</span>`}).join('');
   return `<tr class="roster-group leave"><td colspan="${columns}">Leave / إجازة (${entries.length})</td></tr><tr class="roster-leave-row"><td class="roster-post">Leave / إجازة</td><td>${entries.length}</td><td colspan="${Math.max(1,columns-2)}"><div class="roster-people">${people}</div></td></tr>`;
 }
 function setMonthlyRosterRequirement(key,value){const entered=Math.max(0,Math.min(99,Number(value)||0)),n=normalizeRosterRequirement(key,entered),req=monthlyRosterRequirements();if(n!==entered)alert(`تم تعديل العدد حسب قاعدة ${key.split('|')[1]}: ${rosterRequirementHint(key)}`);if(n)req[key]=n;else delete req[key];localStorage.setItem(KEY,JSON.stringify(state));clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450);renderMonthlyRoster()}
@@ -2711,7 +2737,7 @@ function saveMonthlyRosterAssignment(){
 function clearMonthlyRosterAssignment(){if(!editingMonthlyRosterPost)return;if(!confirm('تفريغ جميع الموظفين من هذا الموقع؟'))return;const data=monthlyRosterData(),fixed=Object.entries(FIXED_ROSTER_POSTS).filter(([id,key])=>key===editingMonthlyRosterPost&&!rosterLeaveStatus(id).blocked).map(([id])=>id);if(fixed.length)data[editingMonthlyRosterPost]=fixed;else delete data[editingMonthlyRosterPost];closeModal('monthlyRosterModal');editingMonthlyRosterPost='';save()}
 function rosterPersonChip(employee,sourceKey,mode='saved'){
   const fixedPost=fixedRosterPost(employee.id),fixed=fixedPost===sourceKey,status=rosterLeaveStatus(employee.id),assistantBackup=employee.id===ASSISTANT_BACKUP_ID&&sourceKey===ASSISTANT_POST_KEY&&rosterLeaveStatus(ASSISTANT_PRIMARY_ID).overlaps.length,sccBackup=SCC_BACKUP_IDS.includes(employee.id)&&sourceKey===SCC_POST_KEY&&SCC_PRIMARY_IDS.some(id=>rosterLeaveStatus(id).overlaps.length),communityBackup=employee.id===COMMUNITY_BACKUP_ID&&sourceKey===COMMUNITY_POST_KEY&&rosterLeaveStatus(COMMUNITY_PRIMARY_ID).overlaps.length,statusClass=status.upcoming?'roster-mid-leave':status.returning||assistantBackup||sccBackup||communityBackup?'roster-returning':'',details=[];if(fixed)details.push(`ثابت في ${fixedPost.split('|')[1]}`);if(status.upcoming)details.push(`تبدأ إجازته ${fmtDate(status.upcoming.start)}`);else if(status.returning)details.push(`متاح بعد العودة ${fmtDate(addDaysISO(status.returning.end,1))}`);if(assistantBackup)details.push('Assistant Backup أثناء إجازة RAMI MANSOUR JANNAH');if(sccBackup)details.push('SCC Backup أثناء إجازة أحد موظفي SCC');if(communityBackup)details.push('Community Supervisor Backup');const title=details.join(' — ')||'اسحب لتغيير الموقع';
-  return `<span class="roster-person ${employee.dutyRole==='leader'?'roster-leader':''} ${statusClass} ${fixed?'roster-fixed':''}" title="${esc(title)}" ${fixed?'':'draggable="true"'} ondragstart="dragRosterEmployee(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')">${esc(employee.name)}</span>`;
+  return `<span class="roster-person ${employee.dutyRole==='leader'?'roster-leader':''} ${statusClass} ${fixed?'roster-fixed':''}" title="${esc(title)}" ${fixed?'':'draggable="true"'} ondragstart="dragRosterEmployee(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')">${esc(rosterEmployeeName(employee))}</span>`;
 }
 function dragRosterEmployee(event,employeeId,sourceKey,mode){event.dataTransfer.setData('text/plain',JSON.stringify({employeeId,sourceKey,mode}));event.dataTransfer.effectAllowed='move'}
 function allowRosterDrop(event){event.preventDefault();event.currentTarget.classList.add('drag-over')}
@@ -2784,7 +2810,13 @@ function showView(id,btn){
   }
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function openEmployeeModal(){document.getElementById('employeeModal').classList.add('show')}
+function openEmployeeModal(id=''){
+  editingEmployeeId=id||null;const e=editingEmployeeId?state.employees.find(x=>x.id===editingEmployeeId):null;
+  document.getElementById('employeeModalTitle').textContent=e?'تعديل بيانات الموظف':'إضافة موظف';document.getElementById('employeeSaveBtn').textContent=e?'حفظ التعديلات':'حفظ';
+  document.getElementById('empName').value=e?.name||'';document.getElementById('empNameAr').value=e?.nameAr||ROSTER_ARABIC_NAMES[String(e?.empId||'')]||'';document.getElementById('empId').value=e?.empId||'';document.getElementById('empLeaveBalance').value=e?formatDays(e.leaveBalance):'';document.getElementById('empDutyRole').value=e?.dutyRole||'';document.getElementById('empShift').value=e?.shift||'Morning';document.getElementById('empLocation').value=e?.location||'';document.getElementById('empNote').value=e?.note||'';
+  document.getElementById('employeeModal').classList.add('show');
+}
+function closeEmployeeModal(){editingEmployeeId=null;closeModal('employeeModal')}
 function editLeaveBalance(id){
   const e=state.employees.find(x=>x.id===id);if(!e)return;
   const value=prompt(`أدخل رصيد الإجازة المتبقي للموظف ${e.name}`,formatDays(e.leaveBalance));
@@ -2822,19 +2854,16 @@ function quickAdd(){openEmployeeModal()}
 
 function saveEmployee(){
   const name=document.getElementById('empName').value.trim();
+  const nameAr=document.getElementById('empNameAr').value.trim();
   const empId=document.getElementById('empId').value.trim();
   if(!name||!empId){alert('أدخل الاسم والرقم الوظيفي');return}
   const leaveBalance=Number(document.getElementById('empLeaveBalance').value||0);
   if(!Number.isFinite(leaveBalance)||leaveBalance<0){alert('أدخل رصيد إجازة صحيحًا');return}
-  state.employees.push({
-    id:crypto.randomUUID(),name,empId,gc:'',position:'',
-    shift:document.getElementById('empShift').value,
-    dutyRole:document.getElementById('empDutyRole').value,
-    location:document.getElementById('empLocation').value.trim(),
-    note:document.getElementById('empNote').value.trim(),leaveBalance
-  });
-  ['empName','empId','empLocation','empNote','empLeaveBalance','empDutyRole'].forEach(id=>document.getElementById(id).value='');
-  closeModal('employeeModal'); save();
+  const duplicate=state.employees.find(e=>e.empId===empId&&e.id!==editingEmployeeId);if(duplicate){alert('الرقم الوظيفي مستخدم لموظف آخر');return}
+  const values={name,nameAr,empId,shift:document.getElementById('empShift').value,dutyRole:document.getElementById('empDutyRole').value,location:document.getElementById('empLocation').value.trim(),note:document.getElementById('empNote').value.trim(),leaveBalance};
+  if(editingEmployeeId){const e=state.employees.find(x=>x.id===editingEmployeeId);if(!e)return;Object.assign(e,values)}else state.employees.push({id:crypto.randomUUID(),gc:'',position:'',...values});
+  ['empName','empNameAr','empId','empLocation','empNote','empLeaveBalance','empDutyRole'].forEach(id=>document.getElementById(id).value='');
+  editingEmployeeId=null;closeModal('employeeModal');save();
 }
 function datesBetween(start,end){
   const dates=[],cursor=new Date(start+'T12:00:00'),last=new Date(end+'T12:00:00');
