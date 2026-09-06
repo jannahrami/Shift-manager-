@@ -76,6 +76,7 @@
     .auth-card h2{margin:0 0 7px}.auth-card p{color:var(--muted);font-size:13px;margin:0 0 20px}
     .auth-card input{width:100%;margin-bottom:11px;text-align:left;direction:ltr}
     .auth-card button{width:100%}.auth-error{min-height:20px;color:var(--red);font-size:12px;margin-top:10px}
+    .app.locked{display:none}
     .grid4{
       display:grid;
       grid-template-columns:1fr 1fr;
@@ -146,6 +147,8 @@
     .days-remaining{font-weight:850;color:var(--text)}
     .return-shift{display:flex;align-items:center;gap:6px;width:max-content;margin-top:7px;padding:5px 7px;border-radius:8px;font-size:9px;font-weight:850;white-space:nowrap}
     .return-shift small{font-size:8px;font-weight:700;opacity:.72}
+    .whatsapp-btn{background:#25d366!important;border-color:#1fb858!important;color:#fff!important;box-shadow:0 6px 18px rgba(37,211,102,.22)}
+    .whatsapp-btn:hover{background:#1fb858!important}
     .status-legend{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
     .legend-item{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--line);border-radius:999px;background:rgba(5,14,28,.4)}
     .legend-dot{width:8px;height:8px;border-radius:50%}
@@ -649,7 +652,18 @@
   </style>
 </head>
 <body>
-<div class="app">
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">S</div>
+    <h2>Shift Manager</h2>
+    <p>سجّل الدخول بحساب المشرف للوصول إلى البيانات ومزامنتها بأمان.</p>
+    <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" autocomplete="username">
+    <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+    <button class="primary" id="loginBtn" onclick="login()">دخول ومزامنة</button>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+<div class="app locked" id="appShell">
   <div class="topbar">
     <div class="brand">
       <div class="brand-mark">S</div>
@@ -662,6 +676,7 @@
       <span class="cloud-status" id="cloudStatus" title="حالة المزامنة"></span>
       <div class="notify-wrap"><button class="iconbtn" id="notifyBtn" title="التنبيهات" onclick="openNotifications()">🔔</button><span class="notify-count" id="notifyCount">0</span></div>
       <button class="iconbtn" id="backupBtn" title="نسخة احتياطية">⤴︎</button>
+      <button class="iconbtn" title="تسجيل الخروج" onclick="logout()">↪</button>
     </div>
   </div>
 
@@ -980,6 +995,7 @@
       <input id="empName" placeholder="اسم الموظف بالإنجليزي">
       <input id="empNameAr" placeholder="اسم الموظف بالعربي">
       <input id="empId" placeholder="الرقم الوظيفي">
+      <input type="tel" inputmode="tel" id="empPhone" placeholder="رقم الجوال (مثال: 05XXXXXXXX)">
       <input type="number" min="0" step="1" id="empLeaveBalance" placeholder="رصيد الإجازة المتبقي بالأيام">
       <select id="empDutyRole">
         <option value="">اختر مهمة الموظف</option><option value="chief">Shift Chief</option><option value="assistant">Assistant Shift Chief</option><option value="community">Community Supervisor</option><option value="clerk">Shift Clerk</option><option value="scc">SCC</option><option value="visitor">Ind. Visitor</option><option value="commVisitor">Comm. Visitor</option><option value="leader">ليدر</option><option value="officer">فرد</option><option value="patrol">دورية</option><option value="flex">فرد + دورية</option>
@@ -1104,541 +1120,8 @@ const SESSION_KEY='shiftManagerSupabaseSession';
 const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
 const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
 const SOON_DAYS=3;
-let state=JSON.parse(localStorage.getItem(KEY) || 'null') || {
-  employees:[
-    {
-        "id": "emp-102862",
-        "name": "NAEEM QASIM OUFI",
-        "empId": "102862",
-        "gc": "10",
-        "position": "Shift Chief ( 01 )",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101771",
-        "name": "RAMI MANSOUR JANNAH",
-        "empId": "101771",
-        "gc": "10",
-        "position": "Shift Chief Assistant ( 02 ) & Backup for 01",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101725",
-        "name": "ADEL ABDULLAH BELADI",
-        "empId": "101725",
-        "gc": "8",
-        "position": "Community Group Leader ( Gate-10 )",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101702",
-        "name": "OSAMAH MADANI YANBAWI",
-        "empId": "101702",
-        "gc": "8",
-        "position": "SCC",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-103630",
-        "name": "AHMED HASSAN AL SHAHRI",
-        "empId": "103630",
-        "gc": "8",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101655",
-        "name": "RIYADH EID HARBI",
-        "empId": "101655",
-        "gc": "8",
-        "position": "SCC Backup",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-103389",
-        "name": "RAMI ABDULRHAMAN SHMASI",
-        "empId": "103389",
-        "gc": "9",
-        "position": "Pool Backup",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101650",
-        "name": "NASSER MARZOUG YOUBI",
-        "empId": "101650",
-        "gc": "8",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101662",
-        "name": "THAMER NAIF MALKI",
-        "empId": "101662",
-        "gc": "9",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-104121",
-        "name": "HASSAN AZIZALLAH TASH",
-        "empId": "104121",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101738",
-        "name": "SULTAN MOHAMMAD TWAIRIQI",
-        "empId": "101738",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-102305",
-        "name": "HASSAN ALI AL SAADI",
-        "empId": "102305",
-        "gc": "8",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101634",
-        "name": "AHMED MOHAMMED SELAIHBI",
-        "empId": "101634",
-        "gc": "8",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-102299",
-        "name": "MOHAMMED MONAWER GRAGREE",
-        "empId": "102299",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-103661",
-        "name": "MOHAMMED OAYED MUTAIRI",
-        "empId": "103661",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101631",
-        "name": "GHAZI ABDULHAFIZ ZANBAQI",
-        "empId": "101631",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-103871",
-        "name": "ABDULMALIK SIRAJ AL ZANBAQI",
-        "empId": "103871",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-102301",
-        "name": "ASHRAF ABDALMOTI JAHDALI",
-        "empId": "102301",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101690",
-        "name": "YOUSEF BARKI FARSI",
-        "empId": "101690",
-        "gc": "8",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101632",
-        "name": "MAJED AHMED GHANMI",
-        "empId": "101632",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101708",
-        "name": "ADEL BRAIK SUBHI",
-        "empId": "101708",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-104165",
-        "name": "AMMAR THEYAB ALLUHAYBI",
-        "empId": "104165",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-104722",
-        "name": "OTHMAN HAMAD SAHLI",
-        "empId": "104722",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-102593",
-        "name": "MUHAMMAD B. MUALAD",
-        "empId": "102593",
-        "gc": "8",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101718",
-        "name": "SAAD MTHEEB NAFEI",
-        "empId": "101718",
-        "gc": "8",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-104495",
-        "name": "MOHAMMED  SALEM BELADI",
-        "empId": "104495",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-104116",
-        "name": "TURKI SAAD ALJEHANI",
-        "empId": "104116",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101749",
-        "name": "HUSAM HAMEED AL FARSI",
-        "empId": "101749",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-104666",
-        "name": "ABDULAZIZ YEHEA THWRI",
-        "empId": "104666",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101741",
-        "name": "HAMIDI THIYAR AL BLADI",
-        "empId": "101741",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101694",
-        "name": "RAYAN NASSAR DHAHRI",
-        "empId": "101694",
-        "gc": "8",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101697",
-        "name": "HANI ABID GHNMAI",
-        "empId": "101697",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-102297",
-        "name": "BATHAL HASSAN HAJRI",
-        "empId": "102297",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-102286",
-        "name": "NIZAR ALI AL HODHODI",
-        "empId": "102286",
-        "gc": "8",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101988",
-        "name": "RAMI AHMED AL ZAHRANI",
-        "empId": "101988",
-        "gc": "10",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101700",
-        "name": "MUTEEB ATIAH MUWALLAD",
-        "empId": "101700",
-        "gc": "8",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-103619",
-        "name": "ABDULLAH SALEH GHAMDI",
-        "empId": "103619",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101703",
-        "name": "NADER IBRAHIM MOHAMMADI",
-        "empId": "101703",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101701",
-        "name": "MOHAMMED ABDULLAH GHANMI",
-        "empId": "101701",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-103409",
-        "name": "MOHAMMED YOUSEF MOHAMMED YOUSEF",
-        "empId": "103409",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    },
-    {
-        "id": "emp-101698",
-        "name": "ABDULRAHEEM AHMED FARSI",
-        "empId": "101698",
-        "gc": "7",
-        "position": "",
-        "shift": "Group A",
-        "location": "",
-        "note": ""
-    }
-],
-  leaves:[
-    {
-        "id": "leave-103661-2026-08-30",
-        "employeeId": "emp-103661",
-        "start": "2026-08-30",
-        "end": "2026-09-27",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-101694-2026-08-30",
-        "employeeId": "emp-101694",
-        "start": "2026-08-30",
-        "end": "2026-09-16",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-102593-2026-09-13",
-        "employeeId": "emp-102593",
-        "start": "2026-09-13",
-        "end": "2026-09-26",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-101771-2026-10-06",
-        "employeeId": "emp-101771",
-        "start": "2026-10-06",
-        "end": "2026-10-25",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-101708-2026-10-06",
-        "employeeId": "emp-101708",
-        "start": "2026-10-06",
-        "end": "2026-11-05",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-101700-2026-10-06",
-        "employeeId": "emp-101700",
-        "start": "2026-10-06",
-        "end": "2026-11-02",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-103619-2026-10-15",
-        "employeeId": "emp-103619",
-        "start": "2026-10-15",
-        "end": "2026-11-02",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-103630-2026-10-15",
-        "employeeId": "emp-103630",
-        "start": "2026-10-15",
-        "end": "2026-11-02",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-101738-2026-11-03",
-        "employeeId": "emp-101738",
-        "start": "2026-11-03",
-        "end": "2026-11-30",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-102305-2026-11-03",
-        "employeeId": "emp-102305",
-        "start": "2026-11-03",
-        "end": "2026-11-30",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-101741-2026-11-05",
-        "employeeId": "emp-101741",
-        "start": "2026-11-05",
-        "end": "2026-11-30",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-101690-2026-11-22",
-        "employeeId": "emp-101690",
-        "start": "2026-11-22",
-        "end": "2026-11-30",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-104121-2026-11-25",
-        "employeeId": "emp-104121",
-        "start": "2026-11-25",
-        "end": "2026-12-09",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-101650-2026-12-01",
-        "employeeId": "emp-101650",
-        "start": "2026-12-01",
-        "end": "2026-12-24",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-104722-2026-12-01",
-        "employeeId": "emp-104722",
-        "start": "2026-12-01",
-        "end": "2026-12-28",
-        "note": "Annual leave schedule"
-    },
-    {
-        "id": "leave-101718-2026-12-01",
-        "employeeId": "emp-101718",
-        "start": "2026-12-01",
-        "end": "2027-12-20",
-        "note": "Annual leave schedule"
-    }
-],
-  shifts:[],
-  records:[],
-  achievements:[],
-  personalNotes:[],
-  monthlySchedules:{},
-  monthlyScheduleRequirements:{},
-  monthlySchedulePeriods:{}
-};
+function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[]}}
+let state=emptyState();
 
 if(!Array.isArray(state.records)) state.records=[];
 if(!Array.isArray(state.achievements)) state.achievements=[];
@@ -1664,53 +1147,6 @@ let shiftDatePickerMonth=todayISO().slice(0,7);
 let session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
 let syncTimer=null;
 let cloudReady=false;
-
-const VACATION_PLAN_2026_IMPORT=[
-  ['102297','2026-02-24','2026-03-14'],
-  ['102299','2026-03-05','2026-03-23'],
-  ['101702','2026-03-24','2026-04-11'],
-  ['104121','2026-04-02','2026-04-20'],
-  ['101697','2026-04-02','2026-04-20'],
-  ['104165','2026-04-12','2026-04-26'],
-  ['103409','2026-04-12','2026-04-29'],
-  ['104495','2026-05-10','2026-06-06'],
-  ['101701','2026-05-10','2026-06-06'],
-  ['103409','2026-05-19','2026-06-06'],
-  ['104116','2026-05-19','2026-06-06'],
-  ['101631','2026-06-07','2026-07-04'],
-  ['102286','2026-06-07','2026-07-04'],
-  ['101988','2026-06-07','2026-07-04'],
-  ['101634','2026-07-05','2026-08-01'],
-  ['103871','2026-07-05','2026-08-01'],
-  ['102301','2026-07-05','2026-08-01'],
-  ['104165','2026-07-05','2026-07-13'],
-  ['102293','2026-07-05','2026-08-01'],
-  ['101725','2026-08-02','2026-08-28'],
-  ['101632','2026-08-02','2026-08-28'],
-  ['101703','2026-08-02','2026-08-28'],
-  ['101655','2026-08-11','2026-09-04'],
-  ['101698','2026-08-11','2026-08-29'],
-  ['103661','2026-08-30','2026-09-27'],
-  ['101694','2026-08-30','2026-09-16']
-];
-
-function applyVacationPlan2026Import(){
-  if(Number(state.vacationPlan2026ImportVersion)>=1)return false;
-  let changed=false;
-  if(!state.employees.some(e=>String(e.empId)==='102293')){
-    state.employees.push({id:'emp-102293',name:'FAHAD AL YUBI',empId:'102293',gc:'',position:'',shift:'Group A',location:'',note:'',leaveBalance:0});
-    changed=true;
-  }
-  const existing=new Set(state.leaves.map(l=>`${l.employeeId}|${l.start}|${l.end}`));
-  VACATION_PLAN_2026_IMPORT.forEach(([empId,start,end])=>{
-    const employee=state.employees.find(e=>String(e.empId)===empId);if(!employee)return;
-    const key=`${employee.id}|${start}|${end}`;if(existing.has(key))return;
-    state.leaves.push({id:`leave-${empId}-${start}`,employeeId:employee.id,start,end,note:'2026 Vacation Plan · Imported'});
-    existing.add(key);changed=true;
-  });
-  state.vacationPlan2026ImportVersion=1;
-  return true;
-}
 
 function pruneOldMonthlyRosterLocations(){
   if(Number(state.monthlyRosterLocationsVersion)>=2)return false;
@@ -1744,14 +1180,15 @@ function ensureAnnualLeaveCredit(){
   state.leaveBalanceAccrualYear=currentYear;
   return true;
 }
-applyVacationPlan2026Import();
-pruneOldMonthlyRosterLocations();
-ensureAnnualLeaveCredit();
-localStorage.setItem(KEY,JSON.stringify(state));
 
 function setCloudStatus(mode,title){
   const el=document.getElementById('cloudStatus');
   el.className='cloud-status'+(mode?' '+mode:''); el.title=title||'حالة المزامنة';
+}
+function unlockApp(){document.getElementById('authScreen')?.classList.add('hidden');document.getElementById('appShell')?.classList.remove('locked')}
+function lockApp(message=''){
+  document.getElementById('appShell')?.classList.add('locked');document.getElementById('authScreen')?.classList.remove('hidden');
+  const error=document.getElementById('authError');if(error&&message)error.textContent=message;
 }
 async function supabaseFetch(path,options={}){
   const headers={apikey:SUPABASE_KEY,'Content-Type':'application/json',...(options.headers||{})};
@@ -1787,9 +1224,9 @@ async function loadCloudState(){
     if(!res.ok)throw new Error('تعذر قراءة البيانات السحابية');
     const rows=await res.json();
     if(rows.length&&rows[0].data&&Object.keys(rows[0].data).length){
-      state=rows[0].data;localStorage.setItem(KEY,JSON.stringify(state));
+      state=rows[0].data;
     }else{
-      await uploadCloudState();
+      throw new Error('لا توجد بيانات محفوظة في الحساب. شغّل ملف التهيئة أولًا.');
     }
     if(!Array.isArray(state.records))state.records=[];
     if(!Array.isArray(state.achievements))state.achievements=[];
@@ -1800,13 +1237,13 @@ async function loadCloudState(){
     state.employees.forEach(e=>{if(!['chief','assistant','community','clerk','scc','visitor','commVisitor','leader','officer','patrol','flex'].includes(e.dutyRole))e.dutyRole=''})
     state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
     if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
-    const vacationImportChanged=applyVacationPlan2026Import();
     const rosterLocationsChanged=pruneOldMonthlyRosterLocations();
     const annualCreditChanged=ensureAnnualLeaveCredit();
+    loadRuntimeRosterConfig();
     localStorage.setItem(KEY,JSON.stringify(state));
-    if(vacationImportChanged||rosterLocationsChanged||annualCreditChanged)await uploadCloudState();
-    cloudReady=true;setCloudStatus('online','تمت المزامنة');renderAll();
-  }catch(e){cloudReady=false;setCloudStatus('offline','حُفظ محليًا وتعذرت المزامنة');renderAll()}
+    if(rosterLocationsChanged||annualCreditChanged)await uploadCloudState();
+    cloudReady=true;setCloudStatus('online','تمت المزامنة');unlockApp();renderAll();
+  }catch(e){cloudReady=false;setCloudStatus('offline','تعذرت المزامنة');lockApp(e.message||'تعذر تحميل البيانات')}
 }
 async function uploadCloudState(){
   const res=await supabaseFetch('/rest/v1/shift_manager_state?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'main',data:state,updated_at:new Date().toISOString()})});
@@ -1823,7 +1260,7 @@ function save(){
   clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450);
 }
 function logout(){
-  session=null;cloudReady=false;localStorage.removeItem(SESSION_KEY);setCloudStatus('offline','حفظ محلي');renderAll();
+  session=null;cloudReady=false;localStorage.removeItem(SESSION_KEY);localStorage.removeItem(KEY);setCloudStatus('offline','تم تسجيل الخروج');lockApp();
 }
 
 function fmtDate(s){ if(!s)return ''; return new Date(s+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{day:'2-digit',month:'2-digit',year:'numeric'}); }
@@ -1835,6 +1272,15 @@ function todayISO(){
 }
 function initials(n){ return (n||'?').trim().split(/\s+/).slice(0,2).map(x=>x[0]).join(''); }
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function normalizeSaudiPhone(value=''){
+  let digits=String(value).replace(/\D/g,'');
+  if(digits.startsWith('00'))digits=digits.slice(2);
+  if(/^05\d{8}$/.test(digits))return '966'+digits.slice(1);
+  if(/^5\d{8}$/.test(digits))return '966'+digits;
+  if(/^9665\d{8}$/.test(digits))return digits;
+  return '';
+}
+function localPhone(value=''){const phone=normalizeSaudiPhone(value);return phone?'0'+phone.slice(3):String(value||'')}
 
 function employeeStatus(emp){
   const t=todayISO();
@@ -2107,26 +1553,57 @@ function selectGlobalEmployee(id){
   document.getElementById('globalSearchInput').value='';document.getElementById('globalSearchResults').classList.remove('show');openEmployeeProfile(id);
 }
 
+function rosterLocationForDate(employee,date){
+  const preferred=date.slice(0,7),months=Object.keys(state.monthlySchedules||{}).sort((a,b)=>a===preferred?-1:b===preferred?1:b.localeCompare(a));
+  for(const month of months){
+    const period=state.monthlySchedulePeriods?.[month]||monthBounds(month);
+    if(!period||date<period.start||date>period.end)continue;
+    const schedule=state.monthlySchedules[month]||{};
+    const match=Object.entries(schedule).find(([,ids])=>Array.isArray(ids)&&ids.includes(employee.id));
+    if(match)return match[0].split('|').slice(1).join('|');
+  }
+  const daily=state.shifts.find(s=>s.employeeId===employee.id);
+  return daily?.post||employee.location||'لم يتم تحديده بعد';
+}
+function leaveReturnMessage(employee,leave){
+  const daysToEnd=diffDays(leave.end,todayISO()),returnDuty=firstWorkDayAfterLeave(leave.end);
+  const endText=daysToEnd===0?'تنتهي إجازتك اليوم':daysToEnd===1?'تنتهي إجازتك غدًا':daysToEnd===2?'تنتهي إجازتك بعد يومين':daysToEnd===3?'تنتهي إجازتك بعد 3 أيام':`تنتهي إجازتك بتاريخ ${fmtDate(leave.end)}`;
+  const returnDate=returnDuty?.date||addDaysISO(leave.end,1),shift=returnDuty?'ال'+returnDuty.arabic:'لم يتم تحديده بعد',location=rosterLocationForDate(employee,returnDate);
+  return `عزيزي ${rosterEmployeeName(employee)}، ${endText}، وموعد عودتك للعمل بتاريخ ${fmtDate(returnDate)}، على الشفت ${shift}، في الموقع ${location}.`;
+}
+function leaveStartMessage(employee,leave){
+  return `عزيزي ${rosterEmployeeName(employee)}، نذكّرك بأن إجازتك تبدأ بتاريخ ${fmtDate(leave.start)}. نتمنى لك إجازة سعيدة.`;
+}
+function sendLeaveWhatsApp(employeeId,leaveId,type){
+  const employee=state.employees.find(e=>e.id===employeeId),leave=state.leaves.find(l=>l.id===leaveId);if(!employee||!leave)return;
+  const phone=normalizeSaudiPhone(employee.phone);
+  if(!phone){alert(`لا يوجد رقم جوال صحيح للموظف ${rosterEmployeeName(employee)}. أضف الرقم من تعديل بيانات الموظف.`);return}
+  const message=type==='start'?leaveStartMessage(employee,leave):leaveReturnMessage(employee,leave);
+  const url=`https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  const opened=window.open(url,'_blank');if(!opened)window.location.href=url;
+}
+
 function renderAlerts(){
   const box=document.getElementById('alertsList'); box.innerHTML='';
   const t=todayISO(); let alerts=[];
   state.leaves.forEach(l=>{
     const e=state.employees.find(x=>x.id===l.employeeId); if(!e)return;
     const ds=diffDays(l.start,t), de=diffDays(l.end,t);
-    if(ds===0) alerts.push({name:e.name,msg:'تبدأ إجازته اليوم',cls:'b-yellow'});
-    else if(ds===1) alerts.push({name:e.name,msg:'تبدأ إجازته غدًا',cls:'b-yellow'});
-    else if(ds===2) alerts.push({name:e.name,msg:'تبدأ إجازته بعد يومين',cls:'b-yellow'});
-    else if(ds===3) alerts.push({name:e.name,msg:'تبدأ إجازته بعد 3 أيام',cls:'b-yellow'});
-    if(de===0) alerts.push({name:e.name,msg:'آخر يوم إجازة اليوم',cls:'b-blue'});
-    else if(de===1) alerts.push({name:e.name,msg:'يعود من الإجازة غدًا',cls:'b-green'});
-    else if(de===2) alerts.push({name:e.name,msg:'يعود من الإجازة بعد يومين',cls:'b-green'});
-    else if(de===3) alerts.push({name:e.name,msg:'يعود من الإجازة بعد 3 أيام',cls:'b-green'});
+    const base={name:rosterEmployeeName(e),employeeId:e.id,leaveId:l.id,hasPhone:!!normalizeSaudiPhone(e.phone)};
+    if(ds===0) alerts.push({...base,msg:'تبدأ إجازته اليوم',cls:'b-yellow',type:'start'});
+    else if(ds===1) alerts.push({...base,msg:'تبدأ إجازته غدًا',cls:'b-yellow',type:'start'});
+    else if(ds===2) alerts.push({...base,msg:'تبدأ إجازته بعد يومين',cls:'b-yellow',type:'start'});
+    else if(ds===3) alerts.push({...base,msg:'تبدأ إجازته بعد 3 أيام',cls:'b-yellow',type:'start'});
+    if(de===0) alerts.push({...base,msg:'آخر يوم إجازة اليوم',cls:'b-blue',type:'return'});
+    else if(de===1) alerts.push({...base,msg:'تنتهي إجازته غدًا',cls:'b-green',type:'return'});
+    else if(de===2) alerts.push({...base,msg:'تنتهي إجازته بعد يومين',cls:'b-green',type:'return'});
+    else if(de===3) alerts.push({...base,msg:'تنتهي إجازته بعد 3 أيام',cls:'b-green',type:'return'});
   });
   if(!alerts.length){box.innerHTML='<div class="empty">لا توجد تنبيهات قريبة 👌</div>';return}
   alerts.forEach(a=>box.insertAdjacentHTML('beforeend',`
     <div class="row">
       <div class="row-main"><div class="avatar">${esc(initials(a.name))}</div><div><div class="name">${esc(a.name)}</div><div class="meta">${esc(a.msg)}</div></div></div>
-      <span class="badge ${a.cls}">تنبيه</span>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span class="badge ${a.cls}">تنبيه</span><button class="secondary ${a.hasPhone?'whatsapp-btn':''}" ${a.hasPhone?'':'disabled'} onclick="sendLeaveWhatsApp('${a.employeeId}','${a.leaveId}','${a.type}')">${a.hasPhone?'واتساب':'لا يوجد رقم'}</button></div>
     </div>`));
 }
 
@@ -2267,6 +1744,7 @@ function renderEmployeeProfile(){
           <div class="name">${esc(e.nameAr||e.name)}</div>
           ${e.nameAr?`<div class="meta">${esc(e.name)}</div>`:''}
           <div class="meta">Badge #${esc(e.empId)} · GC ${esc(e.gc||'-')}</div>
+          <div class="meta">الجوال: ${esc(localPhone(e.phone)||'غير مسجل')}</div>
           <div class="meta">${esc(e.position||e.shift||'-')}</div>
           <div class="meta" style="margin-top:6px">رصيد الإجازة المتبقي: <strong>${formatDays(e.leaveBalance)}</strong> يوم <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editLeaveBalance('${e.id}')">تعديل الرصيد</button></div>
           <div class="meta" style="margin-top:7px">المهمة: <span class="badge role-badge">${employeeDutyRoleLabel(e.dutyRole)}</span> <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editEmployeeDutyRole('${e.id}')">تعديل المهمة</button></div>
@@ -2654,14 +2132,19 @@ function rosterLeaveStatus(employeeId,period=monthlyRosterPeriod()){
   const overlaps=state.leaves.filter(l=>l.employeeId===employeeId&&l.start<=period.end&&l.end>=period.start).sort((a,b)=>a.start.localeCompare(b.start));
   const activeAtStart=overlaps.find(l=>l.start<=period.start&&l.end>=period.start),returning=activeAtStart&&activeAtStart.end<period.end?activeAtStart:null,blocked=activeAtStart||null;const upcoming=overlaps.find(l=>l.start>period.start&&l.start<=period.end);return {blocked,upcoming,returning,activeAtStart,overlaps};
 }
-const FIXED_ROSTER_POSTS={'emp-102593':'stations|STN# 06','emp-103871':'stations|STN# 07'};
-const ROSTER_ARABIC_NAMES={
-  '102862':'نعيم قاسم عوفي','101771':'رامي منصور جنة','101725':'عادل عبدالله البلادي','101702':'أسامة مدني ينبعاوي','103630':'أحمد حسن الشهري','101655':'رياض عيد الحربي','103389':'رامي عبدالرحمن الشماسي','101650':'ناصر مرزوق اليوبي','101662':'ثامر نايف المالكي','104121':'حسن عزيزالله طاش','101738':'سلطان محمد الطويرقي','102305':'حسن علي السعدي','101634':'أحمد محمد السليحبي','102299':'محمد منور القرقري','103661':'محمد عايض المطيري','101631':'غازي عبدالحفيظ الزنبقي','103871':'عبدالملك سراج الزنبقي','102301':'أشرف عبدالمعطي الجحدلي','101690':'يوسف بركي الفارسي','101632':'ماجد أحمد الغانمي','101708':'عادل بريك صبحي','104165':'عمار ذياب اللهيبي','104722':'عثمان حمد السهلي','102593':'محمد ب. المولد','101718':'سعد مثيب النافعي','104495':'محمد سالم البلادي','104116':'تركي سعد الجهني','101749':'حسام حميد الفارسي','104666':'عبدالعزيز يحيى الثوري','101741':'حميدي ذياب البلادي','101694':'ريان ناصر الظاهري','101697':'هاني عابد الغانمي','102297':'بطل حسن الحجري','102286':'نزار علي الهدهدي','101988':'رامي أحمد الزهراني','101700':'متعب عطية المولد','103619':'عبدالله صالح الغامدي','101703':'نادر إبراهيم المحمدي','101701':'محمد عبدالله الغانمي','103409':'محمد يوسف محمد يوسف','101698':'عبدالرحيم أحمد الفارسي'
-};
+let FIXED_ROSTER_POSTS={};
+const ROSTER_ARABIC_NAMES={};
 function rosterEmployeeName(employee){return employee?.nameAr||ROSTER_ARABIC_NAMES[String(employee?.empId||'')]||employee?.name||''}
-const ASSISTANT_PRIMARY_ID='emp-101771',ASSISTANT_BACKUP_ID='emp-103389',ASSISTANT_POST_KEY='leadership|Assistant Shift Chief (02)';
-const SCC_PRIMARY_IDS=['emp-101702','emp-103630'],SCC_BACKUP_IDS=['emp-101655','emp-101988'],SCC_POST_KEY='leadership|SCC';
-const COMMUNITY_PRIMARY_ID='emp-101725',COMMUNITY_BACKUP_ID='emp-101988',COMMUNITY_POST_KEY='leadership|Community Supervisor (03)';
+let ASSISTANT_PRIMARY_ID='',ASSISTANT_BACKUP_ID='';const ASSISTANT_POST_KEY='leadership|Assistant Shift Chief (02)';
+let SCC_PRIMARY_IDS=[],SCC_BACKUP_IDS=[];const SCC_POST_KEY='leadership|SCC';
+let COMMUNITY_PRIMARY_ID='',COMMUNITY_BACKUP_ID='';const COMMUNITY_POST_KEY='leadership|Community Supervisor (03)';
+function loadRuntimeRosterConfig(){
+  const config=state.rosterSecurityConfig||{};
+  FIXED_ROSTER_POSTS=config.fixedPosts&&typeof config.fixedPosts==='object'?{...config.fixedPosts}:{};
+  ASSISTANT_PRIMARY_ID=String(config.assistantPrimaryId||'');ASSISTANT_BACKUP_ID=String(config.assistantBackupId||'');
+  SCC_PRIMARY_IDS=Array.isArray(config.sccPrimaryIds)?[...config.sccPrimaryIds]:[];SCC_BACKUP_IDS=Array.isArray(config.sccBackupIds)?[...config.sccBackupIds]:[];
+  COMMUNITY_PRIMARY_ID=String(config.communityPrimaryId||'');COMMUNITY_BACKUP_ID=String(config.communityBackupId||'');
+}
 function fixedRosterPost(employeeId){return FIXED_ROSTER_POSTS[employeeId]||''}
 function rosterBackupAvailable(employeeId,coverageStart,period=monthlyRosterPeriod()){
   const status=rosterLeaveStatus(employeeId,period);return !status.blocked||(status.returning&&addDaysISO(status.returning.end,1)<=coverageStart);
@@ -2724,7 +2207,7 @@ function saveMonthlyRosterAssignment(){
 }
 function clearMonthlyRosterAssignment(){if(!editingMonthlyRosterPost)return;if(!confirm('تفريغ جميع الموظفين من هذا الموقع؟'))return;const data=monthlyRosterData(),fixed=Object.entries(FIXED_ROSTER_POSTS).filter(([id,key])=>key===editingMonthlyRosterPost&&!rosterLeaveStatus(id).blocked).map(([id])=>id);if(fixed.length)data[editingMonthlyRosterPost]=fixed;else delete data[editingMonthlyRosterPost];closeModal('monthlyRosterModal');editingMonthlyRosterPost='';save()}
 function rosterPersonChip(employee,sourceKey,mode='saved'){
-  const fixedPost=fixedRosterPost(employee.id),fixed=fixedPost===sourceKey,status=rosterLeaveStatus(employee.id),assistantBackup=employee.id===ASSISTANT_BACKUP_ID&&sourceKey===ASSISTANT_POST_KEY&&rosterLeaveStatus(ASSISTANT_PRIMARY_ID).overlaps.length,sccBackup=SCC_BACKUP_IDS.includes(employee.id)&&sourceKey===SCC_POST_KEY&&SCC_PRIMARY_IDS.some(id=>rosterLeaveStatus(id).overlaps.length),communityBackup=employee.id===COMMUNITY_BACKUP_ID&&sourceKey===COMMUNITY_POST_KEY&&rosterLeaveStatus(COMMUNITY_PRIMARY_ID).overlaps.length,statusClass=status.upcoming?'roster-mid-leave':status.returning||assistantBackup||sccBackup||communityBackup?'roster-returning':'',details=[];if(fixed)details.push(`ثابت في ${fixedPost.split('|')[1]}`);if(status.upcoming)details.push(`تبدأ إجازته ${fmtDate(status.upcoming.start)}`);else if(status.returning)details.push(`متاح بعد العودة ${fmtDate(addDaysISO(status.returning.end,1))}`);if(assistantBackup)details.push('Assistant Backup أثناء إجازة RAMI MANSOUR JANNAH');if(sccBackup)details.push('SCC Backup أثناء إجازة أحد موظفي SCC');if(communityBackup)details.push('Community Supervisor Backup');const title=details.join(' — ')||'اسحب لتغيير الموقع';
+  const fixedPost=fixedRosterPost(employee.id),fixed=fixedPost===sourceKey,status=rosterLeaveStatus(employee.id),assistantBackup=employee.id===ASSISTANT_BACKUP_ID&&sourceKey===ASSISTANT_POST_KEY&&rosterLeaveStatus(ASSISTANT_PRIMARY_ID).overlaps.length,sccBackup=SCC_BACKUP_IDS.includes(employee.id)&&sourceKey===SCC_POST_KEY&&SCC_PRIMARY_IDS.some(id=>rosterLeaveStatus(id).overlaps.length),communityBackup=employee.id===COMMUNITY_BACKUP_ID&&sourceKey===COMMUNITY_POST_KEY&&rosterLeaveStatus(COMMUNITY_PRIMARY_ID).overlaps.length,statusClass=status.upcoming?'roster-mid-leave':status.returning||assistantBackup||sccBackup||communityBackup?'roster-returning':'',details=[];if(fixed)details.push(`ثابت في ${fixedPost.split('|')[1]}`);if(status.upcoming)details.push(`تبدأ إجازته ${fmtDate(status.upcoming.start)}`);else if(status.returning)details.push(`متاح بعد العودة ${fmtDate(addDaysISO(status.returning.end,1))}`);if(assistantBackup)details.push('Assistant Backup أثناء إجازة الموظف الأساسي');if(sccBackup)details.push('SCC Backup أثناء إجازة أحد موظفي SCC');if(communityBackup)details.push('Community Supervisor Backup');const title=details.join(' — ')||'اسحب لتغيير الموقع';
   return `<span class="roster-person ${employee.dutyRole==='leader'?'roster-leader':''} ${statusClass} ${fixed?'roster-fixed':''}" title="${esc(title)}" ${fixed?'':'draggable="true"'} ondragstart="dragRosterEmployee(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')">${esc(rosterEmployeeName(employee))}</span>`;
 }
 function dragRosterEmployee(event,employeeId,sourceKey,mode){event.dataTransfer.setData('text/plain',JSON.stringify({employeeId,sourceKey,mode}));event.dataTransfer.effectAllowed='move'}
@@ -2801,7 +2284,7 @@ function showView(id,btn){
 function openEmployeeModal(id=''){
   editingEmployeeId=id||null;const e=editingEmployeeId?state.employees.find(x=>x.id===editingEmployeeId):null;
   document.getElementById('employeeModalTitle').textContent=e?'تعديل بيانات الموظف':'إضافة موظف';document.getElementById('employeeSaveBtn').textContent=e?'حفظ التعديلات':'حفظ';
-  document.getElementById('empName').value=e?.name||'';document.getElementById('empNameAr').value=e?.nameAr||ROSTER_ARABIC_NAMES[String(e?.empId||'')]||'';document.getElementById('empId').value=e?.empId||'';document.getElementById('empLeaveBalance').value=e?formatDays(e.leaveBalance):'';document.getElementById('empDutyRole').value=e?.dutyRole||'';document.getElementById('empShift').value=e?.shift||'Morning';document.getElementById('empLocation').value=e?.location||'';document.getElementById('empNote').value=e?.note||'';
+  document.getElementById('empName').value=e?.name||'';document.getElementById('empNameAr').value=e?.nameAr||ROSTER_ARABIC_NAMES[String(e?.empId||'')]||'';document.getElementById('empId').value=e?.empId||'';document.getElementById('empPhone').value=localPhone(e?.phone);document.getElementById('empLeaveBalance').value=e?formatDays(e.leaveBalance):'';document.getElementById('empDutyRole').value=e?.dutyRole||'';document.getElementById('empShift').value=e?.shift||'Morning';document.getElementById('empLocation').value=e?.location||'';document.getElementById('empNote').value=e?.note||'';
   document.getElementById('employeeModal').classList.add('show');
 }
 function closeEmployeeModal(){editingEmployeeId=null;closeModal('employeeModal')}
@@ -2844,13 +2327,16 @@ function saveEmployee(){
   const name=document.getElementById('empName').value.trim();
   const nameAr=document.getElementById('empNameAr').value.trim();
   const empId=document.getElementById('empId').value.trim();
+  const phoneInput=document.getElementById('empPhone').value.trim();
   if(!name||!empId){alert('أدخل الاسم والرقم الوظيفي');return}
+  const phone=phoneInput?normalizeSaudiPhone(phoneInput):'';
+  if(phoneInput&&!phone){alert('أدخل رقم جوال سعودي صحيحًا مثل 05XXXXXXXX');return}
   const leaveBalance=Number(document.getElementById('empLeaveBalance').value||0);
   if(!Number.isFinite(leaveBalance)||leaveBalance<0){alert('أدخل رصيد إجازة صحيحًا');return}
   const duplicate=state.employees.find(e=>e.empId===empId&&e.id!==editingEmployeeId);if(duplicate){alert('الرقم الوظيفي مستخدم لموظف آخر');return}
-  const values={name,nameAr,empId,shift:document.getElementById('empShift').value,dutyRole:document.getElementById('empDutyRole').value,location:document.getElementById('empLocation').value.trim(),note:document.getElementById('empNote').value.trim(),leaveBalance};
+  const values={name,nameAr,empId,phone,shift:document.getElementById('empShift').value,dutyRole:document.getElementById('empDutyRole').value,location:document.getElementById('empLocation').value.trim(),note:document.getElementById('empNote').value.trim(),leaveBalance};
   if(editingEmployeeId){const e=state.employees.find(x=>x.id===editingEmployeeId);if(!e)return;Object.assign(e,values)}else state.employees.push({id:crypto.randomUUID(),gc:'',position:'',...values});
-  ['empName','empNameAr','empId','empLocation','empNote','empLeaveBalance','empDutyRole'].forEach(id=>document.getElementById(id).value='');
+  ['empName','empNameAr','empId','empPhone','empLocation','empNote','empLeaveBalance','empDutyRole'].forEach(id=>document.getElementById(id).value='');
   editingEmployeeId=null;closeModal('employeeModal');save();
 }
 function datesBetween(start,end){
@@ -2955,12 +2441,12 @@ document.getElementById('backupBtn').addEventListener('click',()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='shift-manager-backup.json';a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 });
-renderAll();
+lockApp();
 if(document.getElementById('recordDate')) document.getElementById('recordDate').value=todayISO();
 if(session){
   refreshSession().then(ok=>ok?loadCloudState():logout()).catch(()=>logout());
 }else{
-  setCloudStatus('offline','حفظ محلي');
+  localStorage.removeItem(KEY);setCloudStatus('offline','يتطلب تسجيل الدخول');
 }
 </script>
 </body>
