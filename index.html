@@ -3,8 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#171e2b" />
+  <meta name="theme-color" content="#12162a" />
   <title>Shift Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg:#07101f;
@@ -649,6 +652,116 @@
     .roster-period{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;margin:12px 0;border-radius:14px;background:#f4f7fb;border:1px solid #dce4ed}.roster-period label{font-size:10px;font-weight:850;color:#59677b}.roster-period input{width:155px;padding:9px}.roster-drop{min-height:38px;padding:4px;border-radius:10px;transition:.15s}.roster-drop.drag-over{background:#e6f0ff;box-shadow:inset 0 0 0 2px #4775e8}.roster-fixed{box-shadow:inset 0 0 0 2px #172033}.mid-leave-warning{color:#a96800;font-size:9px;margin-top:3px}
     #autoRosterPreviewModal .sheet{width:min(1180px,96vw);max-width:none;max-height:92vh;overflow:auto}#autoRosterPreviewModal .form-actions{position:sticky;bottom:0;background:#fff;padding:12px 0 2px;z-index:5}
     @media(max-width:600px){.roster-summary{grid-template-columns:1fr 1fr}.roster-employee-options{grid-template-columns:1fr}.monthly-roster-title{font-size:17px}}
+
+    /* =========================================================
+       REDESIGN LAYER — refined identity, applied last so it wins
+       the cascade over the three legacy theme blocks above.
+       ========================================================= */
+    :root{
+      --bg:#eef1f8;--card:#ffffff;--card2:#f5f7fc;--text:#151a2e;--muted:#69758c;
+      --line:#e2e6f0;--primary:#4f46e5;--primary2:#4338ca;--accent:#0ea5b7;
+      --green:#059669;--yellow:#d97706;--red:#dc2626;--blue:#2563eb;
+      --shadow:0 14px 34px rgba(31,35,68,.09);--radius:20px;
+    }
+    *{font-family:"Cairo","-apple-system",BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif!important}
+    body{
+      background:
+        radial-gradient(circle at 10% 0%,rgba(79,70,229,.10),transparent 30%),
+        radial-gradient(circle at 95% 12%,rgba(14,165,183,.10),transparent 28%),
+        linear-gradient(160deg,#f3f5fb,#eceff8 55%,#eef1f8)!important;
+      color:var(--text);letter-spacing:-.1px;
+    }
+    h1,h2,h3,.name,strong,.section-head h2,.title h1,.calendar-title,.schedule-title{font-weight:800!important;letter-spacing:-.2px}
+
+    /* Topbar */
+    .topbar{
+      background:linear-gradient(120deg,#12162a 0%,#1c2142 55%,#25275a 100%)!important;
+      border:1px solid rgba(255,255,255,.06)!important;border-radius:0 0 22px 22px!important;
+      box-shadow:0 16px 36px rgba(18,20,40,.28)!important;position:sticky!important;overflow:hidden;
+    }
+    .topbar::after{content:"";position:absolute;inset:auto -40px -80px auto;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(14,165,183,.28),transparent 68%);pointer-events:none}
+    .title h1{color:#fff!important}.title p{color:#a6adcf!important}
+    .brand-mark,.auth-logo{background:linear-gradient(135deg,#6d5bf7,#0ea5b7)!important;box-shadow:0 10px 26px rgba(79,70,229,.35)!important;color:#fff!important}
+    .iconbtn{background:rgba(255,255,255,.08)!important;color:#eef0ff!important;border-color:rgba(255,255,255,.14)!important;box-shadow:none!important}
+    .iconbtn:hover{background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.26)!important;transform:translateY(-1px)}
+
+    /* Search + inputs */
+    .global-search input{background:#fff!important;border-color:var(--line)!important;box-shadow:0 10px 26px rgba(31,35,68,.08)!important}
+    .global-search input:focus,input:focus,select:focus,textarea:focus{border-color:var(--primary)!important;box-shadow:0 0 0 4px rgba(79,70,229,.14)!important}
+    input,select,textarea{background:#fafbff!important;color:var(--text)!important;border-color:var(--line)!important;border-radius:14px!important}
+
+    /* Stat cards — one cohesive brand family instead of four unrelated hues */
+    .stat{border:0!important;color:#fff!important;box-shadow:0 14px 28px rgba(31,35,68,.16)!important;overflow:hidden;transition:.25s ease}
+    .stat:hover{transform:translateY(-4px)!important;box-shadow:0 20px 36px rgba(31,35,68,.22)!important}
+    .stat:nth-child(1){background:linear-gradient(135deg,#6d5bf7,#4338ca)!important}
+    .stat:nth-child(2){background:linear-gradient(135deg,#14b8a6,#0d8f82)!important}
+    .stat:nth-child(3){background:linear-gradient(135deg,#3b8bf5,#2352c7)!important}
+    .stat:nth-child(4){background:linear-gradient(135deg,#f5a94e,#d9791f)!important}
+    .stat .num,.stat .label{color:#fff!important}.stat .label{opacity:.86}
+    .stat .stat-icon,.stat:nth-child(1) .stat-icon,.stat:nth-child(2) .stat-icon,.stat:nth-child(3) .stat-icon,.stat:nth-child(4) .stat-icon{
+      background:rgba(255,255,255,.18)!important;color:#fff!important;border:1px solid rgba(255,255,255,.2)!important
+    }
+    .stat::after{opacity:.16!important;background:radial-gradient(circle,#fff,transparent 68%)!important}
+
+    /* Sections & rows */
+    .section{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:var(--shadow)!important;border-radius:22px!important;position:relative;overflow:hidden}
+    .section::before{content:"";position:absolute;top:0;right:24px;left:24px;height:3px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#6d5bf7,#4f46e5,#0ea5b7)}
+    .section-head h2,.name,.note-text,.days-remaining,.calendar-title,.schedule-title{color:var(--text)!important}
+    .section-kicker{color:var(--primary)!important}
+    .section-head button,.primary{background:linear-gradient(135deg,var(--primary),var(--primary2))!important;color:#fff!important;box-shadow:0 10px 22px rgba(79,70,229,.26)!important;border-radius:13px!important;transition:.2s ease}
+    .section-head button:hover,.primary:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(79,70,229,.32)!important}
+    .row,.note-row,.shift-card,.notification-item{background:#fff!important;border:1px solid var(--line)!important;box-shadow:0 3px 10px rgba(31,35,68,.04)!important;border-radius:16px!important;transition:.2s ease}
+    .row:hover,.note-row:hover{border-color:#c9cdf4!important;box-shadow:0 8px 20px rgba(79,70,229,.09)!important;transform:translateY(-1px)}
+    .avatar{background:linear-gradient(135deg,#6d5bf7,#0ea5b7)!important;box-shadow:0 8px 18px rgba(79,70,229,.24)!important;border-radius:14px!important}
+
+    /* Badges — clearer, slightly richer */
+    .b-green{background:#e7f8f1!important;color:#047857!important;border-color:#b7ecd8!important}
+    .b-yellow{background:#fef3e2!important;color:#b45309!important;border-color:#fbdaa3!important}
+    .b-blue{background:#eaf1ff!important;color:#1d4ed8!important;border-color:#c3d7ff!important}
+    .b-red{background:#fde9e9!important;color:#b91c1c!important;border-color:#f7c3c3!important}
+    .b-neutral{background:#eef0f6!important;color:#4a5468!important;border-color:#dde1ec!important}
+    .legend-item,.chip{background:#f5f7fc!important;color:var(--muted)!important;border-color:var(--line)!important}
+
+    /* Buttons */
+    .secondary{background:#fff!important;color:#2c3450!important;border:1px solid var(--line)!important;box-shadow:0 3px 10px rgba(31,35,68,.04)!important;border-radius:13px!important}
+    .secondary:hover{background:#f5f7fc!important;border-color:#c9cdf4!important}
+    .danger{background:#fdecec!important;color:#b91c1c!important;border-color:#f6c6c6!important}
+    .whatsapp-btn{background:#25d366!important;border-color:#1fb858!important}
+
+    /* Nav + FAB */
+    .bottom-nav{background:rgba(18,22,42,.97)!important;border-color:rgba(255,255,255,.08)!important;box-shadow:0 16px 38px rgba(18,20,40,.30)!important}
+    .navbtn{color:#9aa2c2!important}
+    .navbtn.active{background:linear-gradient(135deg,#6d5bf7,#4338ca)!important;color:#fff!important;box-shadow:0 8px 20px rgba(79,70,229,.34)!important}
+    .fab{background:linear-gradient(135deg,#6d5bf7,#0ea5b7)!important;color:#fff!important;box-shadow:0 16px 32px rgba(79,70,229,.34)!important;border-radius:18px!important}
+
+    /* Auth screen */
+    .auth-screen{background:radial-gradient(circle at 75% 0,rgba(79,70,229,.16),transparent 38%),linear-gradient(160deg,#eef1f8,#e6eaf5)!important}
+    .auth-card{background:#fff!important;border-color:var(--line)!important;box-shadow:0 28px 70px rgba(20,24,50,.16)!important;border-radius:26px!important}
+    .auth-card h2{color:var(--text)!important}
+
+    /* Tables & calendar */
+    .leave-table-wrap,.calendar-scroll,.monthly-roster-wrap{background:#fff!important;border-color:var(--line)!important}
+    .leave-table th,.calendar-weekday,.monthly-roster-table th{background:#f5f7fc!important;color:var(--muted)!important}
+    .leave-table td,.calendar-day,.monthly-roster-table td{color:var(--text)!important}
+    .calendar-day.today{box-shadow:inset 0 0 0 2px var(--primary)!important}
+
+    /* Desktop sidebar nav — cohesive tint variants of the same brand family */
+    @media(min-width:900px){
+      body{background:linear-gradient(160deg,#eef1f8,#e6eaf5)!important}
+      .bottom-nav{background:#fff!important;border-color:var(--line)!important;box-shadow:0 12px 30px rgba(31,35,68,.10)!important}
+      .navbtn{background:#f5f7fc!important;border:1px solid var(--line)!important;color:#5a6480!important}
+      .navbtn span{background:#fff!important;box-shadow:0 3px 9px rgba(31,35,68,.08)!important}
+      .navbtn:hover{background:#eceffa!important;color:var(--text)!important}
+      .navbtn.active,.navbtn.active:hover{background:linear-gradient(135deg,#6d5bf7,#4338ca)!important;color:#fff!important;border-color:transparent!important}
+      .navbtn.active span{background:rgba(255,255,255,.2)!important}
+      .dashboard-shift-card{background:linear-gradient(125deg,#12162a,#232b52 65%,#0d7a86)!important;border-radius:22px!important}
+      .dashboard-add-card{background:linear-gradient(145deg,#6d5bf7,#4338ca)!important;border-radius:22px!important}
+      .grid4 .stat:nth-child(1){background:linear-gradient(135deg,#6d5bf7,#4338ca)!important}
+      .grid4 .stat:nth-child(2){background:linear-gradient(135deg,#14b8a6,#0d8f82)!important}
+      .grid4 .stat:nth-child(3){background:linear-gradient(135deg,#3b8bf5,#2352c7)!important}
+      .grid4 .stat:nth-child(4){background:linear-gradient(135deg,#f5a94e,#d9791f)!important}
+      .section{border-radius:20px!important}
+    }
   </style>
 </head>
 <body>
