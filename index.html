@@ -762,6 +762,19 @@
       .grid4 .stat:nth-child(4){background:linear-gradient(135deg,#f5a94e,#d9791f)!important}
       .section{border-radius:20px!important}
     }
+    /* Smart assistant */
+    .ai-fab{position:fixed;bottom:88px;left:calc(50% - 140px);transform:translateX(-50%);width:54px;height:54px;border:0;border-radius:18px;background:linear-gradient(135deg,#6d5bf7,#0ea5b7);color:#fff;font-size:23px;box-shadow:0 16px 32px rgba(79,70,229,.34);cursor:pointer;z-index:36}
+    .ai-sheet{height:min(78vh,680px);display:flex;flex-direction:column;overflow:hidden}
+    .ai-title{display:flex;align-items:center;gap:10px}.ai-orb{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,#6d5bf7,#0ea5b7);color:#fff}
+    .ai-chat{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:8px 2px 14px;min-height:260px}
+    .ai-message{max-width:88%;padding:11px 13px;border-radius:16px;line-height:1.75;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+    .ai-message.user{align-self:flex-start;background:linear-gradient(135deg,#6d5bf7,#5145d8);color:#fff;border-bottom-right-radius:5px}
+    .ai-message.bot{align-self:flex-end;background:#f3f5fb;color:#252d49;border:1px solid var(--line);border-bottom-left-radius:5px}
+    .ai-message.error{color:#b91c1c;background:#fdecec}
+    .ai-quick{display:flex;gap:7px;overflow:auto;padding:0 0 10px;scrollbar-width:none}.ai-quick button{white-space:nowrap;border:1px solid var(--line);background:#f5f7fc;color:#46506c;border-radius:999px;padding:8px 11px;font:inherit;font-size:11px;cursor:pointer}
+    .ai-compose{display:grid;grid-template-columns:1fr auto;gap:8px}.ai-compose input{min-width:0}.ai-send{border:0;border-radius:13px;padding:0 17px;background:linear-gradient(135deg,#6d5bf7,#4338ca);color:#fff;font-weight:800;cursor:pointer}
+    .ai-confirm{display:flex;gap:7px;margin-top:10px}.ai-confirm button{border:0;border-radius:10px;padding:7px 12px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.ai-confirm .yes{background:#16a085;color:#fff}.ai-confirm .no{background:#e8ebf4;color:#4a5468}
+    @media(min-width:900px){.ai-fab{left:calc(50% - 355px);bottom:24px}}
   </style>
 </head>
 <body>
@@ -1100,6 +1113,27 @@
 </div>
 
 <button class="fab" onclick="quickAdd()">+</button>
+<button class="ai-fab" onclick="openAIAssistant()" title="المساعد الذكي">✦</button>
+
+<div class="modal" id="aiAssistantModal">
+  <div class="sheet ai-sheet">
+    <div class="section-head">
+      <div class="ai-title"><div class="ai-orb">✦</div><div><h3 style="margin:0">مساعد الشفت</h3><div class="small-note">يسأل ويُسجّل من بيانات العمل</div></div></div>
+      <button class="secondary" onclick="closeModal('aiAssistantModal')">إغلاق</button>
+    </div>
+    <div class="ai-chat" id="aiChat"></div>
+    <div class="ai-quick">
+      <button onclick="askAIQuick('مين في إجازة اليوم؟')">إجازات اليوم</button>
+      <button onclick="askAIQuick('مين راجع خلال 7 أيام؟')">الراجعين قريب</button>
+      <button onclick="askAIQuick('مين طالع إجازة خلال 7 أيام؟')">الإجازات القادمة</button>
+      <button onclick="askAIQuick('كم موظف على رأس العمل اليوم؟')">المتاحون اليوم</button>
+    </div>
+    <div class="ai-compose">
+      <input id="aiInput" placeholder="مثال: سجل عند أحمد تأخير اليوم 20 دقيقة" onkeydown="if(event.key==='Enter')sendAIMessage()">
+      <button class="ai-send" onclick="sendAIMessage()">إرسال</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal" id="employeeModal">
   <div class="sheet">
@@ -2543,6 +2577,99 @@ function deleteLeave(id){
   state.leaves=state.leaves.filter(x=>x.id!==id);save();
 }
 function deleteShift(id){ if(confirm('حذف التوزيع؟')){state.shifts=state.shifts.filter(x=>x.id!==id);save()} }
+
+/* مساعد الشفت: استعلامات محلية آمنة + تأكيد قبل الكتابة */
+let aiPendingAction=null;
+function aiNormalize(value=''){
+  return String(value).toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u065F]/g,'').replace(/[^\u0600-\u06ff\w\s-]/g,' ').replace(/\s+/g,' ').trim();
+}
+function aiDateLabel(date){return date===todayISO()?'اليوم':fmtDate(date)}
+function aiOffsetDate(days){const d=new Date(todayISO()+'T12:00:00');d.setDate(d.getDate()+days);return d.toISOString().slice(0,10)}
+function aiEmployeeName(id){return state.employees.find(e=>e.id===id)?.name||'موظف غير معروف'}
+function aiFindEmployee(text){
+  const q=aiNormalize(text), ranked=state.employees.map(e=>{
+    const name=aiNormalize(e.name), parts=name.split(' ').filter(x=>x.length>1);
+    let score=q.includes(name)?100+name.length:parts.reduce((n,p)=>n+(q.includes(p)?p.length:0),0);
+    if(e.empId&&q.includes(String(e.empId)))score=200;
+    return {e,score};
+  }).filter(x=>x.score>1).sort((a,b)=>b.score-a.score);
+  if(!ranked.length)return {status:'none'};
+  if(ranked.length>1&&ranked[0].score===ranked[1].score)return {status:'many',items:ranked.filter(x=>x.score===ranked[0].score).slice(0,5).map(x=>x.e)};
+  return {status:'one',employee:ranked[0].e};
+}
+function aiWindow(text){
+  const q=aiNormalize(text);
+  if(q.includes('بعد بكره')){const d=aiOffsetDate(2);return {start:d,end:d,label:'بعد بكرة'}}
+  if(q.includes('بكره')||q.includes('غدا')){const d=aiOffsetDate(1);return {start:d,end:d,label:'بكرة'}}
+  const match=q.match(/خلال\s+(\d+)\s*(?:يوم|ايام)/);if(match)return {start:todayISO(),end:aiOffsetDate(Number(match[1])),label:`خلال ${match[1]} أيام`};
+  if(q.includes('الاسبوع')||q.includes('7 ايام')||q.includes('٧ ايام'))return {start:todayISO(),end:aiOffsetDate(7),label:'خلال 7 أيام'};
+  return {start:todayISO(),end:todayISO(),label:'اليوم'};
+}
+function aiAddMessage(text,role='bot',actions=''){
+  const chat=document.getElementById('aiChat');if(!chat)return;
+  const item=document.createElement('div');item.className=`ai-message ${role}`;item.textContent=text;
+  if(actions){const box=document.createElement('div');box.className='ai-confirm';box.innerHTML=actions;item.appendChild(box)}
+  chat.appendChild(item);chat.scrollTop=chat.scrollHeight;
+}
+function openAIAssistant(){
+  document.getElementById('aiAssistantModal').classList.add('show');const chat=document.getElementById('aiChat');
+  if(chat&&!chat.children.length)aiAddMessage('هلا يا رامي 👋\nاسألني عن الإجازات والعودة والمتاحين، أو قل: «سجل عند فلان تأخير اليوم 20 دقيقة».');
+  setTimeout(()=>document.getElementById('aiInput')?.focus(),180);
+}
+function askAIQuick(text){const input=document.getElementById('aiInput');input.value=text;sendAIMessage()}
+function aiList(items,emptyText){return items.length?items.map((x,i)=>`${i+1}. ${x}`).join('\n'):emptyText}
+function aiHandleQuery(raw){
+  const q=aiNormalize(raw), win=aiWindow(raw), today=todayISO();
+  if((q.includes('سجل')||q.includes('اضف'))&&(q.includes('متاخر')||q.includes('تاخير'))){
+    const found=aiFindEmployee(raw);
+    if(found.status==='none')return aiAddMessage('ما قدرت أحدد اسم الموظف. اكتب الاسم بشكل أوضح، مثل: سجل عند محمد أحمد تأخير اليوم 20 دقيقة.','error');
+    if(found.status==='many')return aiAddMessage('لقيت أكثر من موظف مطابق:\n'+found.items.map(e=>`• ${e.name} (#${e.empId||'-'})`).join('\n')+'\nاكتب الاسم الكامل أو الرقم الوظيفي.');
+    const mins=(q.match(/(\d+)\s*(?:دقيقه|دقايق|دقائق)/)||[])[1];
+    const date=q.includes('بكره')?aiOffsetDate(1):today;
+    const note=mins?`تأخير ${mins} دقيقة`:'تأخير';
+    aiPendingAction={kind:'record',employeeId:found.employee.id,type:'Late',date,note};
+    return aiAddMessage(`راح أسجّل على ${found.employee.name}:\nLate · ${aiDateLabel(date)}${mins?` · ${mins} دقيقة`:''}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
+  }
+  if((q.includes('سجل')||q.includes('اضف'))&&q.includes('ملاحظه')){
+    const found=aiFindEmployee(raw);
+    if(found.status!=='one')return aiAddMessage(found.status==='many'?'الاسم مطابق لأكثر من موظف؛ اكتب الاسم الكامل أو الرقم الوظيفي.':'ما قدرت أحدد الموظف. اكتب الاسم الكامل بعد كلمة «عند».','error');
+    let note=raw.replace(/^.*?ملاحظ[ةه]\s*/,'').trim();
+    note=note.replace(new RegExp(found.employee.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^\s*(?:عند|على)?\s*/,'').trim()||'ملاحظة';
+    aiPendingAction={kind:'record',employeeId:found.employee.id,type:'Note',date:today,note};
+    return aiAddMessage(`راح أضيف في سجل ${found.employee.name}:\n${note}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
+  }
+  if(q.includes('راجع')||q.includes('الراجعين')||q.includes('العوده')){
+    const rows=state.leaves.filter(l=>l.end>=win.start&&l.end<=win.end).sort((a,b)=>a.end.localeCompare(b.end)).map(l=>`${aiEmployeeName(l.employeeId)} — ${aiDateLabel(l.end)}`);
+    return aiAddMessage(aiList(rows,`ما فيه أحد راجع ${win.label}.`)+(rows.length?`\n\nالإجمالي: ${rows.length}`:''));
+  }
+  if((q.includes('طالع')||q.includes('تبدأ')||q.includes('تبدا')||q.includes('قادمه'))&&q.includes('اجازه')){
+    const rows=state.leaves.filter(l=>l.start>=win.start&&l.start<=win.end).sort((a,b)=>a.start.localeCompare(b.start)).map(l=>`${aiEmployeeName(l.employeeId)} — ${aiDateLabel(l.start)}`);
+    return aiAddMessage(aiList(rows,`ما فيه إجازات تبدأ ${win.label}.`)+(rows.length?`\n\nالإجمالي: ${rows.length}`:''));
+  }
+  if(q.includes('اجازه')||q.includes('اجازات')){
+    const target=win.start, rows=state.leaves.filter(l=>l.start<=target&&l.end>=target).sort((a,b)=>a.end.localeCompare(b.end)).map(l=>`${aiEmployeeName(l.employeeId)} — يرجع ${aiDateLabel(l.end)}`);
+    return aiAddMessage(aiList(rows,`ما فيه أحد في إجازة ${win.label}.`)+(rows.length?`\n\nالإجمالي: ${rows.length}`:''));
+  }
+  if(q.includes('على راس العمل')||q.includes('متاح')||q.includes('موجود')){
+    const away=new Set(state.leaves.filter(l=>l.start<=win.start&&l.end>=win.start).map(l=>l.employeeId));
+    const available=state.employees.filter(e=>!away.has(e.id));
+    return aiAddMessage(`المتاحون ${win.label}: ${available.length} من أصل ${state.employees.length}.\nفي إجازة: ${away.size}.`);
+  }
+  const found=aiFindEmployee(raw);
+  if(found.status==='one'){
+    const leave=state.leaves.find(l=>l.employeeId===found.employee.id&&l.start<=today&&l.end>=today);
+    return aiAddMessage(leave?`${found.employee.name} في إجازة حاليًا، والعودة ${fmtDate(leave.end)}.`:`${found.employee.name} مو مسجّل في إجازة اليوم.`);
+  }
+  aiAddMessage('أقدر أساعدك حاليًا في:\n• مين في إجازة اليوم\n• مين راجع أو طالع خلال 7 أيام\n• عدد الموجودين على رأس العمل\n• تسجيل تأخير أو ملاحظة على موظف','bot');
+}
+function sendAIMessage(){const input=document.getElementById('aiInput'),text=input.value.trim();if(!text)return;aiAddMessage(text,'user');input.value='';aiHandleQuery(text)}
+function aiConfirmAction(){
+  if(!aiPendingAction)return aiAddMessage('ما فيه أمر بانتظار التأكيد.','error');
+  const action=aiPendingAction,employee=state.employees.find(e=>e.id===action.employeeId);if(!employee){aiPendingAction=null;return aiAddMessage('الموظف غير موجود الآن.','error')}
+  if(action.kind==='record')state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:action.employeeId,type:action.type,date:action.date,note:action.note,createdAt:new Date().toISOString(),source:'assistant'});
+  aiPendingAction=null;save();aiAddMessage(`تم الحفظ والمزامنة في سجل ${employee.name} ✅`);
+}
+function aiCancelAction(){aiPendingAction=null;aiAddMessage('تم إلغاء الأمر، وما تغيّر شيء.')}
 
 document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
 document.addEventListener('click',e=>{
