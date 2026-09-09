@@ -2667,11 +2667,12 @@ function toggleAIVoice(){
   if(!aiVoiceEnabled)aiStopSpeech();
 }
 function aiRealtimeInstructions(){
-  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي. استخدم أسماء الموظفين والتواريخ من بيانات الشفت أدناه فقط ولا تخترع بيانات. إذا نقصتك معلومة اسأل سؤالًا واحدًا بسيطًا. يمكنك الإجابة عن الإجازات والعودة والمتاحين من البيانات مباشرة. قبل تسجيل تأخير أو ملاحظة، كرر الاسم والتاريخ والتفصيل واسأل رامي شفهيًا هل يعتمد الحفظ. لا تستدعِ أداة الحفظ إلا بعد أن يقول نعم أو اعتمد أو يؤكد بوضوح. بعد نجاح الأداة أخبره باختصار أن الحفظ تم. تاريخ اليوم ${todayISO()}.
+  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي. استخدم أسماء الموظفين والتواريخ من بيانات الشفت أدناه فقط ولا تخترع بيانات. إذا نقصتك معلومة اسأل سؤالًا واحدًا بسيطًا. يمكنك الإجابة عن الإجازات والعودة والمتاحين من البيانات مباشرة. قبل تسجيل إجازة أو تأخير أو ملاحظة، كرر الاسم والتواريخ والتفصيل واسأل رامي شفهيًا هل يعتمد الحفظ. عند طلب إجازة افحص الإجازات الحالية أولًا ونبّه عن أي تداخل. لا تستدعِ أداة الحفظ إلا بعد أن يقول نعم أو اعتمد أو يؤكد بوضوح. بعد نجاح الأداة أخبره باختصار أن الحفظ تم. تاريخ اليوم ${todayISO()}.
 بيانات الشفت الحالية:
 ${JSON.stringify(aiContextForAgent())}`;
 }
 function aiRealtimeTools(){return [
+  {type:'function',name:'save_leave',description:'حفظ إجازة موظف بعد التحقق من التداخل وموافقة رامي الصريحة فقط',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},start:{type:'string',description:'YYYY-MM-DD'},end:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','start','end']}},
   {type:'function',name:'save_late',description:'حفظ تأخير موظف بعد موافقة رامي الصريحة فقط',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},minutes:{type:'integer'}},required:['employee_id','date','minutes']}},
   {type:'function',name:'save_employee_note',description:'حفظ ملاحظة على موظف بعد موافقة رامي الصريحة فقط',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','date','note']}},
   {type:'function',name:'save_personal_note',description:'حفظ تذكير شخصي لرامي بعد موافقته الصريحة فقط',parameters:{type:'object',properties:{date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['date','note']}}
@@ -2699,6 +2700,18 @@ function aiHandleRealtimeTool(event){
     return aiRealtimeToolResult(callId,{ok:true,message:'تم حفظ التذكير'});
   }
   const employee=aiRealtimeEmployee(args);if(!employee)return aiRealtimeToolResult(callId,{ok:false,error:'لم أجد الموظف المحدد'});
+  if(event.name==='save_leave'){
+    const start=String(args.start||''),end=String(args.end||'');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end)||end<start)return aiRealtimeToolResult(callId,{ok:false,error:'تواريخ الإجازة غير صحيحة'});
+    const check=checkLeaveCapacity(employee.id,start,end);
+    if(check.employeeConflict)return aiRealtimeToolResult(callId,{ok:false,error:`لدى ${aiDisplayEmployee(employee)} إجازة متداخلة من ${check.employeeConflict.start} إلى ${check.employeeConflict.end}`});
+    if(check.blocked.length)return aiRealtimeToolResult(callId,{ok:false,error:'لا يمكن الحفظ لأن عدد المجازين سيتجاوز الحد الأعلى وهو 6 في بعض الأيام'});
+    const days=diffDays(end,start)+1,available=Number(employee.leaveBalance)||0;
+    if(days>available)return aiRealtimeToolResult(callId,{ok:false,error:`مدة الإجازة ${days} يوم والرصيد المتاح ${formatDays(available)} يوم فقط`});
+    employee.leaveBalance=available-days;
+    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start,end,note:String(args.note||'').trim().slice(0,500),balanceDaysCharged:days,source:'realtime'});save();aiRealtimeUpdateContext();
+    return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ إجازة ${aiDisplayEmployee(employee)} من ${start} إلى ${end} وخصم ${days} يوم من الرصيد`});
+  }
   if(event.name==='save_late'){
     const minutes=Math.max(1,Math.min(1440,Number(args.minutes)||0));if(!minutes)return aiRealtimeToolResult(callId,{ok:false,error:'مدة التأخير غير صحيحة'});
     state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Late',date,note:`تأخير ${minutes} دقيقة`,createdAt:now,source:'realtime'});save();aiRealtimeUpdateContext();
