@@ -1132,7 +1132,7 @@
     <div class="ai-compose">
       <button class="ai-mic" id="aiMicBtn" onclick="toggleAIListening()" title="تحدث مع المساعد">🎙️</button>
       <input id="aiInput" placeholder="مثال: سجل عند أحمد تأخير اليوم 20 دقيقة" onkeydown="if(event.key==='Enter')sendAIMessage()">
-      <button class="ai-send" onclick="sendAIMessage()">إرسال</button>
+      <button class="ai-send" id="aiSendBtn" onclick="sendAIMessage()">إرسال</button>
     </div>
   </div>
 </div>
@@ -2469,7 +2469,7 @@ function openPersonalNoteModal(){
   if(date&&!date.value)date.value=todayISO();
   document.getElementById('personalNoteModal').classList.add('show');
 }
-function closeModal(id){document.getElementById(id).classList.remove('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show');if(id==='aiAssistantModal')aiStopRealtime(false)}
 function quickAdd(){openEmployeeModal()}
 
 function saveEmployee(){
@@ -2586,6 +2586,17 @@ let aiRecognition=null;
 let aiIsListening=false;
 let aiVoiceEnabled=localStorage.getItem('shiftManagerAIVoice')!=='off';
 let aiSpeechToken=0;
+let aiSpeechAudio=null;
+let aiSpeechUrl='';
+let aiRealtimePc=null;
+let aiRealtimeDc=null;
+let aiRealtimeStream=null;
+let aiRealtimeAudio=null;
+let aiRealtimeConnecting=false;
+let aiRealtimeConnected=false;
+let aiRealtimeTranscript='';
+let aiRealtimeLastUserText='';
+const aiRealtimeHandledCalls=new Set();
 function aiNormalize(value=''){
   return String(value).toLowerCase().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u065F]/g,'').replace(/[^\u0600-\u06ff\w\s-]/g,' ').replace(/\s+/g,' ').trim();
 }
@@ -2616,53 +2627,127 @@ function aiWindow(text){
   if(q.includes('الاسبوع')||q.includes('7 ايام')||q.includes('٧ ايام'))return {start:todayISO(),end:aiOffsetDate(7),label:'خلال 7 أيام'};
   return {start:todayISO(),end:todayISO(),label:'اليوم'};
 }
-function aiAddMessage(text,role='bot',actions=''){
+function aiAddMessage(text,role='bot',actions='',speak=false){
   const chat=document.getElementById('aiChat');if(!chat)return;
   const item=document.createElement('div');item.className=`ai-message ${role}`;item.textContent=text;
   if(actions){const box=document.createElement('div');box.className='ai-confirm';box.innerHTML=actions;item.appendChild(box)}
   chat.appendChild(item);chat.scrollTop=chat.scrollHeight;
-  if(role==='bot'&&aiVoiceEnabled)aiSpeak(text);
+  if(role==='bot'&&speak&&aiVoiceEnabled)aiSpeak(text);
 }
 function aiArabicSpeechText(text){
   return String(text).replace(/\bLate\b/gi,'تأخير').replace(/\bNote\b/gi,'ملاحظة').replace(/\bShift\b/gi,'شِفت').replace(/#\s*/g,'رقم ').replace(/[•✅✦]/g,'').replace(/\n+/g,'. ');
 }
-function aiSpeak(text){
-  if(!('speechSynthesis' in window)||!aiVoiceEnabled)return;
-  const token=++aiSpeechToken;let spoken=false;window.speechSynthesis.cancel();
-  const speakNow=()=>{
-    if(spoken||token!==aiSpeechToken||!aiVoiceEnabled)return;spoken=true;
-    const utterance=new SpeechSynthesisUtterance(aiArabicSpeechText(text));
-    const voices=window.speechSynthesis.getVoices();
-    const arabic=voices.filter(v=>(v.lang||'').toLowerCase().startsWith('ar'));
-    utterance.voice=arabic.find(v=>(v.lang||'').toLowerCase()==='ar-sa')||arabic.find(v=>/majed|maged|laila|طارق|ماجد|ليلى/i.test(v.name||''))||arabic[0]||null;
-    utterance.lang=utterance.voice?.lang||'ar-SA';utterance.rate=.92;utterance.pitch=1;
-    window.speechSynthesis.speak(utterance);
-  };
-  const voices=window.speechSynthesis.getVoices();
-  if(voices.length)speakNow();
-  else{window.speechSynthesis.addEventListener?.('voiceschanged',speakNow,{once:true});setTimeout(speakNow,450)}
+function aiStopSpeech(){
+  ++aiSpeechToken;
+  if(aiSpeechAudio){aiSpeechAudio.pause();aiSpeechAudio.src='';aiSpeechAudio=null}
+  if(aiSpeechUrl){URL.revokeObjectURL(aiSpeechUrl);aiSpeechUrl=''}
+  if('speechSynthesis' in window)window.speechSynthesis.cancel();
+}
+async function aiSpeak(text){
+  if(!aiVoiceEnabled||!session?.access_token)return;
+  aiStopSpeech();const token=aiSpeechToken;
+  const spokenText=aiArabicSpeechText(text).trim().slice(0,200);if(!spokenText)return;
+  try{
+    const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{
+      method:'POST',
+      headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify({mode:'speech',text:spokenText})
+    });
+    if(!res.ok)throw new Error('VOICE_FAILED');
+    const blob=await res.blob();if(token!==aiSpeechToken||!aiVoiceEnabled)return;
+    aiSpeechUrl=URL.createObjectURL(blob);aiSpeechAudio=new Audio(aiSpeechUrl);aiSpeechAudio.preload='auto';aiSpeechAudio.setAttribute('playsinline','');
+    aiSpeechAudio.onended=()=>{if(aiSpeechUrl){URL.revokeObjectURL(aiSpeechUrl);aiSpeechUrl=''}aiSpeechAudio=null};
+    await aiSpeechAudio.play();
+  }catch(error){console.warn('Abdullah voice unavailable',error)}
 }
 function updateAIVoiceButton(){const btn=document.getElementById('aiVoiceToggle');if(btn){btn.textContent=aiVoiceEnabled?'🔊':'🔇';btn.classList.toggle('off',!aiVoiceEnabled)}}
 function toggleAIVoice(){
   aiVoiceEnabled=!aiVoiceEnabled;localStorage.setItem('shiftManagerAIVoice',aiVoiceEnabled?'on':'off');updateAIVoiceButton();
-  if(aiVoiceEnabled)aiSpeak('تم تشغيل الرد الصوتي');else if('speechSynthesis' in window)window.speechSynthesis.cancel();
+  if(aiRealtimeAudio)aiRealtimeAudio.muted=!aiVoiceEnabled;
+  if(!aiVoiceEnabled)aiStopSpeech();
 }
-function initAIRecognition(){
-  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SpeechRecognition)return false;
-  aiRecognition=new SpeechRecognition();aiRecognition.lang='ar-SA';aiRecognition.interimResults=true;aiRecognition.continuous=false;
-  aiRecognition.onstart=()=>{aiIsListening=true;document.getElementById('aiMicBtn')?.classList.add('listening');const input=document.getElementById('aiInput');if(input){input.value='';input.placeholder='أسمعك... تكلم الآن'}};
-  aiRecognition.onresult=e=>{let transcript='';for(let i=e.resultIndex;i<e.results.length;i++)transcript+=e.results[i][0].transcript;const input=document.getElementById('aiInput');if(input)input.value=transcript;if(e.results[e.results.length-1].isFinal)setTimeout(sendAIMessage,180)};
-  aiRecognition.onerror=e=>{if(e.error!=='aborted')aiAddMessage(e.error==='not-allowed'?'لو سمحت فعّل إذن الميكروفون، وبعدها جرّب مرة ثانية 🌷':'الصوت ما وصلني واضح، ممكن تعيدها مرة ثانية؟','bot')};
-  aiRecognition.onend=()=>{aiIsListening=false;document.getElementById('aiMicBtn')?.classList.remove('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='مثال: سجل عند أحمد تأخير اليوم 20 دقيقة'};
-  return true;
+function aiRealtimeInstructions(){
+  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي. استخدم أسماء الموظفين والتواريخ من بيانات الشفت أدناه فقط ولا تخترع بيانات. إذا نقصتك معلومة اسأل سؤالًا واحدًا بسيطًا. يمكنك الإجابة عن الإجازات والعودة والمتاحين من البيانات مباشرة. قبل تسجيل تأخير أو ملاحظة، كرر الاسم والتاريخ والتفصيل واسأل رامي شفهيًا هل يعتمد الحفظ. لا تستدعِ أداة الحفظ إلا بعد أن يقول نعم أو اعتمد أو يؤكد بوضوح. بعد نجاح الأداة أخبره باختصار أن الحفظ تم. تاريخ اليوم ${todayISO()}.
+بيانات الشفت الحالية:
+${JSON.stringify(aiContextForAgent())}`;
 }
-function toggleAIListening(){
-  if(aiIsListening){aiRecognition?.stop();return}
-  if(!aiRecognition&&!initAIRecognition()){aiAddMessage('التعرف الصوتي غير مدعوم في هذا المتصفح. افتح الموقع في Safari أو Chrome محدّث، أو استخدم إملاء لوحة المفاتيح.','error');return}
-  if('speechSynthesis' in window)window.speechSynthesis.cancel();
-  try{aiRecognition.start()}catch{aiRecognition=null;setTimeout(toggleAIListening,100)}
+function aiRealtimeTools(){return [
+  {type:'function',name:'save_late',description:'حفظ تأخير موظف بعد موافقة رامي الصريحة فقط',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},minutes:{type:'integer'}},required:['employee_id','date','minutes']}},
+  {type:'function',name:'save_employee_note',description:'حفظ ملاحظة على موظف بعد موافقة رامي الصريحة فقط',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','date','note']}},
+  {type:'function',name:'save_personal_note',description:'حفظ تذكير شخصي لرامي بعد موافقته الصريحة فقط',parameters:{type:'object',properties:{date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['date','note']}}
+]}
+function aiRealtimeSend(event){if(aiRealtimeDc?.readyState==='open')aiRealtimeDc.send(JSON.stringify(event))}
+function aiRealtimeUpdateContext(){aiRealtimeSend({type:'session.update',session:{type:'realtime',instructions:aiRealtimeInstructions(),tools:aiRealtimeTools(),tool_choice:'auto'}})}
+function aiRealtimeToolResult(callId,result){
+  aiRealtimeSend({type:'conversation.item.create',item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}});
+  aiRealtimeSend({type:'response.create'});
 }
+function aiRealtimeEmployee(args){
+  let employee=state.employees.find(e=>e.id===args.employee_id);
+  if(employee)return employee;
+  const found=aiFindEmployee(args.employee_name||'');return found.status==='one'?found.employee:null;
+}
+function aiHandleRealtimeTool(event){
+  const callId=event.call_id;if(!callId||aiRealtimeHandledCalls.has(callId))return;aiRealtimeHandledCalls.add(callId);
+  const confirmation=aiNormalize(aiRealtimeLastUserText);
+  if(!/(^|\s)(نعم|ايوه|ايوا|اعتمد|اكد|احفظ)(\s|$)/.test(confirmation))return aiRealtimeToolResult(callId,{ok:false,error:'اطلب من رامي تأكيد الحفظ بوضوح أولًا'});
+  let args={};try{args=JSON.parse(event.arguments||'{}')}catch{return aiRealtimeToolResult(callId,{ok:false,error:'البيانات غير مفهومة'})}
+  const date=aiSafeDate(args.date),now=new Date().toISOString();
+  if(event.name==='save_personal_note'){
+    const note=String(args.note||'').trim().slice(0,500);if(!note)return aiRealtimeToolResult(callId,{ok:false,error:'الملاحظة فارغة'});
+    state.personalNotes.push({id:(crypto.randomUUID?crypto.randomUUID():('note-'+Date.now())),date,text:note,createdAt:now,source:'realtime'});save();aiRealtimeUpdateContext();
+    return aiRealtimeToolResult(callId,{ok:true,message:'تم حفظ التذكير'});
+  }
+  const employee=aiRealtimeEmployee(args);if(!employee)return aiRealtimeToolResult(callId,{ok:false,error:'لم أجد الموظف المحدد'});
+  if(event.name==='save_late'){
+    const minutes=Math.max(1,Math.min(1440,Number(args.minutes)||0));if(!minutes)return aiRealtimeToolResult(callId,{ok:false,error:'مدة التأخير غير صحيحة'});
+    state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Late',date,note:`تأخير ${minutes} دقيقة`,createdAt:now,source:'realtime'});save();aiRealtimeUpdateContext();
+    return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ تأخير ${aiDisplayEmployee(employee)} لمدة ${minutes} دقيقة`});
+  }
+  if(event.name==='save_employee_note'){
+    const note=String(args.note||'').trim().slice(0,500);if(!note)return aiRealtimeToolResult(callId,{ok:false,error:'الملاحظة فارغة'});
+    state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Note',date,note,createdAt:now,source:'realtime'});save();aiRealtimeUpdateContext();
+    return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ الملاحظة في سجل ${aiDisplayEmployee(employee)}`});
+  }
+  aiRealtimeToolResult(callId,{ok:false,error:'الأداة غير معروفة'});
+}
+function aiHandleRealtimeEvent(event){
+  if(event.type==='conversation.item.input_audio_transcription.completed'&&event.transcript?.trim()){aiRealtimeLastUserText=event.transcript.trim();aiAddMessage(aiRealtimeLastUserText,'user','',false)}
+  if(event.type==='response.output_audio_transcript.delta')aiRealtimeTranscript+=(event.delta||'');
+  if(event.type==='response.output_audio_transcript.done'){
+    const text=(event.transcript||aiRealtimeTranscript).trim();aiRealtimeTranscript='';if(text)aiAddMessage(text,'bot','',false);
+  }
+  if(event.type==='response.function_call_arguments.done')aiHandleRealtimeTool(event);
+  if(event.type==='error'){console.error('OpenAI realtime',event);aiAddMessage('صار خلل بسيط في الاتصال الصوتي. اقفل المايك وشغّله مرة ثانية.','error','',false)}
+}
+function aiStopRealtime(showMessage=true){
+  const wasActive=aiRealtimeConnected||aiRealtimeConnecting;aiRealtimeConnected=false;aiRealtimeConnecting=false;aiIsListening=false;
+  try{aiRealtimeDc?.close()}catch{}try{aiRealtimePc?.close()}catch{}aiRealtimeStream?.getTracks().forEach(t=>t.stop());
+  if(aiRealtimeAudio){aiRealtimeAudio.pause();aiRealtimeAudio.srcObject=null}
+  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeHandledCalls.clear();
+  document.getElementById('aiMicBtn')?.classList.remove('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='مثال: سجل عند أحمد تأخير اليوم 20 دقيقة';
+  if(showMessage&&wasActive)aiAddMessage('تم إنهاء المحادثة الصوتية.','bot','',false);
+}
+async function aiStartRealtime(){
+  if(aiRealtimeConnecting||aiRealtimeConnected)return;if(!session?.access_token)return aiAddMessage('سجّل الدخول أول عشان أشغّل المحادثة الصوتية.','error');
+  if(!window.RTCPeerConnection||!navigator.mediaDevices?.getUserMedia)return aiAddMessage('المحادثة الصوتية المباشرة غير مدعومة في هذا المتصفح. افتح الموقع في Safari محدّث.','error');
+  aiRealtimeConnecting=true;aiStopSpeech();const mic=document.getElementById('aiMicBtn');mic?.classList.add('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='جاري تشغيل المحادثة الصوتية...';
+  try{
+    aiRealtimeStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+    aiRealtimePc=new RTCPeerConnection();aiRealtimeAudio=document.createElement('audio');aiRealtimeAudio.autoplay=true;aiRealtimeAudio.setAttribute('playsinline','');aiRealtimeAudio.muted=!aiVoiceEnabled;
+    aiRealtimePc.ontrack=e=>{aiRealtimeAudio.srcObject=e.streams[0];aiRealtimeAudio.play().catch(()=>{})};
+    aiRealtimeStream.getTracks().forEach(track=>aiRealtimePc.addTrack(track,aiRealtimeStream));
+    aiRealtimeDc=aiRealtimePc.createDataChannel('oai-events');
+    aiRealtimeDc.onopen=()=>{aiRealtimeConnecting=false;aiRealtimeConnected=true;aiIsListening=true;if(input)input.placeholder='المحادثة شغالة… تكلم براحتك';aiRealtimeUpdateContext();aiAddMessage('المحادثة الصوتية المباشرة جاهزة 🎙️','bot','',false)};
+    aiRealtimeDc.onmessage=e=>{try{aiHandleRealtimeEvent(JSON.parse(e.data))}catch(error){console.warn('Realtime event',error)}};
+    aiRealtimeDc.onclose=()=>{if(aiRealtimeConnected)aiStopRealtime(false)};
+    const offer=await aiRealtimePc.createOffer();await aiRealtimePc.setLocalDescription(offer);
+    const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({mode:'realtime',sdp:offer.sdp})});
+    const answer=await res.text();if(!res.ok)throw new Error(answer||'REALTIME_FAILED');
+    await aiRealtimePc.setRemoteDescription({type:'answer',sdp:answer});
+  }catch(error){console.error('Realtime start',error);aiStopRealtime(false);aiAddMessage(error?.name==='NotAllowedError'?'فعّل إذن الميكروفون من إعدادات Safari وبعدها جرّب مرة ثانية.':'ما قدرت أشغّل الاتصال الصوتي. تأكد من نشر آخر كود للدالة وجرّب مرة ثانية.','error','',false)}
+}
+function toggleAIListening(){if(aiRealtimeConnected||aiRealtimeConnecting)aiStopRealtime();else aiStartRealtime()}
 function openAIAssistant(){
   document.getElementById('aiAssistantModal').classList.add('show');const chat=document.getElementById('aiChat');
   updateAIVoiceButton();
@@ -2749,8 +2834,55 @@ function aiHandleQuery(raw){
   }
   aiAddMessage('ما فهمت طلبك كامل يا رامي 😅\nممكن تقوله بطريقة ثانية؟ مثل: «مين في إجازة اليوم؟» أو «سجّل على فلان تأخير ربع ساعة».','bot');
 }
-function sendAIMessage(){
-  const input=document.getElementById('aiInput'),text=input.value.trim();if(!text)return;aiAddMessage(text,'user');input.value='';
+function aiContextForAgent(){
+  return {
+    today:todayISO(),
+    employees:state.employees.map(e=>({id:e.id,name:e.name||'',nameAr:e.nameAr||'',empId:e.empId||''})),
+    leaves:state.leaves.map(l=>({employeeId:l.employeeId,start:l.start,end:l.end})),
+    shifts:state.shifts.map(s=>({employeeId:s.employeeId,post:s.post||'',shift:s.shift||''}))
+  };
+}
+async function aiAskGroq(message){
+  if(!session?.access_token)throw new Error('NO_SESSION');
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
+  try{
+    const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{
+      method:'POST',signal:controller.signal,
+      headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify({message,context:aiContextForAgent()})
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||'AI_FAILED');
+    return data;
+  }finally{clearTimeout(timer)}
+}
+function aiSafeDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(String(value||''))?String(value):todayISO()}
+function aiResolveAgentEmployee(action){
+  let employee=state.employees.find(e=>e.id===action.employeeId);
+  if(employee)return {status:'one',employee};
+  return aiFindEmployee(action.employeeName||'');
+}
+function aiPrepareAgentAction(action){
+  if(!action||typeof action!=='object')return false;
+  const date=aiSafeDate(action.date),note=String(action.note||'').trim().slice(0,500)||'ملاحظة';
+  if(action.type==='personal_note'){
+    aiPendingAction={kind:'personalNote',date,note};
+    aiAddMessage(`أبشر، بأسجّل لك تذكير ${aiDateLabel(date)}:\n${note}\nأعتمد الحفظ؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');return true;
+  }
+  if(action.type!=='record_late'&&action.type!=='employee_note')return false;
+  const found=aiResolveAgentEmployee(action),type=action.type==='record_late'?'Late':'Note';
+  if(found.status==='many')return aiAskEmployeeChoice(found.items,{kind:'record',type,date,note}),true;
+  if(found.status!=='one'){aiAddMessage('أبشر، بس احتاج اسم الموظف عشان أسجّلها على الشخص الصحيح 🌷');return true}
+  aiPendingAction={kind:'record',employeeId:found.employee.id,type,date,note};
+  aiAddMessage(`تمام، بأسجّل على ${aiDisplayEmployee(found.employee)}:\n${type==='Late'?'تأخير':'ملاحظة'} · ${aiDateLabel(date)}\n${note}\nأعتمد الحفظ؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');return true;
+}
+async function sendAIMessage(){
+  const input=document.getElementById('aiInput'),text=input.value.trim();if(!text)return;
+  if(aiRealtimeConnected&&aiRealtimeDc?.readyState==='open'){
+    aiRealtimeLastUserText=text;aiAddMessage(text,'user','',false);input.value='';
+    aiRealtimeSend({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}});aiRealtimeSend({type:'response.create'});return;
+  }
+  aiAddMessage(text,'user');input.value='';
   const q=aiNormalize(text);
   if(aiPendingAction&&(q==='تاكيد'||q.includes('اكد')||q.includes('اعتمد')||q==='نعم'||q==='ايوه'))return aiConfirmAction();
   if(aiPendingAction&&(q.includes('الغ')||q==='لا'))return aiCancelAction();
@@ -2759,7 +2891,13 @@ function sendAIMessage(){
     if(found.status==='one'&&aiPendingAction.employeeIds.includes(found.employee.id))return aiChooseEmployee(found.employee.id);
     return aiAddMessage('تمام، بس اختر الاسم من القائمة أو قل لي الاسم كامل عشان أعتمد الشخص الصحيح.','bot');
   }
-  aiHandleQuery(text);
+  const btn=document.getElementById('aiSendBtn');if(btn){btn.disabled=true;btn.textContent='...'}
+  try{
+    const result=await aiAskGroq(text);
+    if(!aiPrepareAgentAction(result.action))aiAddMessage(String(result.reply||'تم').trim()||'تم');
+  }catch(error){
+    console.warn('Groq assistant fallback',error);aiHandleQuery(text);
+  }finally{if(btn){btn.disabled=false;btn.textContent='إرسال'}}
 }
 function aiConfirmAction(){
   if(!aiPendingAction)return aiAddMessage('كل شيء تمام، ما عندي عملية معلّقة تحتاج تأكيد.','bot');
@@ -2775,7 +2913,7 @@ function aiConfirmAction(){
 }
 function aiCancelAction(){aiPendingAction=null;aiAddMessage('تم إلغاء الأمر، وما تغيّر شيء.')}
 
-document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){m.classList.remove('show');if(m.id==='aiAssistantModal')aiStopRealtime(false)}}));
 document.addEventListener('click',e=>{
   if(!e.target.closest('.global-search'))document.getElementById('globalSearchResults')?.classList.remove('show');
 });
