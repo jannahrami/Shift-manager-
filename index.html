@@ -772,7 +772,8 @@
     .ai-message.bot{align-self:flex-end;background:#f3f5fb;color:#252d49;border:1px solid var(--line);border-bottom-left-radius:5px}
     .ai-message.error{color:#b91c1c;background:#fdecec}
     .ai-quick{display:flex;gap:7px;overflow:auto;padding:0 0 10px;scrollbar-width:none}.ai-quick button{white-space:nowrap;border:1px solid var(--line);background:#f5f7fc;color:#46506c;border-radius:999px;padding:8px 11px;font:inherit;font-size:11px;cursor:pointer}
-    .ai-compose{display:grid;grid-template-columns:1fr auto;gap:8px}.ai-compose input{min-width:0}.ai-send{border:0;border-radius:13px;padding:0 17px;background:linear-gradient(135deg,#6d5bf7,#4338ca);color:#fff;font-weight:800;cursor:pointer}
+    .ai-compose{display:grid;grid-template-columns:auto 1fr auto;gap:8px}.ai-compose input{min-width:0}.ai-send,.ai-mic{border:0;border-radius:13px;padding:0 17px;background:linear-gradient(135deg,#6d5bf7,#4338ca);color:#fff;font-weight:800;cursor:pointer}.ai-mic{width:48px;padding:0;font-size:20px;background:#eef0f8;color:#4a5468;border:1px solid var(--line)}.ai-mic.listening{background:#ef4444;color:#fff;animation:aiPulse 1.1s infinite}.ai-voice-toggle{border:1px solid var(--line);background:#f5f7fc;color:#4a5468;border-radius:11px;padding:7px 10px;cursor:pointer;font-size:15px}.ai-voice-toggle.off{opacity:.48}
+    @keyframes aiPulse{50%{box-shadow:0 0 0 7px rgba(239,68,68,.16)}}
     .ai-confirm{display:flex;gap:7px;margin-top:10px}.ai-confirm button{border:0;border-radius:10px;padding:7px 12px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.ai-confirm .yes{background:#16a085;color:#fff}.ai-confirm .no{background:#e8ebf4;color:#4a5468}
     @media(min-width:900px){.ai-fab{left:calc(50% - 355px);bottom:24px}}
   </style>
@@ -1118,8 +1119,8 @@
 <div class="modal" id="aiAssistantModal">
   <div class="sheet ai-sheet">
     <div class="section-head">
-      <div class="ai-title"><div class="ai-orb">✦</div><div><h3 style="margin:0">مساعد الشفت</h3><div class="small-note">يسأل ويُسجّل من بيانات العمل</div></div></div>
-      <button class="secondary" onclick="closeModal('aiAssistantModal')">إغلاق</button>
+      <div class="ai-title"><div class="ai-orb">✦</div><div><h3 style="margin:0">مساعد الشفت</h3><div class="small-note">تكلّم أو اكتب، والرد صوتي</div></div></div>
+      <div style="display:flex;gap:6px"><button class="ai-voice-toggle" id="aiVoiceToggle" onclick="toggleAIVoice()" title="تشغيل أو كتم الرد الصوتي">🔊</button><button class="secondary" onclick="closeModal('aiAssistantModal')">إغلاق</button></div>
     </div>
     <div class="ai-chat" id="aiChat"></div>
     <div class="ai-quick">
@@ -1129,6 +1130,7 @@
       <button onclick="askAIQuick('كم موظف على رأس العمل اليوم؟')">المتاحون اليوم</button>
     </div>
     <div class="ai-compose">
+      <button class="ai-mic" id="aiMicBtn" onclick="toggleAIListening()" title="تحدث مع المساعد">🎙️</button>
       <input id="aiInput" placeholder="مثال: سجل عند أحمد تأخير اليوم 20 دقيقة" onkeydown="if(event.key==='Enter')sendAIMessage()">
       <button class="ai-send" onclick="sendAIMessage()">إرسال</button>
     </div>
@@ -2580,6 +2582,9 @@ function deleteShift(id){ if(confirm('حذف التوزيع؟')){state.shifts=st
 
 /* مساعد الشفت: استعلامات محلية آمنة + تأكيد قبل الكتابة */
 let aiPendingAction=null;
+let aiRecognition=null;
+let aiIsListening=false;
+let aiVoiceEnabled=localStorage.getItem('shiftManagerAIVoice')!=='off';
 function aiNormalize(value=''){
   return String(value).toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u065F]/g,'').replace(/[^\u0600-\u06ff\w\s-]/g,' ').replace(/\s+/g,' ').trim();
 }
@@ -2610,13 +2615,50 @@ function aiAddMessage(text,role='bot',actions=''){
   const item=document.createElement('div');item.className=`ai-message ${role}`;item.textContent=text;
   if(actions){const box=document.createElement('div');box.className='ai-confirm';box.innerHTML=actions;item.appendChild(box)}
   chat.appendChild(item);chat.scrollTop=chat.scrollHeight;
+  if(role==='bot'&&aiVoiceEnabled)aiSpeak(text);
+}
+function aiSpeak(text){
+  if(!('speechSynthesis' in window)||!aiVoiceEnabled)return;
+  window.speechSynthesis.cancel();
+  const utterance=new SpeechSynthesisUtterance(String(text).replace(/[•✅✦]/g,'').replace(/\n+/g,'. '));
+  utterance.lang='ar-SA';utterance.rate=.95;utterance.pitch=1;
+  const voices=window.speechSynthesis.getVoices();
+  utterance.voice=voices.find(v=>v.lang.toLowerCase()==='ar-sa')||voices.find(v=>v.lang.toLowerCase().startsWith('ar'))||null;
+  window.speechSynthesis.speak(utterance);
+}
+function updateAIVoiceButton(){const btn=document.getElementById('aiVoiceToggle');if(btn){btn.textContent=aiVoiceEnabled?'🔊':'🔇';btn.classList.toggle('off',!aiVoiceEnabled)}}
+function toggleAIVoice(){
+  aiVoiceEnabled=!aiVoiceEnabled;localStorage.setItem('shiftManagerAIVoice',aiVoiceEnabled?'on':'off');updateAIVoiceButton();
+  if(aiVoiceEnabled)aiSpeak('تم تشغيل الرد الصوتي');else if('speechSynthesis' in window)window.speechSynthesis.cancel();
+}
+function initAIRecognition(){
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRecognition)return false;
+  aiRecognition=new SpeechRecognition();aiRecognition.lang='ar-SA';aiRecognition.interimResults=true;aiRecognition.continuous=false;
+  aiRecognition.onstart=()=>{aiIsListening=true;document.getElementById('aiMicBtn')?.classList.add('listening');const input=document.getElementById('aiInput');if(input){input.value='';input.placeholder='أسمعك... تكلم الآن'}};
+  aiRecognition.onresult=e=>{let transcript='';for(let i=e.resultIndex;i<e.results.length;i++)transcript+=e.results[i][0].transcript;const input=document.getElementById('aiInput');if(input)input.value=transcript;if(e.results[e.results.length-1].isFinal)setTimeout(sendAIMessage,180)};
+  aiRecognition.onerror=e=>{if(e.error!=='aborted')aiAddMessage(e.error==='not-allowed'?'اسمح للمتصفح باستخدام الميكروفون، وبعدها جرّب مرة ثانية.':'ما قدرت أسمعك بوضوح. اضغط الميكروفون وجرّب مرة ثانية.','error')};
+  aiRecognition.onend=()=>{aiIsListening=false;document.getElementById('aiMicBtn')?.classList.remove('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='مثال: سجل عند أحمد تأخير اليوم 20 دقيقة'};
+  return true;
+}
+function toggleAIListening(){
+  if(aiIsListening){aiRecognition?.stop();return}
+  if(!aiRecognition&&!initAIRecognition()){aiAddMessage('التعرف الصوتي غير مدعوم في هذا المتصفح. افتح الموقع في Safari أو Chrome محدّث، أو استخدم إملاء لوحة المفاتيح.','error');return}
+  if('speechSynthesis' in window)window.speechSynthesis.cancel();
+  try{aiRecognition.start()}catch{aiRecognition=null;setTimeout(toggleAIListening,100)}
 }
 function openAIAssistant(){
   document.getElementById('aiAssistantModal').classList.add('show');const chat=document.getElementById('aiChat');
+  updateAIVoiceButton();
   if(chat&&!chat.children.length)aiAddMessage('هلا يا رامي 👋\nاسألني عن الإجازات والعودة والمتاحين، أو قل: «سجل عند فلان تأخير اليوم 20 دقيقة».');
   setTimeout(()=>document.getElementById('aiInput')?.focus(),180);
 }
 function askAIQuick(text){const input=document.getElementById('aiInput');input.value=text;sendAIMessage()}
+function aiMinutes(text){
+  const q=aiNormalize(text),digits=q.match(/(\d+)\s*(?:دقيقه|دقايق|دقائق)/);if(digits)return Number(digits[1]);
+  const words={دقيقه:1,دقيقتين:2,خمس:5,عشر:10,عشره:10,خمستعش:15,خمسطعش:15,خمسهعشر:15,عشرين:20,نص:30,نصف:30,ثلاثين:30,اربعين:40,خمسين:50,ستين:60};
+  for(const [word,value] of Object.entries(words))if(q.includes(word))return value;return null;
+}
 function aiList(items,emptyText){return items.length?items.map((x,i)=>`${i+1}. ${x}`).join('\n'):emptyText}
 function aiHandleQuery(raw){
   const q=aiNormalize(raw), win=aiWindow(raw), today=todayISO();
@@ -2624,7 +2666,7 @@ function aiHandleQuery(raw){
     const found=aiFindEmployee(raw);
     if(found.status==='none')return aiAddMessage('ما قدرت أحدد اسم الموظف. اكتب الاسم بشكل أوضح، مثل: سجل عند محمد أحمد تأخير اليوم 20 دقيقة.','error');
     if(found.status==='many')return aiAddMessage('لقيت أكثر من موظف مطابق:\n'+found.items.map(e=>`• ${e.name} (#${e.empId||'-'})`).join('\n')+'\nاكتب الاسم الكامل أو الرقم الوظيفي.');
-    const mins=(q.match(/(\d+)\s*(?:دقيقه|دقايق|دقائق)/)||[])[1];
+    const mins=aiMinutes(raw);
     const date=q.includes('بكره')?aiOffsetDate(1):today;
     const note=mins?`تأخير ${mins} دقيقة`:'تأخير';
     aiPendingAction={kind:'record',employeeId:found.employee.id,type:'Late',date,note};
@@ -2662,7 +2704,13 @@ function aiHandleQuery(raw){
   }
   aiAddMessage('أقدر أساعدك حاليًا في:\n• مين في إجازة اليوم\n• مين راجع أو طالع خلال 7 أيام\n• عدد الموجودين على رأس العمل\n• تسجيل تأخير أو ملاحظة على موظف','bot');
 }
-function sendAIMessage(){const input=document.getElementById('aiInput'),text=input.value.trim();if(!text)return;aiAddMessage(text,'user');input.value='';aiHandleQuery(text)}
+function sendAIMessage(){
+  const input=document.getElementById('aiInput'),text=input.value.trim();if(!text)return;aiAddMessage(text,'user');input.value='';
+  const q=aiNormalize(text);
+  if(aiPendingAction&&(q==='تاكيد'||q.includes('اكد')||q.includes('اعتمد')||q==='نعم'||q==='ايوه'))return aiConfirmAction();
+  if(aiPendingAction&&(q.includes('الغ')||q==='لا'))return aiCancelAction();
+  aiHandleQuery(text);
+}
 function aiConfirmAction(){
   if(!aiPendingAction)return aiAddMessage('ما فيه أمر بانتظار التأكيد.','error');
   const action=aiPendingAction,employee=state.employees.find(e=>e.id===action.employeeId);if(!employee){aiPendingAction=null;return aiAddMessage('الموظف غير موجود الآن.','error')}
