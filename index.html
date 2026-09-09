@@ -2653,7 +2653,7 @@ function initAIRecognition(){
   aiRecognition=new SpeechRecognition();aiRecognition.lang='ar-SA';aiRecognition.interimResults=true;aiRecognition.continuous=false;
   aiRecognition.onstart=()=>{aiIsListening=true;document.getElementById('aiMicBtn')?.classList.add('listening');const input=document.getElementById('aiInput');if(input){input.value='';input.placeholder='أسمعك... تكلم الآن'}};
   aiRecognition.onresult=e=>{let transcript='';for(let i=e.resultIndex;i<e.results.length;i++)transcript+=e.results[i][0].transcript;const input=document.getElementById('aiInput');if(input)input.value=transcript;if(e.results[e.results.length-1].isFinal)setTimeout(sendAIMessage,180)};
-  aiRecognition.onerror=e=>{if(e.error!=='aborted')aiAddMessage(e.error==='not-allowed'?'اسمح للمتصفح باستخدام الميكروفون، وبعدها جرّب مرة ثانية.':'ما قدرت أسمعك بوضوح. اضغط الميكروفون وجرّب مرة ثانية.','error')};
+  aiRecognition.onerror=e=>{if(e.error!=='aborted')aiAddMessage(e.error==='not-allowed'?'لو سمحت فعّل إذن الميكروفون، وبعدها جرّب مرة ثانية 🌷':'الصوت ما وصلني واضح، ممكن تعيدها مرة ثانية؟','bot')};
   aiRecognition.onend=()=>{aiIsListening=false;document.getElementById('aiMicBtn')?.classList.remove('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='مثال: سجل عند أحمد تأخير اليوم 20 دقيقة'};
   return true;
 }
@@ -2666,7 +2666,7 @@ function toggleAIListening(){
 function openAIAssistant(){
   document.getElementById('aiAssistantModal').classList.add('show');const chat=document.getElementById('aiChat');
   updateAIVoiceButton();
-  if(chat&&!chat.children.length)aiAddMessage('هلا يا رامي 👋\nاسألني عن الإجازات والعودة والمتاحين، أو قل: «سجل عند فلان تأخير اليوم 20 دقيقة».');
+  if(chat&&!chat.children.length)aiAddMessage('هلا يا رامي 👋\nأنا حاضر. اسألني عن الإجازات والعودة، أو اطلب مني أسجّل تأخير أو ملاحظة.');
   setTimeout(()=>document.getElementById('aiInput')?.focus(),180);
 }
 function askAIQuick(text){const input=document.getElementById('aiInput');input.value=text;sendAIMessage()}
@@ -2687,7 +2687,7 @@ function aiList(items,emptyText){return items.length?items.map((x,i)=>`${i+1}. $
 function aiAskEmployeeChoice(items,action){
   aiPendingAction={kind:'chooseEmployee',action,employeeIds:items.map(e=>e.id)};
   const buttons=items.map(e=>`<button class="yes" onclick="aiChooseEmployee('${e.id}')">${esc(aiDisplayEmployee(e))}</button>`).join('');
-  aiAddMessage('لقيت أكثر من موظف بنفس الاسم. مين تقصد؟','bot',buttons+'<button class="no" onclick="aiCancelAction()">إلغاء</button>');
+  aiAddMessage('أبشر، عندي أكثر من موظف بهذا الاسم. ممكن تحدد مين تقصد؟','bot',buttons+'<button class="no" onclick="aiCancelAction()">إلغاء</button>');
 }
 function aiChooseEmployee(employeeId){
   if(aiPendingAction?.kind!=='chooseEmployee')return;
@@ -2698,7 +2698,7 @@ function aiHandleQuery(raw){
   const q=aiNormalize(raw), win=aiWindow(raw), today=todayISO();
   if((q.includes('سجل')||q.includes('اضف'))&&(q.includes('متاخر')||q.includes('تاخير')||q.includes('تاخر'))){
     const found=aiFindEmployee(raw);
-    if(found.status==='none')return aiAddMessage('ما قدرت أحدد اسم الموظف. اكتب الاسم بشكل أوضح، مثل: سجل عند محمد أحمد تأخير اليوم 20 دقيقة.','error');
+    if(found.status==='none')return aiAddMessage('أبشر، بس احتاج اسم الموظف عشان أسجّلها على الشخص الصحيح 🌷','bot');
     const duration=aiDelayDuration(raw);
     const date=q.includes('بكره')?aiOffsetDate(1):today;
     const note=duration?`تأخير ${duration.label}`:'تأخير';
@@ -2716,7 +2716,7 @@ function aiHandleQuery(raw){
       return aiAddMessage(`راح أسجّل لك تذكير ${aiDateLabel(date)}:\n${note}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
     }
     const found=noteEmployee;
-    if(found.status==='none')return aiAddMessage('ما قدرت أحدد الموظف. اكتب الاسم بعد كلمة «عند»، أو قل «سجل عندك ملاحظة» لو التذكير لك.','error');
+    if(found.status==='none')return aiAddMessage('أكيد. الملاحظة هذه لك كتذكير شخصي، ولا تبغاني أسجّلها على موظف؟','bot');
     let note=raw.replace(/^.*?ملاحظ[ةه]\s*/,'').trim();
     const selected=found.status==='one'?found.employee:found.items[0];
     const selectedName=selected.nameAr||selected.name;
@@ -2747,7 +2747,7 @@ function aiHandleQuery(raw){
     const leave=state.leaves.find(l=>l.employeeId===found.employee.id&&l.start<=today&&l.end>=today);
     return aiAddMessage(leave?`${aiDisplayEmployee(found.employee)} في إجازة حاليًا، والعودة ${fmtDate(leave.end)}.`:`${aiDisplayEmployee(found.employee)} مو مسجّل في إجازة اليوم.`);
   }
-  aiAddMessage('أقدر أساعدك حاليًا في:\n• مين في إجازة اليوم\n• مين راجع أو طالع خلال 7 أيام\n• عدد الموجودين على رأس العمل\n• تسجيل تأخير أو ملاحظة على موظف','bot');
+  aiAddMessage('ما فهمت طلبك كامل يا رامي 😅\nممكن تقوله بطريقة ثانية؟ مثل: «مين في إجازة اليوم؟» أو «سجّل على فلان تأخير ربع ساعة».','bot');
 }
 function sendAIMessage(){
   const input=document.getElementById('aiInput'),text=input.value.trim();if(!text)return;aiAddMessage(text,'user');input.value='';
@@ -2757,19 +2757,19 @@ function sendAIMessage(){
   if(aiPendingAction?.kind==='chooseEmployee'){
     const found=aiFindEmployee(text);
     if(found.status==='one'&&aiPendingAction.employeeIds.includes(found.employee.id))return aiChooseEmployee(found.employee.id);
-    return aiAddMessage('حدد الاسم من الأزرار، أو قل الاسم الكامل.','error');
+    return aiAddMessage('تمام، بس اختر الاسم من القائمة أو قل لي الاسم كامل عشان أعتمد الشخص الصحيح.','bot');
   }
   aiHandleQuery(text);
 }
 function aiConfirmAction(){
-  if(!aiPendingAction)return aiAddMessage('ما فيه أمر بانتظار التأكيد.','error');
+  if(!aiPendingAction)return aiAddMessage('كل شيء تمام، ما عندي عملية معلّقة تحتاج تأكيد.','bot');
   const action=aiPendingAction;
   if(action.kind==='personalNote'){
     state.personalNotes.push({id:(crypto.randomUUID?crypto.randomUUID():('note-'+Date.now())),date:action.date,text:action.note,createdAt:new Date().toISOString(),source:'assistant'});
     aiPendingAction=null;save();return aiAddMessage('تم حفظ التذكير ومزامنته ✅');
   }
-  if(action.kind==='chooseEmployee')return aiAddMessage('اختر اسم الموظف أولًا.','error');
-  const employee=state.employees.find(e=>e.id===action.employeeId);if(!employee){aiPendingAction=null;return aiAddMessage('الموظف غير موجود الآن.','error')}
+  if(action.kind==='chooseEmployee')return aiAddMessage('قبل الحفظ، اختر لي الموظف المقصود من فضلك.','bot');
+  const employee=state.employees.find(e=>e.id===action.employeeId);if(!employee){aiPendingAction=null;return aiAddMessage('يبدو أن بيانات الموظف تغيّرت. حدّث الصفحة وجرّب مرة ثانية لو سمحت.','bot')}
   if(action.kind==='record')state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:action.employeeId,type:action.type,date:action.date,note:action.note,createdAt:new Date().toISOString(),source:'assistant'});
   aiPendingAction=null;save();aiAddMessage(`تم الحفظ والمزامنة في سجل ${aiDisplayEmployee(employee)} ✅`);
 }
