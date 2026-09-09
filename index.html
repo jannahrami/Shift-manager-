@@ -2591,11 +2591,16 @@ function aiNormalize(value=''){
 }
 function aiDateLabel(date){return date===todayISO()?'اليوم':fmtDate(date)}
 function aiOffsetDate(days){const d=new Date(todayISO()+'T12:00:00');d.setDate(d.getDate()+days);return d.toISOString().slice(0,10)}
-function aiEmployeeName(id){return state.employees.find(e=>e.id===id)?.name||'موظف غير معروف'}
+function aiDisplayEmployee(employee){return employee?.nameAr||employee?.name||'موظف غير معروف'}
+function aiEmployeeName(id){return aiDisplayEmployee(state.employees.find(e=>e.id===id))}
 function aiFindEmployee(text){
   const q=aiNormalize(text), ranked=state.employees.map(e=>{
-    const name=aiNormalize(e.name), parts=name.split(' ').filter(x=>x.length>1);
-    let score=q.includes(name)?100+name.length:parts.reduce((n,p)=>n+(q.includes(p)?p.length:0),0);
+    const aliases=[e.nameAr,e.name].filter(Boolean).map(aiNormalize);
+    let score=aliases.reduce((best,name)=>{
+      const parts=name.split(' ').filter(x=>x.length>1);
+      const aliasScore=q.includes(name)?100+name.length:parts.reduce((n,p)=>n+(q.includes(p)?p.length:0),0);
+      return Math.max(best,aliasScore);
+    },0);
     if(e.empId&&q.includes(String(e.empId)))score=200;
     return {e,score};
   }).filter(x=>x.score>1).sort((a,b)=>b.score-a.score);
@@ -2667,7 +2672,7 @@ function openAIAssistant(){
 function askAIQuick(text){const input=document.getElementById('aiInput');input.value=text;sendAIMessage()}
 function aiDelayDuration(text){
   const q=aiNormalize(text),words={واحد:1,وحده:1,ساعتين:2,اثنين:2,ثنتين:2,ثلاث:3,ثلاثه:3,اربع:4,اربعه:4,خمس:5,خمسه:5,ست:6,سته:6,سبع:7,سبعه:7,ثمان:8,ثمانيه:8,تسع:9,تسعه:9,عشر:10,عشره:10,خمستعش:15,خمسطعش:15,عشرين:20,نص:30,نصف:30,ثلاثين:30,اربعين:40,خمسين:50,ستين:60};
-  if(/1\s*\/\s*4/.test(String(text))||q.includes('ربع'))return {minutes:15,label:'ربع ساعة'};
+  if(/1\s*[\/\\]\s*4/.test(String(text))||q.includes('ربع'))return {minutes:15,label:'ربع ساعة'};
   const numberMatch=q.match(/\d+/);let amount=numberMatch?Number(numberMatch[0]):null;
   if(amount===null)for(const [word,value] of Object.entries(words))if(q.includes(word)){amount=value;break}
   if(q.includes('ساعتين'))amount=2;
@@ -2681,13 +2686,13 @@ function aiDelayDuration(text){
 function aiList(items,emptyText){return items.length?items.map((x,i)=>`${i+1}. ${x}`).join('\n'):emptyText}
 function aiAskEmployeeChoice(items,action){
   aiPendingAction={kind:'chooseEmployee',action,employeeIds:items.map(e=>e.id)};
-  const buttons=items.map(e=>`<button class="yes" onclick="aiChooseEmployee('${e.id}')">${esc(e.name)}</button>`).join('');
+  const buttons=items.map(e=>`<button class="yes" onclick="aiChooseEmployee('${e.id}')">${esc(aiDisplayEmployee(e))}</button>`).join('');
   aiAddMessage('لقيت أكثر من موظف بنفس الاسم. مين تقصد؟','bot',buttons+'<button class="no" onclick="aiCancelAction()">إلغاء</button>');
 }
 function aiChooseEmployee(employeeId){
   if(aiPendingAction?.kind!=='chooseEmployee')return;
   const action={...aiPendingAction.action,employeeId},employee=state.employees.find(e=>e.id===employeeId);aiPendingAction=action;
-  aiAddMessage(`تقصد ${employee?.name||'الموظف'}؟\n${action.type==='Late'?action.note:'ملاحظة: '+action.note} · ${aiDateLabel(action.date)}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
+  aiAddMessage(`تقصد ${aiDisplayEmployee(employee)}؟\n${action.type==='Late'?action.note:'ملاحظة: '+action.note} · ${aiDateLabel(action.date)}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
 }
 function aiHandleQuery(raw){
   const q=aiNormalize(raw), win=aiWindow(raw), today=todayISO();
@@ -2699,23 +2704,26 @@ function aiHandleQuery(raw){
     const note=duration?`تأخير ${duration.label}`:'تأخير';
     if(found.status==='many')return aiAskEmployeeChoice(found.items,{kind:'record',type:'Late',date,note});
     aiPendingAction={kind:'record',employeeId:found.employee.id,type:'Late',date,note};
-    return aiAddMessage(`راح أسجّل على ${found.employee.name}:\nتأخير · ${aiDateLabel(date)}${duration?` · ${duration.label}`:''}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
+    return aiAddMessage(`راح أسجّل على ${aiDisplayEmployee(found.employee)}:\nتأخير · ${aiDateLabel(date)}${duration?` · ${duration.label}`:''}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
   }
   if((q.includes('سجل')||q.includes('اضف'))&&q.includes('ملاحظه')){
-    if(q.includes('عندك')||q.includes('عندي')||q.includes('ذكرني')){
+    const noteEmployee=aiFindEmployee(raw);
+    const looksPersonal=q.includes('عندك')||q.includes('عندي')||q.includes('ذكرني')||noteEmployee.status==='none'&&(!q.includes(' عند ')&&!q.includes(' على ')||q.includes('بكره')||q.includes('اجتماع')||q.includes('موعد')||q.includes('جوله'));
+    if(looksPersonal){
       const date=win.start;
       let note=raw.replace(/^.*?(?:سجل\s+عند[كي]|ذكرني|اضف)\s*/i,'').replace(/^\s*(?:الملاحظ[ةه]|ملاحظ[ةه])\s*/i,'').trim()||'ملاحظة';
       aiPendingAction={kind:'personalNote',date,note};
       return aiAddMessage(`راح أسجّل لك تذكير ${aiDateLabel(date)}:\n${note}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
     }
-    const found=aiFindEmployee(raw);
+    const found=noteEmployee;
     if(found.status==='none')return aiAddMessage('ما قدرت أحدد الموظف. اكتب الاسم بعد كلمة «عند»، أو قل «سجل عندك ملاحظة» لو التذكير لك.','error');
     let note=raw.replace(/^.*?ملاحظ[ةه]\s*/,'').trim();
     const selected=found.status==='one'?found.employee:found.items[0];
-    note=note.replace(new RegExp(selected.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^\s*(?:عند|على)?\s*/,'').trim()||'ملاحظة';
+    const selectedName=selected.nameAr||selected.name;
+    note=note.replace(new RegExp(selectedName.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^\s*(?:عند|على)?\s*/,'').trim()||'ملاحظة';
     if(found.status==='many')return aiAskEmployeeChoice(found.items,{kind:'record',type:'Note',date:today,note});
     aiPendingAction={kind:'record',employeeId:found.employee.id,type:'Note',date:today,note};
-    return aiAddMessage(`راح أضيف في سجل ${found.employee.name}:\n${note}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
+    return aiAddMessage(`راح أضيف في سجل ${aiDisplayEmployee(found.employee)}:\n${note}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
   }
   if(q.includes('راجع')||q.includes('الراجعين')||q.includes('العوده')){
     const rows=state.leaves.filter(l=>l.end>=win.start&&l.end<=win.end).sort((a,b)=>a.end.localeCompare(b.end)).map(l=>`${aiEmployeeName(l.employeeId)} — ${aiDateLabel(l.end)}`);
@@ -2737,7 +2745,7 @@ function aiHandleQuery(raw){
   const found=aiFindEmployee(raw);
   if(found.status==='one'){
     const leave=state.leaves.find(l=>l.employeeId===found.employee.id&&l.start<=today&&l.end>=today);
-    return aiAddMessage(leave?`${found.employee.name} في إجازة حاليًا، والعودة ${fmtDate(leave.end)}.`:`${found.employee.name} مو مسجّل في إجازة اليوم.`);
+    return aiAddMessage(leave?`${aiDisplayEmployee(found.employee)} في إجازة حاليًا، والعودة ${fmtDate(leave.end)}.`:`${aiDisplayEmployee(found.employee)} مو مسجّل في إجازة اليوم.`);
   }
   aiAddMessage('أقدر أساعدك حاليًا في:\n• مين في إجازة اليوم\n• مين راجع أو طالع خلال 7 أيام\n• عدد الموجودين على رأس العمل\n• تسجيل تأخير أو ملاحظة على موظف','bot');
 }
@@ -2763,7 +2771,7 @@ function aiConfirmAction(){
   if(action.kind==='chooseEmployee')return aiAddMessage('اختر اسم الموظف أولًا.','error');
   const employee=state.employees.find(e=>e.id===action.employeeId);if(!employee){aiPendingAction=null;return aiAddMessage('الموظف غير موجود الآن.','error')}
   if(action.kind==='record')state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:action.employeeId,type:action.type,date:action.date,note:action.note,createdAt:new Date().toISOString(),source:'assistant'});
-  aiPendingAction=null;save();aiAddMessage(`تم الحفظ والمزامنة في سجل ${employee.name} ✅`);
+  aiPendingAction=null;save();aiAddMessage(`تم الحفظ والمزامنة في سجل ${aiDisplayEmployee(employee)} ✅`);
 }
 function aiCancelAction(){aiPendingAction=null;aiAddMessage('تم إلغاء الأمر، وما تغيّر شيء.')}
 
