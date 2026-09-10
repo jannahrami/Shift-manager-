@@ -1119,7 +1119,7 @@
 <div class="modal" id="aiAssistantModal">
   <div class="sheet ai-sheet">
     <div class="section-head">
-      <div class="ai-title"><div class="ai-orb">✦</div><div><h3 style="margin:0">مساعد الشفت</h3><div class="small-note">تكلّم أو اكتب، والرد صوتي</div></div></div>
+      <div class="ai-title"><div class="ai-orb">✦</div><div><h3 style="margin:0">مساعد الشفت</h3><div class="small-note">تكلّم أو اكتب · الصوت مولّد بالذكاء الاصطناعي</div></div></div>
       <div style="display:flex;gap:6px"><button class="ai-voice-toggle" id="aiVoiceToggle" onclick="toggleAIVoice()" title="تشغيل أو كتم الرد الصوتي">🔊</button><button class="secondary" onclick="closeModal('aiAssistantModal')">إغلاق</button></div>
     </div>
     <div class="ai-chat" id="aiChat"></div>
@@ -2764,7 +2764,7 @@ function aiHandleQuery(raw){
   aiAddMessage('ما فهمت طلبك كامل يا رامي 😅\nممكن تقوله بطريقة ثانية؟ مثل: «مين في إجازة اليوم؟» أو «سجّل على فلان تأخير ربع ساعة».','bot');
 }
 function aiGroupShiftPeriods(){
-  const start=aiOffsetDate(-370),end=aiOffsetDate(550),periods=[];
+  const start=aiOffsetDate(-120),end=aiOffsetDate(420),periods=[];
   let cursor=start,current=null;
   while(cursor<=end){
     const shift=groupShiftForDate(cursor);
@@ -2775,13 +2775,42 @@ function aiGroupShiftPeriods(){
   }
   return periods;
 }
-function aiContextForAgent(){
+function aiContextForAgent(message=''){
+  const q=aiNormalize(message),found=aiFindEmployee(message);
+  const employeeId=found.status==='one'?found.employee.id:'';
+  const has=(pattern)=>pattern.test(q);
+  const employeeQuestion=!!employeeId;
+  const wantsLeave=employeeQuestion||has(/اجاز|رصيد|راجع|عوده|متاح|على راس العمل/);
+  const wantsRecords=employeeQuestion||has(/تاخير|متاخر|تاخر|عذر|طبي|ام تايم|سجل|ملاحظه موظف/);
+  const wantsAchievements=employeeQuestion||has(/انجاز|تكريم|شكر|تميز/);
+  const wantsPersonal=has(/تذكير|موعد|ملاحظاتي|ملاحظه شخصيه|جوله|اجتماع/);
+  const wantsGroupShift=has(/دوام|شفت|صباح|مساء|ظهر|ليل|راحه|اوف/);
+  const wantsRoster=employeeQuestion||has(/بواب|موقع|توزيع|جدول|تكليف|وين|فين|موجود|متواجد/);
+  const employees=(employeeId?state.employees.filter(e=>e.id===employeeId):state.employees).map(e=>[
+    e.id,e.name||'',e.nameAr||'',e.empId||'',e.gc||'',e.position||'',e.shift||'',e.dutyRole||'',e.location||'',e.note||'',Number(e.leaveBalance)||0
+  ]);
+  const relevant=(rows)=>employeeId?rows.filter(row=>row.employeeId===employeeId):rows;
+  const rosterRows=[];
+  if(wantsRoster)Object.entries(state.monthlySchedules||{}).sort(([a],[b])=>b.localeCompare(a)).forEach(([month,schedule])=>{
+    const period=state.monthlySchedulePeriods?.[month]||{};
+    Object.entries(schedule||{}).forEach(([post,ids])=>{
+      const employeeIds=Array.isArray(ids)?ids:[];
+      if(!employeeId||employeeIds.includes(employeeId))rosterRows.push([month,period.start||'',period.end||'',post,employeeIds]);
+    });
+  });
   return {
-    today:todayISO(),
-    timezone:'Asia/Riyadh',
-    group:'Group A',
-    groupShiftPeriods:aiGroupShiftPeriods(),
-    appData:JSON.parse(JSON.stringify(state))
+    today:todayISO(),timezone:'Asia/Riyadh',group:'Group A',
+    availableSections:{employees:state.employees.length,leaves:state.leaves.length,records:state.records.length,achievements:state.achievements.length,personalNotes:state.personalNotes.length,monthlySchedules:Object.keys(state.monthlySchedules||{}).length},
+    employeeColumns:['id','name','nameAr','badge','gc','position','defaultShift','dutyRole','location','note','leaveBalance'],
+    employees,
+    groupShiftPeriods:wantsGroupShift?aiGroupShiftPeriods():[],
+    leaves:wantsLeave?relevant(state.leaves).slice(-180):[],
+    records:wantsRecords?relevant(state.records).slice(-180):[],
+    achievements:wantsAchievements?relevant(state.achievements).slice(-180):[],
+    personalNotes:wantsPersonal?state.personalNotes.slice(-120):[],
+    rosterAssignments:wantsRoster?rosterRows.slice(0,120):[],
+    rosterRequirements:wantsRoster?state.monthlyScheduleRequirements:{},
+    leaveBalanceHistory:wantsLeave?state.leaveBalanceHistory.slice(-12):[]
   };
 }
 async function aiAskGroq(message){
@@ -2791,7 +2820,7 @@ async function aiAskGroq(message){
     const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{
       method:'POST',signal:controller.signal,
       headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
-      body:JSON.stringify({message,context:aiContextForAgent(),history:aiConversationHistory.slice(0,-1).slice(-12)})
+      body:JSON.stringify({message,context:aiContextForAgent(message),history:aiConversationHistory.slice(0,-1).slice(-8)})
     });
     const data=await res.json().catch(()=>({}));
     if(!res.ok)throw new Error(data.error||'AI_FAILED');
