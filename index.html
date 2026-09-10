@@ -2582,6 +2582,8 @@ function deleteShift(id){ if(confirm('حذف التوزيع؟')){state.shifts=st
 
 /* مساعد الشفت: استعلامات محلية آمنة + تأكيد قبل الكتابة */
 let aiPendingAction=null;
+let aiConversationHistory=[];
+let aiLastEmployeeId=null;
 let aiRecognition=null;
 let aiIsListening=false;
 let aiVoiceEnabled=localStorage.getItem('shiftManagerAIVoice')!=='off';
@@ -2782,6 +2784,60 @@ function aiDelayDuration(text){
   return {minutes:isHours?amount*60:amount,label:isHours?hourLabel:`${amount} دقيقة`};
 }
 function aiList(items,emptyText){return items.length?items.map((x,i)=>`${i+1}. ${x}`).join('\n'):emptyText}
+function aiRequestedMonth(raw){
+  const q=aiNormalize(raw),names={يناير:1,جانوري:1,فبراير:2,فبرابر:2,مارس:3,ابريل:4,مايو:5,يونيو:6,يونيه:6,يوليو:7,يوليه:7,اغسطس:8,سبتمبر:9,اكتوبر:10,نوفمبر:11,ديسمبر:12};
+  let month=null;
+  for(const [name,value] of Object.entries(names))if(q.includes(name)){month=value;break}
+  if(month===null){const m=q.match(/(?:شهر|اجازات?)\s+(\d{1,2})(?:\s|$)/);if(m&&Number(m[1])>=1&&Number(m[1])<=12)month=Number(m[1])}
+  if(month===null)return null;
+  const yearMatch=q.match(/\b(20\d{2})\b/),year=yearMatch?Number(yearMatch[1]):Number(todayISO().slice(0,4));
+  const start=`${year}-${String(month).padStart(2,'0')}-01`,end=new Date(Date.UTC(year,month,0)).toISOString().slice(0,10);
+  return {month,year,start,end};
+}
+function aiHandleMonthLeaveQuery(raw){
+  const q=aiNormalize(raw),requested=aiRequestedMonth(raw);
+  if(!requested||!(q.includes('اجازه')||q.includes('اجازات')))return false;
+  const monthNames=['','يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const rows=state.leaves.filter(l=>l.start<=requested.end&&l.end>=requested.start).sort((a,b)=>a.start.localeCompare(b.start)).map(l=>`${aiEmployeeName(l.employeeId)} — من ${fmtDate(l.start)} إلى ${fmtDate(l.end)}`);
+  aiAddMessage(aiList(rows,`ما فيه إجازات مسجّلة في ${monthNames[requested.month]} ${requested.year}.`)+(rows.length?`\n\nالإجمالي: ${rows.length}`:''));
+  return true;
+}
+function aiEmployeeFromConversation(raw){
+  const found=aiFindEmployee(raw);
+  if(found.status==='one'){aiLastEmployeeId=found.employee.id;return found.employee}
+  if(found.status==='many')return null;
+  const q=aiNormalize(raw),hasReference=/(^|\s)(له|حقه|رقمه|جواله|اجازته|رصيده|شفته|دوامه|ملاحظاته|انجازاته)(\s|$)/.test(q);
+  return hasReference?state.employees.find(e=>e.id===aiLastEmployeeId)||null:null;
+}
+function aiHandleEmployeeLookup(raw){
+  const q=aiNormalize(raw),employee=aiEmployeeFromConversation(raw);
+  if(!employee)return false;
+  if(q.includes('جوال')||q.includes('رقم جوال')||q.includes('رقمه')){
+    const phone=localPhone(employee.phone);
+    aiAddMessage(phone?`رقم جوال ${aiDisplayEmployee(employee)}: ${phone}`:`ما فيه رقم جوال مسجّل لـ ${aiDisplayEmployee(employee)} في البيانات.`);
+    return true;
+  }
+  const leaves=state.leaves.filter(l=>l.employeeId===employee.id).sort((a,b)=>b.start.localeCompare(a.start));
+  if(q.includes('اجازه')||q.includes('اجازته')){
+    let selected=null,label='';
+    if(q.includes('اخر')||q.includes('سابق')||q.includes('قديم')){
+      selected=leaves.filter(l=>l.end<todayISO()).sort((a,b)=>b.end.localeCompare(a.end))[0];label='آخر إجازة سابقة';
+      if(!selected){aiAddMessage(`لا توجد إجازة سابقة مسجّلة لـ ${aiDisplayEmployee(employee)}.`);return true}
+    }else{
+      selected=leaves.find(l=>l.start<=todayISO()&&l.end>=todayISO())||leaves.filter(l=>l.start>todayISO()).sort((a,b)=>a.start.localeCompare(b.start))[0]||leaves[0];
+      label=selected?(selected.start<=todayISO()&&selected.end>=todayISO()?'إجازته الحالية':selected.start>todayISO()?'إجازته القادمة':'آخر إجازة مسجّلة'):'';
+      if(!selected){aiAddMessage(`لا توجد إجازات مسجّلة لـ ${aiDisplayEmployee(employee)}.`);return true}
+    }
+    aiAddMessage(`${label} لـ ${aiDisplayEmployee(employee)} من ${fmtDate(selected.start)} إلى ${fmtDate(selected.end)}.`);
+    return true;
+  }
+  if(q.includes('رصيد')){aiAddMessage(`رصيد إجازة ${aiDisplayEmployee(employee)}: ${formatDays(employee.leaveBalance)} يوم.`);return true}
+  if(q.includes('معلومات')||q.includes('بيانات')){
+    const phone=localPhone(employee.phone)||'غير مسجّل';
+    aiAddMessage(`${aiDisplayEmployee(employee)} (#${employee.empId||'-'})، الجوال: ${phone}، رصيد الإجازة: ${formatDays(employee.leaveBalance)} يوم، الشفت: ${employee.shift||'غير محدد'}.`);return true;
+  }
+  return false;
+}
 function aiAskEmployeeChoice(items,action){
   aiPendingAction={kind:'chooseEmployee',action,employeeIds:items.map(e=>e.id)};
   const buttons=items.map(e=>`<button class="yes" onclick="aiChooseEmployee('${e.id}')">${esc(aiDisplayEmployee(e))}</button>`).join('');
@@ -2790,6 +2846,10 @@ function aiAskEmployeeChoice(items,action){
 function aiChooseEmployee(employeeId){
   if(aiPendingAction?.kind!=='chooseEmployee')return;
   const action={...aiPendingAction.action,employeeId},employee=state.employees.find(e=>e.id===employeeId);aiPendingAction=action;
+  if(action.kind==='leave'){
+    const days=diffDays(action.end,action.start)+1;action.days=days;
+    return aiAddMessage(`تقصد ${aiDisplayEmployee(employee)}؟\nإجازة من ${fmtDate(action.start)} إلى ${fmtDate(action.end)} (${days} يوم)\nهل أعتمد الحفظ؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
+  }
   aiAddMessage(`تقصد ${aiDisplayEmployee(employee)}؟\n${action.type==='Late'?action.note:'ملاحظة: '+action.note} · ${aiDateLabel(action.date)}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
 }
 function aiHandleQuery(raw){
@@ -2850,12 +2910,15 @@ function aiHandleQuery(raw){
 function aiContextForAgent(){
   return {
     today:todayISO(),
-    employees:state.employees.map(e=>({id:e.id,name:e.name||'',nameAr:e.nameAr||'',empId:e.empId||'',position:e.position||'',shift:e.shift||'',location:e.location||'',leaveBalance:Number(e.leaveBalance)||0,note:e.note||''})),
+    employees:state.employees.map(e=>({id:e.id,name:e.name||'',nameAr:e.nameAr||'',empId:e.empId||'',phone:e.phone||'',gc:e.gc||'',position:e.position||'',shift:e.shift||'',location:e.location||'',dutyRole:e.dutyRole||'',leaveBalance:Number(e.leaveBalance)||0,note:e.note||''})),
     leaves:state.leaves.map(l=>({employeeId:l.employeeId,start:l.start,end:l.end,note:l.note||'',balanceDaysCharged:Number(l.balanceDaysCharged)||0})),
     shifts:state.shifts.map(s=>({employeeId:s.employeeId,post:s.post||'',shift:s.shift||''})),
     records:state.records.map(r=>({employeeId:r.employeeId,type:r.type||'',date:r.date||'',note:r.note||''})),
     achievements:state.achievements.map(a=>({employeeId:a.employeeId,type:a.type||'',date:a.date||'',note:a.note||''})),
-    personalNotes:state.personalNotes.map(n=>({date:n.date||'',text:n.text||'',createdAt:n.createdAt||''}))
+    personalNotes:state.personalNotes.map(n=>({date:n.date||'',text:n.text||'',createdAt:n.createdAt||''})),
+    monthlySchedules:state.monthlySchedules||{},
+    monthlySchedulePeriods:state.monthlySchedulePeriods||{},
+    leaveBalanceHistory:Array.isArray(state.leaveBalanceHistory)?state.leaveBalanceHistory:[]
   };
 }
 async function aiAskGroq(message){
@@ -2865,7 +2928,7 @@ async function aiAskGroq(message){
     const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{
       method:'POST',signal:controller.signal,
       headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
-      body:JSON.stringify({message,context:aiContextForAgent()})
+      body:JSON.stringify({message,context:aiContextForAgent(),history:aiConversationHistory.slice(-12)})
     });
     const data=await res.json().catch(()=>({}));
     if(!res.ok)throw new Error(data.error||'AI_FAILED');
@@ -2881,6 +2944,18 @@ function aiResolveAgentEmployee(action){
 function aiPrepareAgentAction(action){
   if(!action||typeof action!=='object')return false;
   const date=aiSafeDate(action.date),note=String(action.note||'').trim().slice(0,500)||'ملاحظة';
+  if(action.type==='save_leave'){
+    const found=aiResolveAgentEmployee(action),start=String(action.start||''),end=String(action.end||'');
+    if(found.status==='many')return aiAskEmployeeChoice(found.items,{kind:'leave',start,end,note:note==='ملاحظة'?'':note}),true;
+    if(found.status!=='one'){aiAddMessage('احتاج اسم الموظف الصحيح قبل ما أجهّز الإجازة.');return true}
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end)||end<start){aiAddMessage('احتاج تاريخ بداية ونهاية صحيحين للإجازة.');return true}
+    const check=checkLeaveCapacity(found.employee.id,start,end),days=diffDays(end,start)+1,available=Number(found.employee.leaveBalance)||0;
+    if(check.employeeConflict){aiAddMessage(`${aiDisplayEmployee(found.employee)} عنده إجازة متداخلة من ${fmtDate(check.employeeConflict.start)} إلى ${fmtDate(check.employeeConflict.end)}.`);return true}
+    if(check.blocked.length){aiAddMessage(`ما أقدر أضيفها: عدد المجازين سيتجاوز 6 خلال ${check.blocked.length} يوم.`);return true}
+    if(days>available){aiAddMessage(`مدة الإجازة ${days} يوم، ورصيد ${aiDisplayEmployee(found.employee)} المتاح ${formatDays(available)} يوم فقط.`);return true}
+    aiPendingAction={kind:'leave',employeeId:found.employee.id,start,end,note:note==='ملاحظة'?'':note,days};
+    aiAddMessage(`بأسجّل إجازة ${aiDisplayEmployee(found.employee)} من ${fmtDate(start)} إلى ${fmtDate(end)} (${days} يوم).\nأعتمد الحفظ؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');return true;
+  }
   if(action.type==='personal_note'){
     aiPendingAction={kind:'personalNote',date,note};
     aiAddMessage(`أبشر، بأسجّل لك تذكير ${aiDateLabel(date)}:\n${note}\nأعتمد الحفظ؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');return true;
@@ -2907,10 +2982,15 @@ async function sendAIMessage(){
     if(found.status==='one'&&aiPendingAction.employeeIds.includes(found.employee.id))return aiChooseEmployee(found.employee.id);
     return aiAddMessage('تمام، بس اختر الاسم من القائمة أو قل لي الاسم كامل عشان أعتمد الشخص الصحيح.','bot');
   }
+  if(aiHandleMonthLeaveQuery(text))return;
+  if(aiHandleEmployeeLookup(text))return;
   const btn=document.getElementById('aiSendBtn');if(btn){btn.disabled=true;btn.textContent='...'}
   try{
     const result=await aiAskGroq(text);
-    if(!aiPrepareAgentAction(result.action))aiAddMessage(String(result.reply||'تم').trim()||'تم');
+    const reply=String(result.reply||'تم').trim()||'تم';
+    aiConversationHistory.push({role:'user',content:text},{role:'assistant',content:reply});
+    if(aiConversationHistory.length>24)aiConversationHistory=aiConversationHistory.slice(-24);
+    if(!aiPrepareAgentAction(result.action))aiAddMessage(reply);
   }catch(error){
     console.warn('Groq assistant fallback',error);aiHandleQuery(text);
   }finally{if(btn){btn.disabled=false;btn.textContent='إرسال'}}
@@ -2924,6 +3004,15 @@ function aiConfirmAction(){
   }
   if(action.kind==='chooseEmployee')return aiAddMessage('قبل الحفظ، اختر لي الموظف المقصود من فضلك.','bot');
   const employee=state.employees.find(e=>e.id===action.employeeId);if(!employee){aiPendingAction=null;return aiAddMessage('يبدو أن بيانات الموظف تغيّرت. حدّث الصفحة وجرّب مرة ثانية لو سمحت.','bot')}
+  if(action.kind==='leave'){
+    const check=checkLeaveCapacity(employee.id,action.start,action.end),days=diffDays(action.end,action.start)+1,available=Number(employee.leaveBalance)||0;
+    if(check.employeeConflict){aiPendingAction=null;return aiAddMessage('ما تم الحفظ لأن الموظف عنده إجازة متداخلة.','error')}
+    if(check.blocked.length){aiPendingAction=null;return aiAddMessage('ما تم الحفظ لأن عدد المجازين سيتجاوز الحد الأعلى.','error')}
+    if(days>available){aiPendingAction=null;return aiAddMessage('ما تم الحفظ لأن رصيد الإجازة غير كافٍ.','error')}
+    employee.leaveBalance=available-days;
+    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start:action.start,end:action.end,note:action.note||'',balanceDaysCharged:days,source:'assistant'});
+    aiPendingAction=null;save();return aiAddMessage(`تم حفظ إجازة ${aiDisplayEmployee(employee)} داخل النظام وخصم ${days} يوم من الرصيد ✅`);
+  }
   if(action.kind==='record')state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:action.employeeId,type:action.type,date:action.date,note:action.note,createdAt:new Date().toISOString(),source:'assistant'});
   aiPendingAction=null;save();aiAddMessage(`تم الحفظ والمزامنة في سجل ${aiDisplayEmployee(employee)} ✅`);
 }
