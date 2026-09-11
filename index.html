@@ -2652,14 +2652,11 @@ function aiStopSpeech(){
   if(aiSpeechAudio){aiSpeechAudio.pause();aiSpeechAudio.src='';aiSpeechAudio=null}
   if(aiSpeechUrl){URL.revokeObjectURL(aiSpeechUrl);aiSpeechUrl=''}
   if('speechSynthesis' in window)window.speechSynthesis.cancel();
-  if(aiRealtimeConnected)aiRealtimeStream?.getTracks().forEach(track=>track.enabled=true);
 }
 async function aiSpeak(text){
   if(!aiVoiceEnabled||!session?.access_token)return;
   aiStopSpeech();const token=aiSpeechToken;
   const spokenText=aiArabicSpeechText(text).trim().slice(0,200);if(!spokenText)return;
-  const pauseRealtimeMic=aiRealtimeConnected&&!!aiRealtimeStream;
-  if(pauseRealtimeMic)aiRealtimeStream.getTracks().forEach(track=>track.enabled=false);
   try{
     const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{
       method:'POST',
@@ -2669,9 +2666,9 @@ async function aiSpeak(text){
     if(!res.ok)throw new Error('VOICE_FAILED');
     const blob=await res.blob();if(token!==aiSpeechToken||!aiVoiceEnabled)return;
     aiSpeechUrl=URL.createObjectURL(blob);aiSpeechAudio=new Audio(aiSpeechUrl);aiSpeechAudio.preload='auto';aiSpeechAudio.setAttribute('playsinline','');
-    aiSpeechAudio.onended=()=>{if(aiSpeechUrl){URL.revokeObjectURL(aiSpeechUrl);aiSpeechUrl=''}aiSpeechAudio=null;if(pauseRealtimeMic&&aiRealtimeConnected)aiRealtimeStream?.getTracks().forEach(track=>track.enabled=true)};
+    aiSpeechAudio.onended=()=>{if(aiSpeechUrl){URL.revokeObjectURL(aiSpeechUrl);aiSpeechUrl=''}aiSpeechAudio=null};
     await aiSpeechAudio.play();
-  }catch(error){if(pauseRealtimeMic&&aiRealtimeConnected)aiRealtimeStream?.getTracks().forEach(track=>track.enabled=true);console.warn('Abdullah voice unavailable',error)}
+  }catch(error){console.warn('Abdullah voice unavailable',error)}
 }
 function updateAIVoiceButton(){const btn=document.getElementById('aiVoiceToggle');if(btn){btn.textContent=aiVoiceEnabled?'🔊':'🔇';btn.classList.toggle('off',!aiVoiceEnabled)}}
 function toggleAIVoice(){
@@ -2757,6 +2754,9 @@ function aiVerifiedReadReply(raw){
   }
   return '';
 }
+function aiRealtimeAnswerVerified(reply){
+  aiRealtimeSend({type:'response.create',response:{instructions:`انطق الجواب التالي فقط كما هو، بدون مقدمة أو إضافة أو اعتذار: ${reply}`}});
+}
 async function aiPersistAssistantMutation(snapshot){
   localStorage.setItem(KEY,JSON.stringify(state));renderAll();clearTimeout(syncTimer);
   try{setCloudStatus('','جاري الحفظ');await uploadCloudState();setCloudStatus('online','تم الحفظ والمزامنة');return true}
@@ -2803,8 +2803,9 @@ function aiHandleRealtimeEvent(event){
     if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق')))aiRealtimeLeaveApprovalPending=false;
     aiAddMessage(aiRealtimeLastUserText,'user','',false);
     const verifiedReply=aiVerifiedReadReply(aiRealtimeLastUserText);
-    if(verifiedReply)aiAddMessage(verifiedReply,'bot','',true);else aiRealtimeSend({type:'response.create'});
+    if(verifiedReply)aiRealtimeAnswerVerified(verifiedReply);else aiRealtimeSend({type:'response.create'});
   }
+  if(event.type==='conversation.item.input_audio_transcription.failed')aiRealtimeSend({type:'response.create'});
   if(event.type==='response.output_audio_transcript.delta')aiRealtimeTranscript+=(event.delta||'');
   if(event.type==='response.output_audio_transcript.done'){
     const text=(event.transcript||aiRealtimeTranscript).trim();aiRealtimeTranscript='';if(text)aiAddMessage(text,'bot','',false);
@@ -3093,7 +3094,7 @@ async function sendAIMessage(){
   const input=document.getElementById('aiInput'),text=input.value.trim();if(!text)return;
   if(aiRealtimeConnected&&aiRealtimeDc?.readyState==='open'){
     aiRealtimeLastUserText=text;aiAddMessage(text,'user','',false);input.value='';
-    const verifiedReply=aiVerifiedReadReply(text);if(verifiedReply)return aiAddMessage(verifiedReply,'bot','',true);
+    const verifiedReply=aiVerifiedReadReply(text);if(verifiedReply){aiRealtimeAnswerVerified(verifiedReply);return}
     aiRealtimeSend({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}});aiRealtimeSend({type:'response.create'});return;
   }
   aiAddMessage(text,'user');input.value='';
