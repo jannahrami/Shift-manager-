@@ -2652,11 +2652,14 @@ function aiStopSpeech(){
   if(aiSpeechAudio){aiSpeechAudio.pause();aiSpeechAudio.src='';aiSpeechAudio=null}
   if(aiSpeechUrl){URL.revokeObjectURL(aiSpeechUrl);aiSpeechUrl=''}
   if('speechSynthesis' in window)window.speechSynthesis.cancel();
+  if(aiRealtimeConnected)aiRealtimeStream?.getTracks().forEach(track=>track.enabled=true);
 }
 async function aiSpeak(text){
   if(!aiVoiceEnabled||!session?.access_token)return;
   aiStopSpeech();const token=aiSpeechToken;
   const spokenText=aiArabicSpeechText(text).trim().slice(0,200);if(!spokenText)return;
+  const pauseRealtimeMic=aiRealtimeConnected&&!!aiRealtimeStream;
+  if(pauseRealtimeMic)aiRealtimeStream.getTracks().forEach(track=>track.enabled=false);
   try{
     const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{
       method:'POST',
@@ -2666,9 +2669,9 @@ async function aiSpeak(text){
     if(!res.ok)throw new Error('VOICE_FAILED');
     const blob=await res.blob();if(token!==aiSpeechToken||!aiVoiceEnabled)return;
     aiSpeechUrl=URL.createObjectURL(blob);aiSpeechAudio=new Audio(aiSpeechUrl);aiSpeechAudio.preload='auto';aiSpeechAudio.setAttribute('playsinline','');
-    aiSpeechAudio.onended=()=>{if(aiSpeechUrl){URL.revokeObjectURL(aiSpeechUrl);aiSpeechUrl=''}aiSpeechAudio=null};
+    aiSpeechAudio.onended=()=>{if(aiSpeechUrl){URL.revokeObjectURL(aiSpeechUrl);aiSpeechUrl=''}aiSpeechAudio=null;if(pauseRealtimeMic&&aiRealtimeConnected)aiRealtimeStream?.getTracks().forEach(track=>track.enabled=true)};
     await aiSpeechAudio.play();
-  }catch(error){console.warn('Abdullah voice unavailable',error)}
+  }catch(error){if(pauseRealtimeMic&&aiRealtimeConnected)aiRealtimeStream?.getTracks().forEach(track=>track.enabled=true);console.warn('Abdullah voice unavailable',error)}
 }
 function updateAIVoiceButton(){const btn=document.getElementById('aiVoiceToggle');if(btn){btn.textContent=aiVoiceEnabled?'🔊':'🔇';btn.classList.toggle('off',!aiVoiceEnabled)}}
 function toggleAIVoice(){
@@ -2727,6 +2730,33 @@ function aiRealtimeEmployee(args){
   if(employee)return employee;
   const found=aiFindEmployee(args.employee_name||'');return found.status==='one'?found.employee:null;
 }
+function aiBalanceThreshold(raw){
+  const q=aiNormalize(raw);if(!q.includes('رصيد')||!q.includes('فوق'))return null;
+  const words={صفر:0,واحد:1,اثنين:2,ثلاثه:3,اربعه:4,خمسه:5,سته:6,سبعه:7,ثمانيه:8,تسعه:9,عشره:10,عشرين:20,ثلاثين:30};
+  const numeric=q.match(/فوق\s+(\d+(?:\.\d+)?)/);if(numeric)return Number(numeric[1]);
+  for(const [word,value] of Object.entries(words))if(q.includes(`فوق ${word}`))return value;
+  return null;
+}
+function aiVerifiedReadReply(raw){
+  const q=aiNormalize(raw),year=aiRequestedYear(raw),snapshot=aiDashboardSnapshot(year);
+  const threshold=aiBalanceThreshold(raw);
+  if(threshold!==null){
+    const rows=state.employees.filter(e=>(Number(e.leaveBalance)||0)>threshold).sort((a,b)=>Number(b.leaveBalance)-Number(a.leaveBalance));
+    return `عدد الموظفين اللي رصيدهم فوق ${formatDays(threshold)} أيام: ${rows.length} موظف.`;
+  }
+  if(q.includes('مؤشر السنه')||q.includes('مؤشرات السنه')||q.includes('تقرير السنه')||q.includes('مؤشر الاجازات')||q.includes('تقرير المؤشرات')){
+    const a=snapshot.annualIndicators;return `مؤشرات سنة ${a.year}: الإجازات المدخلة ${a.enteredLeaves}، والمأخوذة ${a.takenLeaves}، ونسبة الإنجاز ${a.completionPercent} بالمئة، ويحتاجون تصفية ${a.employeesNeedingClearance} موظف.`;
+  }
+  if(q.includes('على راس العمل')||q.includes('المتاحين اليوم')||q.includes('المتاحون اليوم'))return `على رأس العمل اليوم ${snapshot.onDuty} موظف.`;
+  if(q.includes('في اجازه الان')||q.includes('في اجازه حاليا'))return `في إجازة الآن ${snapshot.onLeave} موظفين.`;
+  if(q.includes('تنبيه')&&(q.includes('3')||q.includes('ثلاث')))return `التنبيهات خلال ثلاثة أيام: ${snapshot.alertsNext3Days}.`;
+  if(q.includes('اجمالي الموظفين')||q.includes('عدد الموظفين')||q.includes('كم اجمالي الموظفين')||/كم\s+موظف\s+(?:عندنا|معانا|في القروب|في المجموع)/.test(q))return `إجمالي الموظفين ${snapshot.totalEmployees} موظف.`;
+  if(/(دوامي|دوامنا|شفتنا|دوام الشفت|دوام قروب|group a)/.test(q)){
+    let date=aiRequestedShiftDate(raw);if(!date){if(q.includes('بعد بكره'))date=aiOffsetDate(2);else if(q.includes('بكره')||q.includes('غدا'))date=aiOffsetDate(1);else if(q.includes('اليوم'))date=todayISO()}
+    if(date){const shift=groupShiftForDate(date),label=shift.code==='OFF'?'راحة':shift.arabic;return `دوام Group A يوم ${fmtDate(date)}: ${shift.code}، ${label}.`}
+  }
+  return '';
+}
 async function aiPersistAssistantMutation(snapshot){
   localStorage.setItem(KEY,JSON.stringify(state));renderAll();clearTimeout(syncTimer);
   try{setCloudStatus('','جاري الحفظ');await uploadCloudState();setCloudStatus('online','تم الحفظ والمزامنة');return true}
@@ -2768,7 +2798,13 @@ async function aiHandleRealtimeTool(event){
   aiRealtimeToolResult(callId,{ok:false,error:'الأداة غير معروفة'});
 }
 function aiHandleRealtimeEvent(event){
-  if(event.type==='conversation.item.input_audio_transcription.completed'&&event.transcript?.trim()){aiRealtimeLastUserText=event.transcript.trim();const q=aiNormalize(aiRealtimeLastUserText);if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق')))aiRealtimeLeaveApprovalPending=false;aiAddMessage(aiRealtimeLastUserText,'user','',false)}
+  if(event.type==='conversation.item.input_audio_transcription.completed'&&event.transcript?.trim()){
+    aiRealtimeLastUserText=event.transcript.trim();const q=aiNormalize(aiRealtimeLastUserText);
+    if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق')))aiRealtimeLeaveApprovalPending=false;
+    aiAddMessage(aiRealtimeLastUserText,'user','',false);
+    const verifiedReply=aiVerifiedReadReply(aiRealtimeLastUserText);
+    if(verifiedReply)aiAddMessage(verifiedReply,'bot','',true);else aiRealtimeSend({type:'response.create'});
+  }
   if(event.type==='response.output_audio_transcript.delta')aiRealtimeTranscript+=(event.delta||'');
   if(event.type==='response.output_audio_transcript.done'){
     const text=(event.transcript||aiRealtimeTranscript).trim();aiRealtimeTranscript='';if(text)aiAddMessage(text,'bot','',false);
@@ -3057,6 +3093,7 @@ async function sendAIMessage(){
   const input=document.getElementById('aiInput'),text=input.value.trim();if(!text)return;
   if(aiRealtimeConnected&&aiRealtimeDc?.readyState==='open'){
     aiRealtimeLastUserText=text;aiAddMessage(text,'user','',false);input.value='';
+    const verifiedReply=aiVerifiedReadReply(text);if(verifiedReply)return aiAddMessage(verifiedReply,'bot','',true);
     aiRealtimeSend({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}});aiRealtimeSend({type:'response.create'});return;
   }
   aiAddMessage(text,'user');input.value='';
