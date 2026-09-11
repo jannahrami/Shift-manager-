@@ -2603,6 +2603,7 @@ let aiRealtimeStream=null;
 let aiRealtimeAudio=null;
 let aiRealtimeConnecting=false;
 let aiRealtimeConnected=false;
+let aiRealtimeSessionReady=false;
 let aiRealtimeTranscript='';
 let aiRealtimeLastUserText='';
 let aiRealtimeLeaveApprovalPending=false;
@@ -2704,7 +2705,7 @@ function aiDashboardSnapshot(year=Number(todayISO().slice(0,4))){
   };
 }
 function aiRealtimeInstructions(){
-  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي. استخدم أسماء الموظفين والتواريخ والأرقام من بيانات الشفت فقط ولا تخترع أي معلومة أو رقم. إذا نقصتك معلومة اسأل سؤالًا واحدًا بسيطًا. يمكنك الإجابة عن الإجازات القديمة والحالية والقادمة، أرقام الجوال، الملاحظات، الإنجازات والدوام من البيانات مباشرة. عند السؤال عن إجمالي الموظفين أو على رأس العمل أو الموجودين في إجازة أو التنبيهات أو مؤشرات السنة يجب استدعاء أداة get_dashboard_metrics، ولا تعطِ رقمًا من الذاكرة. عند السؤال عن «دوامي» أو «دوامنا» أو «شفتنا» في أي تاريخ يجب استدعاء أداة get_group_shift_by_date بالتاريخ بصيغة YYYY-MM-DD، ولا تقل إن الجدول غير موجود قبل استخدام الأداة. monthlySchedules خاص بتوزيع الموظفين على المواقع والبوابات وليس شفت Group A اليومي. عند السؤال عن ملاحظات أو تأخيرات موظف، ابحث في records عن employeeId الخاص به؛ النوع Note يعني ملاحظة وLate يعني تأخير. وعند السؤال عن إنجازاته استخدم achievements. الملاحظات الشخصية الخاصة برامي موجودة في personalNotes. تسجيل الملاحظات والتأخير والتذكيرات لا يحتاج تكرار تأكيد؛ نفّذها مباشرة بعد اكتمال الاسم والتاريخ والتفصيل. الإجازة فقط تحتاج تأكيدًا واحدًا: كرر الاسم والتاريخ مرة واحدة، وبعد أي موافقة طبيعية مثل نعم أو تمام أو أوكي أو أبشر أو اعتمد نفّذ الحفظ ولا تطلب تأكيدًا ثانيًا. افحص تداخل الإجازة والرصيد قبل الحفظ. لا تقل «تم الحفظ» إلا إذا أعادت الأداة ok:true. تاريخ اليوم ${todayISO()}.
+  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي. استخدم أسماء الموظفين والتواريخ والأرقام من بيانات الشفت فقط ولا تخترع أي معلومة أو رقم. إذا نقصتك معلومة اسأل سؤالًا واحدًا بسيطًا. يمكنك الإجابة عن الإجازات القديمة والحالية والقادمة، أرقام الجوال، الملاحظات، الإنجازات والدوام من البيانات مباشرة. عند السؤال عن إجمالي الموظفين أو على رأس العمل أو الموجودين في إجازة أو التنبيهات أو مؤشرات السنة يجب استدعاء أداة get_dashboard_metrics فورًا في نفس الدور، ولا تعطِ رقمًا من الذاكرة. عند السؤال عن «دوامي» أو «دوامنا» أو «شفتنا» في أي تاريخ يجب استدعاء أداة get_group_shift_by_date فورًا بالتاريخ بصيغة YYYY-MM-DD، ولا تقل إن الجدول غير موجود قبل استخدام الأداة. لا تقل أبدًا «بأشيك» أو «بأخذ الرقم» أو «لحظة» ثم تتوقف؛ نفّذ أداة القراءة مباشرة وأعطِ النتيجة من أول سؤال. monthlySchedules خاص بتوزيع الموظفين على المواقع والبوابات وليس شفت Group A اليومي. عند السؤال عن ملاحظات أو تأخيرات موظف، ابحث في records عن employeeId الخاص به؛ النوع Note يعني ملاحظة وLate يعني تأخير. وعند السؤال عن إنجازاته استخدم achievements. الملاحظات الشخصية الخاصة برامي موجودة في personalNotes. تسجيل الملاحظات والتأخير والتذكيرات لا يحتاج تكرار تأكيد؛ نفّذها مباشرة بعد اكتمال الاسم والتاريخ والتفصيل. الإجازة فقط تحتاج تأكيدًا واحدًا: كرر الاسم والتاريخ مرة واحدة، وبعد أي موافقة طبيعية مثل نعم أو تمام أو أوكي أو أبشر أو اعتمد نفّذ الحفظ ولا تطلب تأكيدًا ثانيًا. افحص تداخل الإجازة والرصيد قبل الحفظ. لا تقل «تم الحفظ» إلا إذا أعادت الأداة ok:true. تاريخ اليوم ${todayISO()}.
 المؤشرات الموثقة حاليًا:
 ${JSON.stringify(aiDashboardSnapshot())}
 بيانات الشفت الحالية:
@@ -2779,7 +2780,13 @@ async function aiHandleRealtimeTool(event){
   aiRealtimeToolResult(callId,{ok:false,error:'الأداة غير معروفة'});
 }
 function aiHandleRealtimeEvent(event){
-  if(event.type==='conversation.item.input_audio_transcription.completed'&&event.transcript?.trim()){aiRealtimeLastUserText=event.transcript.trim();const q=aiNormalize(aiRealtimeLastUserText);if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق')))aiRealtimeLeaveApprovalPending=false;aiAddMessage(aiRealtimeLastUserText,'user','',false)}
+  if(event.type==='session.updated'&&!aiRealtimeSessionReady){
+    aiRealtimeSessionReady=true;aiRealtimeConnecting=false;aiRealtimeConnected=true;aiIsListening=true;
+    aiRealtimeStream?.getTracks().forEach(track=>track.enabled=true);
+    const input=document.getElementById('aiInput');if(input)input.placeholder='المحادثة شغالة… تكلم براحتك';
+    aiAddMessage('المحادثة الصوتية المباشرة جاهزة 🎙️','bot','',false);
+  }
+  if(event.type==='conversation.item.input_audio_transcription.completed'&&event.transcript?.trim()){aiRealtimeLastUserText=event.transcript.trim();const q=aiNormalize(aiRealtimeLastUserText);if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق')))aiRealtimeLeaveApprovalPending=false;aiAddMessage(aiRealtimeLastUserText,'user','',false);aiRealtimeSend({type:'response.create'})}
   if(event.type==='response.output_audio_transcript.delta')aiRealtimeTranscript+=(event.delta||'');
   if(event.type==='response.output_audio_transcript.done'){
     const text=(event.transcript||aiRealtimeTranscript).trim();aiRealtimeTranscript='';if(text)aiAddMessage(text,'bot','',false);
@@ -2791,7 +2798,7 @@ function aiStopRealtime(showMessage=true){
   const wasActive=aiRealtimeConnected||aiRealtimeConnecting;aiRealtimeConnected=false;aiRealtimeConnecting=false;aiIsListening=false;
   try{aiRealtimeDc?.close()}catch{}try{aiRealtimePc?.close()}catch{}aiRealtimeStream?.getTracks().forEach(t=>t.stop());
   if(aiRealtimeAudio){aiRealtimeAudio.pause();aiRealtimeAudio.srcObject=null}
-  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=false;aiRealtimeHandledCalls.clear();
+  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeSessionReady=false;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=false;aiRealtimeHandledCalls.clear();
   document.getElementById('aiMicBtn')?.classList.remove('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='مثال: سجل عند أحمد تأخير اليوم 20 دقيقة';
   if(showMessage&&wasActive)aiAddMessage('تم إنهاء المحادثة الصوتية.','bot','',false);
 }
@@ -2803,9 +2810,9 @@ async function aiStartRealtime(){
     aiRealtimeStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
     aiRealtimePc=new RTCPeerConnection();aiRealtimeAudio=document.createElement('audio');aiRealtimeAudio.autoplay=true;aiRealtimeAudio.setAttribute('playsinline','');aiRealtimeAudio.muted=!aiVoiceEnabled;
     aiRealtimePc.ontrack=e=>{aiRealtimeAudio.srcObject=e.streams[0];aiRealtimeAudio.play().catch(()=>{})};
-    aiRealtimeStream.getTracks().forEach(track=>aiRealtimePc.addTrack(track,aiRealtimeStream));
+    aiRealtimeStream.getTracks().forEach(track=>{track.enabled=false;aiRealtimePc.addTrack(track,aiRealtimeStream)});
     aiRealtimeDc=aiRealtimePc.createDataChannel('oai-events');
-    aiRealtimeDc.onopen=()=>{aiRealtimeConnecting=false;aiRealtimeConnected=true;aiIsListening=true;if(input)input.placeholder='المحادثة شغالة… تكلم براحتك';aiRealtimeUpdateContext();aiAddMessage('المحادثة الصوتية المباشرة جاهزة 🎙️','bot','',false)};
+    aiRealtimeDc.onopen=()=>{if(input)input.placeholder='جاري تحميل بيانات الشفت…';aiRealtimeUpdateContext()};
     aiRealtimeDc.onmessage=e=>{try{aiHandleRealtimeEvent(JSON.parse(e.data))}catch(error){console.warn('Realtime event',error)}};
     aiRealtimeDc.onclose=()=>{if(aiRealtimeConnected)aiStopRealtime(false)};
     const offer=await aiRealtimePc.createOffer();await aiRealtimePc.setLocalDescription(offer);
