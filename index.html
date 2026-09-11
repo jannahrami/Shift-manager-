@@ -2605,7 +2605,8 @@ let aiRealtimeConnecting=false;
 let aiRealtimeConnected=false;
 let aiRealtimeTranscript='';
 let aiRealtimeLastUserText='';
-let aiRealtimeLeaveApprovalPending=false;
+let aiRealtimeLeaveApprovalPending=null;
+let aiRealtimeWaitingRetry=false;
 const aiRealtimeHandledCalls=new Set();
 function aiNormalize(value=''){
   return String(value).toLowerCase().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u065F]/g,'').replace(/[^\u0600-\u06ff\w\s-]/g,' ').replace(/\s+/g,' ').trim();
@@ -2764,8 +2765,12 @@ async function aiPersistAssistantMutation(snapshot){
 }
 async function aiHandleRealtimeTool(event){
   const callId=event.call_id;if(!callId||aiRealtimeHandledCalls.has(callId))return;aiRealtimeHandledCalls.add(callId);
-  if(event.name==='save_leave'&&!aiRealtimeLeaveApprovalPending){aiRealtimeLeaveApprovalPending=true;return aiRealtimeToolResult(callId,{ok:false,needs_confirmation:true,error:'اعرض الاسم وتاريخ البداية والنهاية واطلب تأكيدًا واحدًا فقط'})}
   let args={};try{args=JSON.parse(event.arguments||'{}')}catch{return aiRealtimeToolResult(callId,{ok:false,error:'البيانات غير مفهومة'})}
+  if(event.name==='save_leave'&&!aiRealtimeLeaveApprovalPending?.approved){
+    aiRealtimeLeaveApprovalPending={args,approved:false};
+    return aiRealtimeToolResult(callId,{ok:false,needs_confirmation:true,error:'اعرض الاسم وتاريخ البداية والنهاية واطلب تأكيدًا واحدًا فقط. بعد موافقة رامي ستنفذ الصفحة الحفظ مباشرة'})
+  }
+  if(event.name==='save_leave')aiRealtimeLeaveApprovalPending=null;
   const date=aiSafeDate(args.date),now=new Date().toISOString(),snapshot=JSON.parse(JSON.stringify(state));
   if(event.name==='save_personal_note'){
     const note=String(args.note||'').trim().slice(0,500);if(!note)return aiRealtimeToolResult(callId,{ok:false,error:'الملاحظة فارغة'});
@@ -2782,7 +2787,7 @@ async function aiHandleRealtimeTool(event){
     const days=diffDays(end,start)+1,available=Number(employee.leaveBalance)||0;
     if(days>available)return aiRealtimeToolResult(callId,{ok:false,error:`مدة الإجازة ${days} يوم والرصيد المتاح ${formatDays(available)} يوم فقط`});
     employee.leaveBalance=available-days;
-    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start,end,note:String(args.note||'').trim().slice(0,500),balanceDaysCharged:days,source:'realtime'});aiRealtimeLeaveApprovalPending=false;if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل الإجازة'});aiRealtimeUpdateContext();
+    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start,end,note:String(args.note||'').trim().slice(0,500),balanceDaysCharged:days,source:'realtime'});aiRealtimeLeaveApprovalPending=null;if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل الإجازة'});aiRealtimeUpdateContext();
     return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ إجازة ${aiDisplayEmployee(employee)} من ${start} إلى ${end} وخصم ${days} يوم من الرصيد`});
   }
   if(event.name==='save_late'){
@@ -2800,8 +2805,16 @@ async function aiHandleRealtimeTool(event){
 function aiHandleRealtimeEvent(event){
   if(event.type==='conversation.item.input_audio_transcription.completed'&&event.transcript?.trim()){
     aiRealtimeLastUserText=event.transcript.trim();const q=aiNormalize(aiRealtimeLastUserText);
-    if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق')))aiRealtimeLeaveApprovalPending=false;
+    aiRealtimeWaitingRetry=false;
     aiAddMessage(aiRealtimeLastUserText,'user','',false);
+    if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){
+      aiRealtimeLeaveApprovalPending=null;
+      aiRealtimeAnswerVerified('تم إلغاء الإجازة، وما تغيّر شيء.');return;
+    }
+    if(aiRealtimeLeaveApprovalPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد'))){
+      const pending=aiRealtimeLeaveApprovalPending;pending.approved=true;
+      aiHandleRealtimeTool({call_id:'approved-leave-'+Date.now(),name:'save_leave',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved leave',error));return;
+    }
     const verifiedReply=aiVerifiedReadReply(aiRealtimeLastUserText);
     if(verifiedReply)aiRealtimeAnswerVerified(verifiedReply);else aiRealtimeSend({type:'response.create'});
   }
@@ -2809,6 +2822,11 @@ function aiHandleRealtimeEvent(event){
   if(event.type==='response.output_audio_transcript.delta')aiRealtimeTranscript+=(event.delta||'');
   if(event.type==='response.output_audio_transcript.done'){
     const text=(event.transcript||aiRealtimeTranscript).trim();aiRealtimeTranscript='';if(text)aiAddMessage(text,'bot','',false);
+    const waiting=/(خليني|لحظة|ثواني|بأشيك|باشيك|أشيك|بشوف|أشوف|براجع|أراجع|بأتأكد|أتأكد|أتحقق).{0,50}(وأرد|وارجع|وأرجع|عليك|لك|من البيانات|من التداخل|من الرصيد)/i;
+    if(text&&waiting.test(text)&&!aiRealtimeWaitingRetry){
+      aiRealtimeWaitingRetry=true;
+      aiRealtimeSend({type:'response.create',response:{instructions:'أكمل الآن ولا تنتظر سؤالًا آخر. افحص بيانات السياق وأعطِ رامي النتيجة النهائية مباشرة. ممنوع قول لحظة أو بأشيك أو سأرد عليك.'}});
+    }
   }
   if(event.type==='response.function_call_arguments.done')aiHandleRealtimeTool(event).catch(error=>console.error('Realtime tool',error));
   if(event.type==='error'){console.error('OpenAI realtime',event);aiAddMessage('صار خلل بسيط في الاتصال الصوتي. اقفل المايك وشغّله مرة ثانية.','error','',false)}
@@ -2817,7 +2835,7 @@ function aiStopRealtime(showMessage=true){
   const wasActive=aiRealtimeConnected||aiRealtimeConnecting;aiRealtimeConnected=false;aiRealtimeConnecting=false;aiIsListening=false;
   try{aiRealtimeDc?.close()}catch{}try{aiRealtimePc?.close()}catch{}aiRealtimeStream?.getTracks().forEach(t=>t.stop());
   if(aiRealtimeAudio){aiRealtimeAudio.pause();aiRealtimeAudio.srcObject=null}
-  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=false;aiRealtimeHandledCalls.clear();
+  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=null;aiRealtimeWaitingRetry=false;aiRealtimeHandledCalls.clear();
   document.getElementById('aiMicBtn')?.classList.remove('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='مثال: سجل عند أحمد تأخير اليوم 20 دقيقة';
   if(showMessage&&wasActive)aiAddMessage('تم إنهاء المحادثة الصوتية.','bot','',false);
 }
@@ -3094,6 +3112,9 @@ async function sendAIMessage(){
   const input=document.getElementById('aiInput'),text=input.value.trim();if(!text)return;
   if(aiRealtimeConnected&&aiRealtimeDc?.readyState==='open'){
     aiRealtimeLastUserText=text;aiAddMessage(text,'user','',false);input.value='';
+    const q=aiNormalize(text);
+    if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){aiRealtimeLeaveApprovalPending=null;aiRealtimeAnswerVerified('تم إلغاء الإجازة، وما تغيّر شيء.');return}
+    if(aiRealtimeLeaveApprovalPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد'))){const pending=aiRealtimeLeaveApprovalPending;pending.approved=true;aiHandleRealtimeTool({call_id:'approved-leave-'+Date.now(),name:'save_leave',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved leave',error));return}
     const verifiedReply=aiVerifiedReadReply(text);if(verifiedReply){aiRealtimeAnswerVerified(verifiedReply);return}
     aiRealtimeSend({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}});aiRealtimeSend({type:'response.create'});return;
   }
