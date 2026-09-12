@@ -1739,6 +1739,15 @@ function sendLeaveWhatsApp(employeeId,leaveId,type){
   const opened=window.open(url,'_blank');if(!opened)window.location.href=url;
 }
 
+function aiOpenWhatsApp(employee,message){
+  const phone=normalizeSaudiPhone(employee?.phone),text=String(message||'').trim().slice(0,1500);
+  if(!phone)return {ok:false,error:`لا يوجد رقم جوال صحيح للموظف ${aiDisplayEmployee(employee)}. أضف الرقم من بيانات الموظف أولًا.`};
+  if(!text)return {ok:false,error:'نص رسالة واتساب فارغ.'};
+  const url=`https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  const opened=window.open(url,'_blank');if(!opened)window.location.href=url;
+  return {ok:true,phone:localPhone(phone),message:text};
+}
+
 function renderAlerts(){
   const box=document.getElementById('alertsList'); box.innerHTML='';
   const t=todayISO(); let alerts=[];
@@ -2606,6 +2615,7 @@ let aiRealtimeConnected=false;
 let aiRealtimeTranscript='';
 let aiRealtimeLastUserText='';
 let aiRealtimeLeaveApprovalPending=null;
+let aiRealtimeWhatsAppPending=null;
 let aiRealtimeWaitingRetry=false;
 const aiRealtimeHandledCalls=new Set();
 function aiNormalize(value=''){
@@ -2705,7 +2715,7 @@ function aiDashboardSnapshot(year=Number(todayISO().slice(0,4))){
   };
 }
 function aiRealtimeInstructions(){
-  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي. استخدم أسماء الموظفين والتواريخ والأرقام من بيانات الشفت فقط ولا تخترع أي معلومة أو رقم. إذا نقصتك معلومة اسأل سؤالًا واحدًا بسيطًا. يمكنك الإجابة عن الإجازات القديمة والحالية والقادمة، أرقام الجوال، الملاحظات، الإنجازات والدوام من البيانات مباشرة. أرقام إجمالي الموظفين وعلى رأس العمل وفي إجازة والتنبيهات ومؤشرات السنة موجودة جاهزة في «المؤشرات الموثقة حاليًا» أدناه؛ اقرأها مباشرة وأعطِ النتيجة من أول سؤال بدون أن تقول بأشيك أو لحظة. جدول دوام Group A موجود في groupShiftPeriods داخل «بيانات الشفت الحالية»؛ عند سؤال «دوامي» أو «دوامنا» أو «شفتنا» ابحث مباشرة عن الفترة التي تشمل التاريخ وأعطِ code وarabic، ولا تقل إن الجدول غير موجود ما دام التاريخ داخل الفترات. monthlySchedules خاص بتوزيع الموظفين على المواقع والبوابات وليس شفت Group A اليومي. عند السؤال عن ملاحظات أو تأخيرات موظف، ابحث في records عن employeeId الخاص به؛ النوع Note يعني ملاحظة وLate يعني تأخير. وعند السؤال عن إنجازاته استخدم achievements. الملاحظات الشخصية الخاصة برامي موجودة في personalNotes. تسجيل الملاحظات والتأخير والتذكيرات لا يحتاج تكرار تأكيد؛ نفّذها مباشرة بعد اكتمال الاسم والتاريخ والتفصيل. الإجازة فقط تحتاج تأكيدًا واحدًا: كرر الاسم والتاريخ مرة واحدة، وبعد أي موافقة طبيعية مثل نعم أو تمام أو أوكي أو أبشر أو اعتمد نفّذ الحفظ ولا تطلب تأكيدًا ثانيًا. افحص تداخل الإجازة والرصيد قبل الحفظ. لا تقل «تم الحفظ» إلا إذا أعادت الأداة ok:true. تاريخ اليوم ${todayISO()}.
+  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي. استخدم أسماء الموظفين والتواريخ والأرقام من بيانات الشفت فقط ولا تخترع أي معلومة أو رقم. إذا نقصتك معلومة اسأل سؤالًا واحدًا بسيطًا. يمكنك الإجابة عن الإجازات القديمة والحالية والقادمة، أرقام الجوال، الملاحظات، الإنجازات والدوام من البيانات مباشرة. أرقام إجمالي الموظفين وعلى رأس العمل وفي إجازة والتنبيهات ومؤشرات السنة موجودة جاهزة في «المؤشرات الموثقة حاليًا» أدناه؛ اقرأها مباشرة وأعطِ النتيجة من أول سؤال بدون أن تقول بأشيك أو لحظة. جدول دوام Group A موجود في groupShiftPeriods داخل «بيانات الشفت الحالية»؛ عند سؤال «دوامي» أو «دوامنا» أو «شفتنا» ابحث مباشرة عن الفترة التي تشمل التاريخ وأعطِ code وarabic، ولا تقل إن الجدول غير موجود ما دام التاريخ داخل الفترات. monthlySchedules خاص بتوزيع الموظفين على المواقع والبوابات وليس شفت Group A اليومي. عند السؤال عن ملاحظات أو تأخيرات موظف، ابحث في records عن employeeId الخاص به؛ النوع Note يعني ملاحظة وLate يعني تأخير. وعند السؤال عن إنجازاته استخدم achievements. الملاحظات الشخصية الخاصة برامي موجودة في personalNotes. تسجيل الملاحظات والتأخير والتذكيرات لا يحتاج تكرار تأكيد؛ نفّذها مباشرة بعد اكتمال الاسم والتاريخ والتفصيل. الإجازة فقط تحتاج تأكيدًا واحدًا: كرر الاسم والتاريخ مرة واحدة، وبعد أي موافقة طبيعية مثل نعم أو تمام أو أوكي أو أبشر أو اعتمد نفّذ الحفظ ولا تطلب تأكيدًا ثانيًا. افحص تداخل الإجازة والرصيد قبل الحفظ. إذا طلب رامي إرسال واتساب لموظف، استخدم أداة open_whatsapp مع الموظف ونص الرسالة، واعرض الاسم والرقم والنص واطلب تأكيدًا واحدًا؛ بعد الموافقة ستفتح الصفحة واتساب بالنص الجاهز، ولا تقل إن الرسالة أُرسلت لأن رامي هو من يضغط إرسال داخل واتساب. لا تقل «تم الحفظ» إلا إذا أعادت الأداة ok:true. تاريخ اليوم ${todayISO()}.
 المؤشرات الموثقة حاليًا:
 ${JSON.stringify(aiDashboardSnapshot())}
 بيانات الشفت الحالية:
@@ -2715,7 +2725,8 @@ function aiRealtimeTools(){return [
   {type:'function',name:'save_leave',description:'حفظ إجازة موظف بعد فحص التداخل والرصيد وبعد تأكيد واحد فقط من رامي',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},start:{type:'string',description:'YYYY-MM-DD'},end:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','start','end']}},
   {type:'function',name:'save_late',description:'حفظ تأخير موظف مباشرة عند اكتمال البيانات',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},minutes:{type:'integer'}},required:['employee_id','date','minutes']}},
   {type:'function',name:'save_employee_note',description:'حفظ ملاحظة موظف مباشرة عند اكتمال البيانات',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','date','note']}},
-  {type:'function',name:'save_personal_note',description:'حفظ تذكير رامي مباشرة عند اكتمال التاريخ والنص',parameters:{type:'object',properties:{date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['date','note']}}
+  {type:'function',name:'save_personal_note',description:'حفظ تذكير رامي مباشرة عند اكتمال التاريخ والنص',parameters:{type:'object',properties:{date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['date','note']}},
+  {type:'function',name:'open_whatsapp',description:'تجهيز رسالة واتساب لموظف وفتحها بعد تأكيد واحد من رامي',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},message:{type:'string'}},required:['message']}}
 ]}
 function aiRealtimeSend(event){if(aiRealtimeDc?.readyState==='open')aiRealtimeDc.send(JSON.stringify(event))}
 function aiRealtimeUpdateContext(){aiRealtimeSend({type:'session.update',session:{type:'realtime',instructions:aiRealtimeInstructions(),tools:aiRealtimeTools(),tool_choice:'auto'}})}
@@ -2771,6 +2782,15 @@ async function aiHandleRealtimeTool(event){
     return aiRealtimeToolResult(callId,{ok:false,needs_confirmation:true,error:'اعرض الاسم وتاريخ البداية والنهاية واطلب تأكيدًا واحدًا فقط. بعد موافقة رامي ستنفذ الصفحة الحفظ مباشرة'})
   }
   if(event.name==='save_leave')aiRealtimeLeaveApprovalPending=null;
+  if(event.name==='open_whatsapp'&&!aiRealtimeWhatsAppPending?.approved){
+    const employee=aiRealtimeEmployee(args),message=String(args.message||'').trim().slice(0,1500);
+    if(!employee)return aiRealtimeToolResult(callId,{ok:false,error:'لم أجد الموظف المحدد'});
+    const phone=localPhone(employee.phone);if(!normalizeSaudiPhone(employee.phone))return aiRealtimeToolResult(callId,{ok:false,error:`لا يوجد رقم جوال مسجل لـ ${aiDisplayEmployee(employee)}`});
+    if(!message)return aiRealtimeToolResult(callId,{ok:false,error:'احتاج نص رسالة واتساب'});
+    aiRealtimeWhatsAppPending={args:{employee_id:employee.id,employee_name:aiDisplayEmployee(employee),message},approved:false};
+    return aiRealtimeToolResult(callId,{ok:false,needs_confirmation:true,error:`اعرض للتأكيد مرة واحدة: ${aiDisplayEmployee(employee)}، الرقم ${phone}، ونص الرسالة: ${message}`});
+  }
+  if(event.name==='open_whatsapp')aiRealtimeWhatsAppPending=null;
   const date=aiSafeDate(args.date),now=new Date().toISOString(),snapshot=JSON.parse(JSON.stringify(state));
   if(event.name==='save_personal_note'){
     const note=String(args.note||'').trim().slice(0,500);if(!note)return aiRealtimeToolResult(callId,{ok:false,error:'الملاحظة فارغة'});
@@ -2778,6 +2798,10 @@ async function aiHandleRealtimeTool(event){
     return aiRealtimeToolResult(callId,{ok:true,message:'تم حفظ التذكير'});
   }
   const employee=aiRealtimeEmployee(args);if(!employee)return aiRealtimeToolResult(callId,{ok:false,error:'لم أجد الموظف المحدد'});
+  if(event.name==='open_whatsapp'){
+    const opened=aiOpenWhatsApp(employee,args.message);
+    return aiRealtimeToolResult(callId,opened.ok?{ok:true,message:`تم فتح واتساب لـ ${aiDisplayEmployee(employee)} والرسالة جاهزة؛ اضغط إرسال داخل واتساب`}:{ok:false,error:opened.error});
+  }
   if(event.name==='save_leave'){
     const start=String(args.start||''),end=String(args.end||'');
     if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end)||end<start)return aiRealtimeToolResult(callId,{ok:false,error:'تواريخ الإجازة غير صحيحة'});
@@ -2815,6 +2839,8 @@ function aiHandleRealtimeEvent(event){
       const pending=aiRealtimeLeaveApprovalPending;pending.approved=true;
       aiHandleRealtimeTool({call_id:'approved-leave-'+Date.now(),name:'save_leave',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved leave',error));return;
     }
+    if(aiRealtimeWhatsAppPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){aiRealtimeWhatsAppPending=null;aiRealtimeAnswerVerified('تم إلغاء رسالة واتساب.');return}
+    if(aiRealtimeWhatsAppPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد'))){const pending=aiRealtimeWhatsAppPending;pending.approved=true;aiHandleRealtimeTool({call_id:'approved-whatsapp-'+Date.now(),name:'open_whatsapp',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved WhatsApp',error));return}
     const verifiedReply=aiVerifiedReadReply(aiRealtimeLastUserText);
     if(verifiedReply)aiRealtimeAnswerVerified(verifiedReply);else aiRealtimeSend({type:'response.create'});
   }
@@ -2835,7 +2861,7 @@ function aiStopRealtime(showMessage=true){
   const wasActive=aiRealtimeConnected||aiRealtimeConnecting;aiRealtimeConnected=false;aiRealtimeConnecting=false;aiIsListening=false;
   try{aiRealtimeDc?.close()}catch{}try{aiRealtimePc?.close()}catch{}aiRealtimeStream?.getTracks().forEach(t=>t.stop());
   if(aiRealtimeAudio){aiRealtimeAudio.pause();aiRealtimeAudio.srcObject=null}
-  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=null;aiRealtimeWaitingRetry=false;aiRealtimeHandledCalls.clear();
+  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=null;aiRealtimeWhatsAppPending=null;aiRealtimeWaitingRetry=false;aiRealtimeHandledCalls.clear();
   document.getElementById('aiMicBtn')?.classList.remove('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='مثال: سجل عند أحمد تأخير اليوم 20 دقيقة';
   if(showMessage&&wasActive)aiAddMessage('تم إنهاء المحادثة الصوتية.','bot','',false);
 }
@@ -2986,6 +3012,10 @@ function aiChooseEmployee(employeeId){
     const days=diffDays(action.end,action.start)+1;action.days=days;
     return aiAddMessage(`تقصد ${aiDisplayEmployee(employee)}؟\nإجازة من ${fmtDate(action.start)} إلى ${fmtDate(action.end)} (${days} يوم)\nهل أعتمد الحفظ؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
   }
+  if(action.kind==='whatsapp'){
+    const phone=localPhone(employee.phone)||'غير مسجّل';
+    return aiAddMessage(`رسالة واتساب إلى ${aiDisplayEmployee(employee)} (${phone}):\n${action.message}\n\nأفتحها في واتساب؟`,'bot','<button class="yes" onclick="aiConfirmAction()">فتح واتساب</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
+  }
   aiAddMessage(`تقصد ${aiDisplayEmployee(employee)}؟\n${action.type==='Late'?action.note:'ملاحظة: '+action.note} · ${aiDateLabel(action.date)}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
 }
 function aiHandleQuery(raw){
@@ -3085,6 +3115,15 @@ function aiResolveAgentEmployee(action){
 function aiPrepareAgentAction(action){
   if(!action||typeof action!=='object')return false;
   const date=aiSafeDate(action.date),note=String(action.note||'').trim().slice(0,500)||'ملاحظة';
+  if(action.type==='send_whatsapp'){
+    const found=aiResolveAgentEmployee(action),message=String(action.message||action.note||'').trim().slice(0,1500);
+    if(found.status==='many')return aiAskEmployeeChoice(found.items,{kind:'whatsapp',message}),true;
+    if(found.status!=='one'){aiAddMessage('احتاج اسم الموظف الصحيح عشان أجهّز رسالة واتساب.');return true}
+    const phone=localPhone(found.employee.phone);if(!normalizeSaudiPhone(found.employee.phone)){aiAddMessage(`ما فيه رقم جوال صحيح مسجّل لـ ${aiDisplayEmployee(found.employee)}.`,'error');return true}
+    if(!message){aiAddMessage('أبشر، ايش تبغاني أكتب في الرسالة؟');return true}
+    aiPendingAction={kind:'whatsapp',employeeId:found.employee.id,message};
+    aiAddMessage(`رسالة واتساب إلى ${aiDisplayEmployee(found.employee)} (${phone}):\n${message}\n\nأفتحها في واتساب؟`,'bot','<button class="yes" onclick="aiConfirmAction()">فتح واتساب</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');return true;
+  }
   if(action.type==='save_leave'){
     const found=aiResolveAgentEmployee(action),start=String(action.start||''),end=String(action.end||'');
     if(found.status==='many')return aiAskEmployeeChoice(found.items,{kind:'leave',start,end,note:note==='ملاحظة'?'':note}),true;
@@ -3115,12 +3154,14 @@ async function sendAIMessage(){
     const q=aiNormalize(text);
     if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){aiRealtimeLeaveApprovalPending=null;aiRealtimeAnswerVerified('تم إلغاء الإجازة، وما تغيّر شيء.');return}
     if(aiRealtimeLeaveApprovalPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد'))){const pending=aiRealtimeLeaveApprovalPending;pending.approved=true;aiHandleRealtimeTool({call_id:'approved-leave-'+Date.now(),name:'save_leave',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved leave',error));return}
+    if(aiRealtimeWhatsAppPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){aiRealtimeWhatsAppPending=null;aiRealtimeAnswerVerified('تم إلغاء رسالة واتساب.');return}
+    if(aiRealtimeWhatsAppPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد')||q.includes('افتح'))){const pending=aiRealtimeWhatsAppPending;pending.approved=true;aiHandleRealtimeTool({call_id:'approved-whatsapp-'+Date.now(),name:'open_whatsapp',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved WhatsApp',error));return}
     const verifiedReply=aiVerifiedReadReply(text);if(verifiedReply){aiRealtimeAnswerVerified(verifiedReply);return}
     aiRealtimeSend({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}});aiRealtimeSend({type:'response.create'});return;
   }
   aiAddMessage(text,'user');input.value='';
   const q=aiNormalize(text);
-  if(aiPendingAction&&(q==='تاكيد'||q.includes('اكد')||q.includes('اعتمد')||q==='نعم'||q==='ايوه'))return aiConfirmAction();
+  if(aiPendingAction&&(q==='تاكيد'||q.includes('اكد')||q.includes('اعتمد')||q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('افتح')))return aiConfirmAction();
   if(aiPendingAction&&(q.includes('الغ')||q==='لا'))return aiCancelAction();
   if(aiPendingAction?.kind==='chooseEmployee'){
     const found=aiFindEmployee(text);
@@ -3151,6 +3192,10 @@ async function aiConfirmAction(){
   }
   if(action.kind==='chooseEmployee')return aiAddMessage('قبل الحفظ، اختر لي الموظف المقصود من فضلك.','bot');
   const employee=state.employees.find(e=>e.id===action.employeeId);if(!employee){aiPendingAction=null;return aiAddMessage('يبدو أن بيانات الموظف تغيّرت. حدّث الصفحة وجرّب مرة ثانية لو سمحت.','bot')}
+  if(action.kind==='whatsapp'){
+    aiPendingAction=null;const opened=aiOpenWhatsApp(employee,action.message);
+    return aiAddMessage(opened.ok?`فتحت واتساب لـ ${aiDisplayEmployee(employee)} والرسالة جاهزة؛ اضغط إرسال داخل واتساب.`:opened.error,opened.ok?'bot':'error');
+  }
   if(action.kind==='leave'){
     const check=checkLeaveCapacity(employee.id,action.start,action.end),days=diffDays(action.end,action.start)+1,available=Number(employee.leaveBalance)||0;
     if(check.employeeConflict){aiPendingAction=null;return aiAddMessage('ما تم الحفظ لأن الموظف عنده إجازة متداخلة.','error')}
