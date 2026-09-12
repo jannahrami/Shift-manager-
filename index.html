@@ -78,6 +78,7 @@
     .auth-logo{width:62px;height:62px;margin:0 auto 15px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,#40c9ff,#1688c5);color:#042033;font-size:28px;font-weight:950}
     .auth-card h2{margin:0 0 7px}.auth-card p{color:var(--muted);font-size:13px;margin:0 0 20px}
     .auth-card input{width:100%;margin-bottom:11px;text-align:left;direction:ltr}
+    .auth-card select{width:100%;margin-bottom:11px}.remember-row{display:flex;align-items:center;gap:8px;text-align:right;margin:2px 0 13px;font-size:12px;color:var(--muted)}.remember-row input{width:auto;margin:0}.role-badge-top{font-size:10px;font-weight:900;padding:6px 9px;border-radius:999px;background:#e8eefc;color:#315fe7}.guest-mode .admin-only{display:none!important}.guest-mode .employee-role-select,.guest-mode .roster-required,.guest-mode .roster-drop{pointer-events:none!important;opacity:.72}
     .auth-card button{width:100%}.auth-error{min-height:20px;color:var(--red);font-size:12px;margin-top:10px}
     .app.locked{display:none}
     .grid4{
@@ -783,9 +784,14 @@
   <div class="auth-card">
     <div class="auth-logo">S</div>
     <h2>Shift Manager</h2>
-    <p>سجّل الدخول بحساب المشرف للوصول إلى البيانات ومزامنتها بأمان.</p>
+    <p>اختر نوع الدخول ثم أدخل بيانات الحساب.</p>
+    <select id="loginRole" onchange="updateLoginRoleUI()">
+      <option value="admin">Admin — إدارة كاملة</option>
+      <option value="guest">Guest — عرض فقط</option>
+    </select>
     <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" autocomplete="username">
     <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+    <label class="remember-row" id="rememberLoginRow"><input type="checkbox" id="rememberLogin"> حفظ دخول Admin على هذا الجهاز</label>
     <button class="primary" id="loginBtn" onclick="login()">دخول ومزامنة</button>
     <div class="auth-error" id="authError"></div>
   </div>
@@ -800,6 +806,7 @@
       </div>
     </div>
     <div class="cloud-tools">
+      <span class="role-badge-top" id="currentRoleBadge">Admin</span>
       <span class="cloud-status" id="cloudStatus" title="حالة المزامنة"></span>
       <div class="notify-wrap"><button class="iconbtn" id="notifyBtn" title="التنبيهات" onclick="openNotifications()">🔔</button><span class="notify-count" id="notifyCount">0</span></div>
       <button class="iconbtn" id="backupBtn" title="نسخة احتياطية">⤴︎</button>
@@ -1282,7 +1289,11 @@
 
 <script>
 const KEY='shiftManagerDataV3_GroupA_Leaves';
-const SESSION_KEY='shiftManagerSupabaseSession';
+const OLD_SESSION_KEY='shiftManagerSupabaseSession';
+const SESSION_KEY='shiftManagerAuthSessionV2';
+const ADMIN_EMAIL='jannahrami@yahoo.com';
+const GUEST_USERNAME='guest';
+const GUEST_EMAIL='guest@shiftmanager.app';
 const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
 const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
 const SOON_DAYS=3;
@@ -1310,7 +1321,10 @@ let editingMonthlyRosterSelection=new Set();
 let pendingAutoRoster=null;
 let shiftDatePickerTarget='leaveStart';
 let shiftDatePickerMonth=todayISO().slice(0,7);
-let session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
+let storedAuth=null;try{storedAuth=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null')}catch{}
+let session=storedAuth?.session||null;
+let currentRole=storedAuth?.role||'guest';
+let rememberSession=Boolean(localStorage.getItem(SESSION_KEY));
 let syncTimer=null;
 let cloudReady=false;
 
@@ -1351,7 +1365,29 @@ function setCloudStatus(mode,title){
   const el=document.getElementById('cloudStatus');
   el.className='cloud-status'+(mode?' '+mode:''); el.title=title||'حالة المزامنة';
 }
-function unlockApp(){document.getElementById('authScreen')?.classList.add('hidden');document.getElementById('appShell')?.classList.remove('locked')}
+function isAdmin(){return currentRole==='admin'&&String(session?.user?.email||'').toLowerCase()===ADMIN_EMAIL}
+function updateLoginRoleUI(){
+  const admin=document.getElementById('loginRole')?.value==='admin',row=document.getElementById('rememberLoginRow'),identity=document.getElementById('loginEmail');
+  if(row)row.style.display=admin?'flex':'none';
+  if(identity){identity.type=admin?'email':'text';identity.placeholder=admin?'البريد الإلكتروني':'اسم المستخدم';identity.value=admin?'':GUEST_USERNAME;identity.readOnly=!admin;identity.dir='ltr'}
+  if(!admin){const remember=document.getElementById('rememberLogin');if(remember)remember.checked=false}
+  document.getElementById('loginPassword')?.focus();
+}
+function persistAuth(){
+  const payload=JSON.stringify({session,role:currentRole});localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY);
+  (rememberSession&&isAdmin()?localStorage:sessionStorage).setItem(SESSION_KEY,payload);
+}
+function applyRoleUI(){
+  document.querySelectorAll('.admin-only').forEach(el=>{el.classList.remove('admin-only');el.removeAttribute('aria-hidden')});
+  document.querySelectorAll('.employee-role-select,.roster-required').forEach(el=>{el.disabled=false;el.removeAttribute('title')});
+  document.body.classList.toggle('guest-mode',!isAdmin());const badge=document.getElementById('currentRoleBadge');if(badge)badge.textContent=isAdmin()?'Admin':'Guest · عرض فقط';
+  if(isAdmin())return;
+  const blocked=/^(openEmployeeModal|openLeaveModal|openShiftModal|openPersonalNoteModal|saveEmployeeRecord|saveEmployeeAchievement|editEmployeeAchievement|deleteEmployeeAchievement|deleteEmployeeRecord|editLeaveBalance|editEmployeeDutyRole|updateEmployeeDutyRole|saveMonthlyRosterPeriod|cancelMonthlyRoster|previewAutoMonthlyRoster|confirmAutoMonthlyRoster|openMonthlyRosterModal|saveMonthlyRosterAssignment|clearMonthlyRosterAssignment|saveEmployee|saveLeave|saveShift|savePersonalNote|deletePersonalNote|deleteEmployee|deleteLeave|deleteShift)/;
+  document.querySelectorAll('[onclick]').forEach(el=>{const code=el.getAttribute('onclick')||'';if(blocked.test(code)){el.classList.add('admin-only');el.setAttribute('aria-hidden','true')}});
+  document.querySelectorAll('.employee-role-select,.roster-required').forEach(el=>{el.disabled=true;el.title='وضع Guest للعرض فقط'});
+  document.getElementById('backupBtn')?.classList.add('admin-only');document.querySelector('.ai-fab')?.classList.add('admin-only');
+}
+function unlockApp(){document.getElementById('authScreen')?.classList.add('hidden');document.getElementById('appShell')?.classList.remove('locked');applyRoleUI()}
 function lockApp(message=''){
   document.getElementById('appShell')?.classList.add('locked');document.getElementById('authScreen')?.classList.remove('hidden');
   const error=document.getElementById('authError');if(error&&message)error.textContent=message;
@@ -1362,15 +1398,20 @@ async function supabaseFetch(path,options={}){
   return fetch(SUPABASE_URL+path,{...options,headers});
 }
 async function login(){
-  const email=document.getElementById('loginEmail').value.trim();
+  const identity=document.getElementById('loginEmail').value.trim();
   const password=document.getElementById('loginPassword').value;
+  const requestedRole=document.getElementById('loginRole').value;
+  const email=requestedRole==='guest'?(identity.toLowerCase()===GUEST_USERNAME?GUEST_EMAIL:''):identity;
   const error=document.getElementById('authError'),btn=document.getElementById('loginBtn');
-  if(!email||!password){error.textContent='أدخل البريد وكلمة المرور';return}
+  if(!email||!password){error.textContent=requestedRole==='guest'?'أدخل اسم المستخدم guest وكلمة المرور':'أدخل البريد وكلمة المرور';return}
   btn.disabled=true;btn.textContent='جاري الدخول...';error.textContent='';
   try{
     const res=await supabaseFetch('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
     const data=await res.json(); if(!res.ok) throw new Error(data.error_description||data.msg||'تعذر تسجيل الدخول');
-    session=data;localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+    const accountEmail=String(data?.user?.email||email).toLowerCase();
+    if(requestedRole==='admin'&&accountEmail!==ADMIN_EMAIL)throw new Error('هذا الحساب غير مصرح له بالدخول كـ Admin');
+    if(requestedRole==='guest'&&accountEmail!==GUEST_EMAIL)throw new Error('بيانات دخول Guest غير صحيحة');
+    session=data;currentRole=requestedRole==='guest'?'guest':(accountEmail===ADMIN_EMAIL?'admin':'guest');rememberSession=isAdmin()&&document.getElementById('rememberLogin').checked;persistAuth();
     document.getElementById('loginPassword').value=''; await loadCloudState();
   }catch(e){error.textContent=e.message}
   finally{btn.disabled=false;btn.textContent='دخول ومزامنة'}
@@ -1379,7 +1420,7 @@ async function refreshSession(){
   if(!session?.refresh_token)return false;
   try{
     const res=await supabaseFetch('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});
-    if(!res.ok)return false;session=await res.json();localStorage.setItem(SESSION_KEY,JSON.stringify(session));return true;
+    if(!res.ok)return false;session=await res.json();if(currentRole==='admin'&&!isAdmin())return false;persistAuth();return true;
   }catch{return false}
 }
 async function loadCloudState(){
@@ -1403,8 +1444,8 @@ async function loadCloudState(){
     state.employees.forEach(e=>{if(!['chief','assistant','community','clerk','scc','visitor','commVisitor','leader','officer','patrol','flex'].includes(e.dutyRole))e.dutyRole=''})
     state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
     if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
-    const rosterLocationsChanged=pruneOldMonthlyRosterLocations();
-    const annualCreditChanged=ensureAnnualLeaveCredit();
+    const rosterLocationsChanged=isAdmin()?pruneOldMonthlyRosterLocations():false;
+    const annualCreditChanged=isAdmin()?ensureAnnualLeaveCredit():false;
     loadRuntimeRosterConfig();
     localStorage.setItem(KEY,JSON.stringify(state));
     if(rosterLocationsChanged||annualCreditChanged)await uploadCloudState();
@@ -1412,6 +1453,7 @@ async function loadCloudState(){
   }catch(e){cloudReady=false;setCloudStatus('offline','تعذرت المزامنة');lockApp(e.message||'تعذر تحميل البيانات')}
 }
 async function uploadCloudState(){
+  if(!isAdmin())throw new Error('حساب Guest للعرض فقط');
   const res=await supabaseFetch('/rest/v1/shift_manager_state?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'main',data:state,updated_at:new Date().toISOString()})});
   if(!res.ok)throw new Error('تعذر حفظ البيانات السحابية');
 }
@@ -1422,11 +1464,12 @@ async function syncCloud(){
   catch{setCloudStatus('offline','حُفظ محليًا وتعذرت المزامنة')}
 }
 function save(){
+  if(!isAdmin()){alert('حساب Guest للعرض فقط ولا يمكنه تعديل البيانات');return false}
   localStorage.setItem(KEY,JSON.stringify(state));renderAll();
   clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450);
 }
 function logout(){
-  session=null;cloudReady=false;localStorage.removeItem(SESSION_KEY);localStorage.removeItem(KEY);setCloudStatus('offline','تم تسجيل الخروج');lockApp();
+  session=null;currentRole='guest';rememberSession=false;cloudReady=false;localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY);localStorage.removeItem(KEY);document.body.classList.remove('guest-mode');setCloudStatus('offline','تم تسجيل الخروج');lockApp();
 }
 
 function fmtDate(s){ if(!s)return ''; return new Date(s+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{day:'2-digit',month:'2-digit',year:'numeric'}); }
@@ -2476,7 +2519,7 @@ function printMonthlyRoster(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderStats(); renderLeaveBalanceInsights(); renderDashboardShift(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
+  renderStats(); renderLeaveBalanceInsights(); renderDashboardShift(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
 }
 
 function showView(id,btn){
@@ -3269,6 +3312,7 @@ document.getElementById('backupBtn').addEventListener('click',()=>{
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 });
 lockApp();
+localStorage.removeItem(OLD_SESSION_KEY);updateLoginRoleUI();
 if(document.getElementById('recordDate')) document.getElementById('recordDate').value=todayISO();
 if(session){
   refreshSession().then(ok=>ok?loadCloudState():logout()).catch(()=>logout());
