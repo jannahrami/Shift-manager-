@@ -2732,7 +2732,11 @@ function aiRealtimeSend(event){if(aiRealtimeDc?.readyState==='open')aiRealtimeDc
 function aiRealtimeUpdateContext(){aiRealtimeSend({type:'session.update',session:{type:'realtime',instructions:aiRealtimeInstructions(),tools:aiRealtimeTools(),tool_choice:'auto'}})}
 function aiRealtimeToolResult(callId,result){
   aiRealtimeSend({type:'conversation.item.create',item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}});
-  aiRealtimeSend({type:'response.create'});
+  if(result?.ok&&result?.message){
+    aiRealtimeSend({type:'response.create',response:{instructions:`انطق نتيجة التنفيذ التالية فورًا فقط كما هي، بدون تمهيد أو وعد بالرجوع أو إعادة فحص: ${result.message}`}});
+  }else{
+    aiRealtimeSend({type:'response.create'});
+  }
 }
 function aiRealtimeEmployee(args){
   let employee=state.employees.find(e=>e.id===args.employee_id);
@@ -2848,7 +2852,7 @@ function aiHandleRealtimeEvent(event){
   if(event.type==='response.output_audio_transcript.delta')aiRealtimeTranscript+=(event.delta||'');
   if(event.type==='response.output_audio_transcript.done'){
     const text=(event.transcript||aiRealtimeTranscript).trim();aiRealtimeTranscript='';if(text)aiAddMessage(text,'bot','',false);
-    const waiting=/(خليني|لحظة|ثواني|بأشيك|باشيك|أشيك|بشوف|أشوف|براجع|أراجع|بأتأكد|أتأكد|أتحقق).{0,50}(وأرد|وارجع|وأرجع|عليك|لك|من البيانات|من التداخل|من الرصيد)/i;
+    const waiting=/(خليني|لحظة|ثواني|بأشيك|باشيك|أشيك|بشوف|أشوف|براجع|أراجع|بأتأكد|أتأكد|أتحقق|بأجهز|بجهز|أجهز|راح\s+أجهز).{0,80}(وأرد|وارجع|وأرجع|عليك|لك|الرد|النتيجة|من البيانات|من التداخل|من الرصيد|بناء\s+على)/i;
     if(text&&waiting.test(text)&&!aiRealtimeWaitingRetry){
       aiRealtimeWaitingRetry=true;
       aiRealtimeSend({type:'response.create',response:{instructions:'أكمل الآن ولا تنتظر سؤالًا آخر. افحص بيانات السياق وأعطِ رامي النتيجة النهائية مباشرة. ممنوع قول لحظة أو بأشيك أو سأرد عليك.'}});
