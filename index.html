@@ -977,6 +977,7 @@
         <button class="report-choice active" data-report="balances" onclick="selectReportType('balances',this)"><span>💳</span><strong>أرصدة الموظفين</strong><small>رصيد جميع الموظفين</small></button>
         <button class="report-choice" data-report="monthly" onclick="selectReportType('monthly',this)"><span>🗓️</span><strong>إجازات الشهر</strong><small>تقرير شهري كامل</small></button>
         <button class="report-choice" data-report="annual" onclick="selectReportType('annual',this)"><span>👤</span><strong>التقرير السنوي</strong><small>تقرير موظف محدد</small></button>
+        <button class="report-choice" data-report="fullEmployee" onclick="selectReportType('fullEmployee',this)"><span>📋</span><strong>تقرير موظف كامل</strong><small>الملاحظات والإجازات والإنجازات</small></button>
         <button class="report-choice" data-report="achievements" onclick="selectReportType('achievements',this)"><span>🏆</span><strong>تقرير الإنجازات</strong><small>جميع الموظفين المنجزين</small></button>
       </div>
 
@@ -1016,6 +1017,19 @@
           </div>
         </div>
         <div id="annualReportBox"></div>
+      </div>
+
+      <div class="section report-panel" id="fullEmployeeReportPanel">
+        <div class="form" style="margin-bottom:20px">
+          <h3>التقرير الكامل للموظف</h3>
+          <div class="small-note" style="margin-bottom:10px">يشمل بيانات الموظف وجميع الملاحظات والإجازات والإنجازات المسجلة.</div>
+          <div class="month-filter">
+            <select id="fullEmployeeReportEmployee" aria-label="اختر الموظف"></select>
+            <button class="primary" onclick="renderFullEmployeeReport()">عرض التقرير الكامل</button>
+            <button class="secondary" onclick="printReport('fullEmployeeReportBox','التقرير الكامل للموظف')">🖨 طباعة / PDF</button>
+          </div>
+        </div>
+        <div id="fullEmployeeReportBox"></div>
       </div>
 
       <div class="section report-panel" id="achievementsReportPanel">
@@ -2071,6 +2085,7 @@ function selectReportType(type,button){
   if(type==='balances')renderBalancesReport();
   if(type==='monthly')renderMonthlyReport();
   if(type==='annual'&&document.getElementById('annualReportEmployee').value)renderAnnualEmployeeReport();
+  if(type==='fullEmployee'&&document.getElementById('fullEmployeeReportEmployee').value)renderFullEmployeeReport();
   if(type==='achievements')renderAchievementsReport();
 }
 function balanceReportEmployees(){
@@ -2132,6 +2147,25 @@ function exportAnnualEmployeeReport(){
   if(!employeeId||!year){alert('اختر الموظف والسنة');return}
   const employee=state.employees.find(e=>e.id===employeeId),rows=annualReportRows(employeeId,year);if(!rows.length){alert('لا توجد إجازات في السنة المحددة');return}
   downloadCsv(`Employee_Leave_Report_${employee.empId}_${year}.csv`,['م','اسم الموظف','رقم الباج','من','إلى','أيام ضمن السنة','الملاحظة','الرصيد الحالي'],rows.map((x,i)=>[i+1,employee.name,employee.empId,x.leave.start,x.leave.end,x.days,x.leave.note||'',employee.leaveBalance]));
+}
+function renderFullEmployeeReport(){
+  const employeeId=document.getElementById('fullEmployeeReportEmployee')?.value;
+  const employee=state.employees.find(e=>e.id===employeeId),box=document.getElementById('fullEmployeeReportBox');
+  if(!box)return;if(!employee){box.innerHTML='<div class="empty">اختر الموظف أولًا</div>';return}
+  const records=state.records.filter(r=>r.employeeId===employeeId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const leaves=state.leaves.filter(l=>l.employeeId===employeeId).sort((a,b)=>(b.start||'').localeCompare(a.start||''));
+  const achievements=state.achievements.filter(a=>a.employeeId===employeeId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const emptyRow=(cols,text)=>`<tr><td colspan="${cols}" style="text-align:center;color:#64748b">${esc(text)}</td></tr>`;
+  box.innerHTML=`<div class="report-document" dir="rtl">
+    <div class="section-head"><div><h2>التقرير الكامل للموظف</h2><div class="small-note">تاريخ التقرير: ${fmtDate(todayISO())}</div></div></div>
+    <div class="report-summary"><div><strong>${esc(employee.nameAr||employee.name||'-')}</strong><span>اسم الموظف</span></div><div><strong>${esc(employee.empId||'-')}</strong><span>الرقم الوظيفي</span></div><div><strong>${records.length}</strong><span>الملاحظات</span></div><div><strong>${leaves.length}</strong><span>الإجازات</span></div><div><strong>${achievements.length}</strong><span>الإنجازات</span></div></div>
+    <h3 style="margin-top:20px">الملاحظات المسجلة</h3>
+    <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التفاصيل</th></tr></thead><tbody>${records.length?records.map((r,i)=>`<tr><td>${i+1}</td><td>${fmtDate(r.date)}</td><td>${esc(r.type==='Late'?'تأخير':r.type==='Note'?'ملاحظة':r.type||'-')}</td><td>${esc(r.note||'-')}</td></tr>`).join(''):emptyRow(4,'لا توجد ملاحظات مسجلة')}</tbody></table></div>
+    <h3 style="margin-top:20px">الإجازات</h3>
+    <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>من</th><th>إلى</th><th>عدد الأيام</th><th>الملاحظة</th></tr></thead><tbody>${leaves.length?leaves.map((l,i)=>`<tr><td>${i+1}</td><td>${fmtDate(l.start)}</td><td>${fmtDate(l.end)}</td><td>${diffDays(l.end,l.start)+1}</td><td>${esc(l.note||'-')}</td></tr>`).join(''):emptyRow(5,'لا توجد إجازات مسجلة')}</tbody></table></div>
+    <h3 style="margin-top:20px">الإنجازات</h3>
+    <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>التاريخ</th><th>نوع الإنجاز</th><th>التفاصيل</th></tr></thead><tbody>${achievements.length?achievements.map((a,i)=>`<tr><td>${i+1}</td><td>${fmtDate(a.date)}</td><td>${esc(a.type||'-')}</td><td>${esc(a.note||'-')}</td></tr>`).join(''):emptyRow(4,'لا توجد إنجازات مسجلة')}</tbody></table></div>
+  </div>`;
 }
 function achievementReportRows(employeeId=''){
   return state.achievements.map(achievement=>({achievement,employee:state.employees.find(e=>e.id===achievement.employeeId)}))
@@ -2252,6 +2286,7 @@ function refreshSelects(){
   document.getElementById('leaveEmployee').innerHTML=opts;
   document.getElementById('shiftEmployee').innerHTML=opts;
   const annual=document.getElementById('annualReportEmployee');if(annual){const current=annual.value;annual.innerHTML=opts;if(current)annual.value=current}
+  const fullEmployee=document.getElementById('fullEmployeeReportEmployee');if(fullEmployee){const current=fullEmployee.value;fullEmployee.innerHTML=opts;if(current)fullEmployee.value=current}
 }
 
 function openEmployeeAnnualReport(id){
