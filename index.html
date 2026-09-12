@@ -1023,9 +1023,11 @@
       <div class="section report-panel" id="fullEmployeeReportPanel">
         <div class="form" style="margin-bottom:20px">
           <h3>التقرير الكامل للموظف</h3>
-          <div class="small-note" style="margin-bottom:10px">يشمل بيانات الموظف وجميع الملاحظات والإجازات والإنجازات المسجلة.</div>
+          <div class="small-note" style="margin-bottom:10px">اختر الفترة المطلوبة لعرض ملاحظات وإجازات وإنجازات الموظف خلالها.</div>
           <div class="month-filter">
             <select id="fullEmployeeReportEmployee" aria-label="اختر الموظف"></select>
+            <input type="date" id="fullEmployeeReportStart" aria-label="من تاريخ">
+            <input type="date" id="fullEmployeeReportEnd" aria-label="إلى تاريخ">
             <button class="primary" onclick="renderFullEmployeeReport()">عرض التقرير الكامل</button>
             <button class="secondary" onclick="printReport('fullEmployeeReportBox','التقرير الكامل للموظف')">🖨 طباعة / PDF</button>
           </div>
@@ -2151,14 +2153,17 @@ function exportAnnualEmployeeReport(){
 }
 function renderFullEmployeeReport(){
   const employeeId=document.getElementById('fullEmployeeReportEmployee')?.value;
+  const start=document.getElementById('fullEmployeeReportStart')?.value,end=document.getElementById('fullEmployeeReportEnd')?.value;
   const employee=state.employees.find(e=>e.id===employeeId),box=document.getElementById('fullEmployeeReportBox');
   if(!box)return;if(!employee){box.innerHTML='<div class="empty">اختر الموظف أولًا</div>';return}
-  const records=state.records.filter(r=>r.employeeId===employeeId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const leaves=state.leaves.filter(l=>l.employeeId===employeeId).sort((a,b)=>(b.start||'').localeCompare(a.start||''));
-  const achievements=state.achievements.filter(a=>a.employeeId===employeeId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!start||!end){alert('حدد تاريخ البداية والنهاية');return}
+  if(end<start){alert('تاريخ النهاية يجب أن يكون بعد تاريخ البداية');return}
+  const records=state.records.filter(r=>r.employeeId===employeeId&&r.date>=start&&r.date<=end).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const leaves=state.leaves.filter(l=>l.employeeId===employeeId&&l.start<=end&&l.end>=start).sort((a,b)=>(b.start||'').localeCompare(a.start||''));
+  const achievements=state.achievements.filter(a=>a.employeeId===employeeId&&a.date>=start&&a.date<=end).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const emptyRow=(cols,text)=>`<tr><td colspan="${cols}" style="text-align:center;color:#64748b">${esc(text)}</td></tr>`;
   box.innerHTML=`<div class="report-document" dir="rtl">
-    <div class="section-head"><div><h2>التقرير الكامل للموظف</h2><div class="small-note">تاريخ التقرير: ${fmtDate(todayISO())}</div></div></div>
+    <div class="section-head"><div><h2>التقرير الكامل للموظف</h2><div class="small-note">الفترة من ${fmtDate(start)} إلى ${fmtDate(end)} · تاريخ الاستخراج: ${fmtDate(todayISO())}</div></div></div>
     <div class="report-summary"><div><strong>${esc(employee.nameAr||employee.name||'-')}</strong><span>اسم الموظف</span></div><div><strong>${esc(employee.empId||'-')}</strong><span>الرقم الوظيفي</span></div><div><strong>${records.length}</strong><span>الملاحظات</span></div><div><strong>${leaves.length}</strong><span>الإجازات</span></div><div><strong>${achievements.length}</strong><span>الإنجازات</span></div></div>
     <h3 style="margin-top:20px">الملاحظات المسجلة</h3>
     <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التفاصيل</th></tr></thead><tbody>${records.length?records.map((r,i)=>`<tr><td>${i+1}</td><td>${fmtDate(r.date)}</td><td>${esc(r.type==='Late'?'تأخير':r.type==='Note'?'ملاحظة':r.type||'-')}</td><td>${esc(r.note||'-')}</td></tr>`).join(''):emptyRow(4,'لا توجد ملاحظات مسجلة')}</tbody></table></div>
@@ -2288,6 +2293,9 @@ function refreshSelects(){
   document.getElementById('shiftEmployee').innerHTML=opts;
   const annual=document.getElementById('annualReportEmployee');if(annual){const current=annual.value;annual.innerHTML=opts;if(current)annual.value=current}
   const fullEmployee=document.getElementById('fullEmployeeReportEmployee');if(fullEmployee){const current=fullEmployee.value;fullEmployee.innerHTML=opts;if(current)fullEmployee.value=current}
+  const fullStart=document.getElementById('fullEmployeeReportStart'),fullEnd=document.getElementById('fullEmployeeReportEnd'),year=new Date().getFullYear();
+  if(fullStart&&!fullStart.value)fullStart.value=`${year}-01-01`;
+  if(fullEnd&&!fullEnd.value)fullEnd.value=`${year}-12-31`;
 }
 
 function openEmployeeAnnualReport(id){
