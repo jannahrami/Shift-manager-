@@ -2609,6 +2609,13 @@ function checkLeaveCapacity(employeeId,start,end,excludeId=null){
   });
   return {employeeConflict,blocked,full};
 }
+function leaveChargedDays(leave){
+  if(!leave)return 0;
+  const stored=Number(leave.balanceDaysCharged);
+  if(Number.isFinite(stored)&&stored>0)return stored;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(leave.start||'')&&/^\d{4}-\d{2}-\d{2}$/.test(leave.end||'')&&leave.end>=leave.start)return diffDays(leave.end,leave.start)+1;
+  return 0;
+}
 function saveLeave(){
   const employeeId=document.getElementById('leaveEmployee').value;
   const start=document.getElementById('leaveStart').value;
@@ -2624,7 +2631,7 @@ function saveLeave(){
   }else if(check.full.length&&!confirm(`تنبيه: سيصل عدد المجازين إلى الحد الأعلى 6 موظفين خلال ${check.full.length} يوم. هل تريد المتابعة والإضافة؟`))return;
   const newDays=diffDays(end,start)+1;
   const oldLeave=editingLeaveId?state.leaves.find(l=>l.id===editingLeaveId):null;
-  const oldCharged=Number(oldLeave?.balanceDaysCharged||0);
+  const oldCharged=leaveChargedDays(oldLeave);
   const oldEmployee=oldLeave?state.employees.find(e=>e.id===oldLeave.employeeId):null;
   const employee=state.employees.find(e=>e.id===employeeId);
   const available=(Number(employee?.leaveBalance)||0)+(oldLeave?.employeeId===employeeId?oldCharged:0);
@@ -2678,7 +2685,7 @@ function deleteEmployee(id){
 function deleteLeave(id){
   if(!confirm('حذف الإجازة؟'))return;
   const leave=state.leaves.find(x=>x.id===id);
-  if(leave?.balanceDaysCharged){const e=state.employees.find(x=>x.id===leave.employeeId);if(e)e.leaveBalance=(Number(e.leaveBalance)||0)+Number(leave.balanceDaysCharged)}
+  const charged=leaveChargedDays(leave);if(leave&&charged){const e=state.employees.find(x=>x.id===leave.employeeId);if(e)e.leaveBalance=(Number(e.leaveBalance)||0)+charged}
   state.leaves=state.leaves.filter(x=>x.id!==id);save();
 }
 function deleteShift(id){ if(confirm('حذف التوزيع؟')){state.shifts=state.shifts.filter(x=>x.id!==id);save()} }
