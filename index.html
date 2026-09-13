@@ -208,6 +208,8 @@
     .global-search-icon{position:absolute;right:15px;top:13px;color:var(--muted);pointer-events:none}
     .search-results{position:absolute;top:calc(100% + 7px);inset-inline:0;display:none;padding:7px;background:#0d1728;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);max-height:330px;overflow:auto}
     .search-results.show{display:block}.search-result{padding:11px;border-radius:12px;cursor:pointer}.search-result:hover{background:#152840}
+    .access-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:-4px 0 17px}.access-card{border:1px solid var(--line);border-radius:16px;padding:13px 15px;background:#fff;color:#1f2937;text-align:right;cursor:pointer;box-shadow:0 6px 18px rgba(31,44,64,.07);transition:.2s ease;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}.access-card:hover{transform:translateY(-2px);box-shadow:0 10px 23px rgba(31,44,64,.11)}.access-card-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:19px}.access-card strong{display:block;font-size:12px}.access-card small{display:block;font-size:10px;color:#718096;margin-top:4px}.access-card.industrial .access-card-icon{background:linear-gradient(135deg,#315fe7,#2448bd)}.access-card.community .access-card-icon{background:linear-gradient(135deg,#16a085,#087d70)}.access-card.ecc .access-card-icon{background:linear-gradient(135deg,#d97706,#b45309)}.access-members{display:grid;gap:8px}.access-member{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:13px;background:#fff;cursor:pointer}.access-member:hover{background:#f7faff}.access-member-badge{font-size:11px;font-weight:900;color:#526176;background:#eef2f7;border-radius:9px;padding:6px 8px}
+    @media(max-width:700px){.access-cards{grid-template-columns:1fr}.access-card{padding:11px 13px}.access-card-icon{width:36px;height:36px}}
     .notification-list{display:grid;gap:9px}.notification-item{display:flex;gap:11px;align-items:flex-start;padding:13px;border:1px solid var(--line);border-radius:15px;background:#0b1424}.notification-icon{font-size:19px}
     .month-filter{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;margin:14px 0}
     .month-filter input{min-width:0}
@@ -832,6 +834,7 @@
     <input id="globalSearchInput" placeholder="بحث شامل: اسم الموظف أو الرقم الوظيفي" autocomplete="off" oninput="renderGlobalSearch()" onfocus="renderGlobalSearch()">
     <div class="search-results" id="globalSearchResults"></div>
   </div>
+  <div class="access-cards" id="accessCards"></div>
 
   <main>
     <section id="homeView" class="view active">
@@ -1303,6 +1306,13 @@
   </div>
 </div>
 
+<div class="modal" id="accessGroupModal">
+  <div class="sheet">
+    <div class="section-head"><div><span class="section-kicker">Access List</span><h3 id="accessGroupTitle">Access</h3></div><button class="secondary" onclick="closeModal('accessGroupModal')">إغلاق</button></div>
+    <div class="access-members" id="accessGroupMembers"></div>
+  </div>
+</div>
+
 <script>
 const KEY='shiftManagerDataV3_GroupA_Leaves';
 const OLD_SESSION_KEY='shiftManagerSupabaseSession';
@@ -1316,6 +1326,11 @@ const SOON_DAYS=3;
 const MARINE_ID_EXPIRY_BY_BADGE={
   '101703':'2024-03-07','101631':'2026-11-02','101632':'2027-06-11','101650':'2027-01-28','101690':'2026-12-17','101697':'2027-01-28','101701':'2027-07-29','101718':'2026-05-18','101725':'2027-06-11','101738':'2027-01-28','101749':'2027-06-11','101771':'2027-01-28','101988':'2027-01-28','102286':'2027-07-29','102862':'2027-07-29','103389':'2027-01-28','103619':'2027-07-29','103661':'2027-01-28','103871':'2025-05-18','104495':'2027-01-28','104722':'2027-06-11'
 };
+const ACCESS_GROUPS=[
+  {id:'industrial',title:'Information Office Industrial',icon:'🏭',badges:['101634','102286','103661'],names:{'101634':'AHMED MOHAMMED SELAHBI','102286':'NIZAR ALI HODHODI','103661':'MOHAMMED OAYED MUTAIRI'}},
+  {id:'community',title:'Information Office Community',icon:'🏘️',badges:['102305','102286','103661','103409'],names:{'102305':'HASSAN ALI SAADI','102286':'NIZAR ALI HODHODI','103661':'MOHAMMED OAYED MUTAIRI','103409':'MOHAMMED YOUSEF MOHAMMED'}},
+  {id:'ecc',title:'ECC Room Access',icon:'🖥️',badges:['101725','104121','101690','101694','103619'],names:{'101725':'ADEL A BELADI','104121':'HASSAN AZIZALLAH TASH','101690':'YOUSEF BARKI BARKAH FARSI','101694':'RAYAN NASSAR DHAHRI','103619':'ABDULLAH SALEH GHAMDI'}}
+];
 function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[]}}
 let state=emptyState();
 
@@ -1400,6 +1415,18 @@ function openMarineAlerts(){
   const rows=marineEmployees(),box=document.getElementById('marineAlertsList');
   box.innerHTML=rows.length?rows.map(({employee,status})=>`<div class="marine-row ${status.kind}" onclick="closeModal('marineAlertsModal');openEmployeeProfile('${employee.id}')" style="cursor:pointer"><div><div class="name">${esc(employee.nameAr||employee.name)}</div><div class="meta">Badge #${esc(employee.empId)} · ${esc(status.label)}</div></div><div class="marine-date">${fmtDate(marineExpiryFor(employee))}</div></div>`).join(''):'<div class="empty">لا توجد بيانات Marine ID مسجلة</div>';
   document.getElementById('marineAlertsModal').classList.add('show');
+}
+function accessEmployeeByBadge(badge){return state.employees.find(e=>String(e.empId||'')===String(badge))}
+function employeeAccessGroups(employee){return ACCESS_GROUPS.filter(group=>group.badges.includes(String(employee?.empId||'')))}
+function renderAccessCards(){
+  const box=document.getElementById('accessCards');if(!box)return;
+  box.innerHTML=ACCESS_GROUPS.map(group=>`<button class="access-card ${group.id}" onclick="openAccessGroup('${group.id}')"><span class="access-card-icon">${group.icon}</span><span><strong>${esc(group.title)}</strong><small>${group.badges.length} موظفين مصرح لهم</small></span></button>`).join('');
+}
+function openAccessGroup(groupId){
+  const group=ACCESS_GROUPS.find(g=>g.id===groupId),box=document.getElementById('accessGroupMembers');if(!group||!box)return;
+  document.getElementById('accessGroupTitle').textContent=group.title;
+  box.innerHTML=group.badges.map(badge=>{const employee=accessEmployeeByBadge(badge),name=employee?(employee.nameAr||employee.name):group.names[badge];return `<div class="access-member" ${employee?`onclick="closeModal('accessGroupModal');openEmployeeProfile('${employee.id}')"`:''}><div><div class="name">${esc(name||'-')}</div><div class="meta">${employee&&employee.nameAr?esc(employee.name):'Access authorized'}</div></div><span class="access-member-badge">#${esc(badge)}</span></div>`}).join('');
+  document.getElementById('accessGroupModal').classList.add('show');
 }
 
 function setCloudStatus(mode,title){
@@ -2013,6 +2040,7 @@ function renderEmployeeProfile(){
           <div class="meta">Badge #${esc(e.empId)} · GC ${esc(e.gc||'-')}</div>
           <div class="meta">الجوال: ${esc(localPhone(e.phone)||'غير مسجل')}</div>
           <div class="meta">Marine ID: ${marineExpiryFor(e)?`${fmtDate(marineExpiryFor(e))} · ${esc(marineStatus(e).label)}`:'غير مسجل'}</div>
+          <div class="meta">Access: ${employeeAccessGroups(e).length?employeeAccessGroups(e).map(g=>esc(g.title)).join(' · '):'لا توجد صلاحية مسجلة'}</div>
           <div class="meta">${esc(e.position||e.shift||'-')}</div>
           <div class="meta" style="margin-top:6px">رصيد الإجازة المتبقي: <strong>${formatDays(e.leaveBalance)}</strong> يوم <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editLeaveBalance('${e.id}')">تعديل الرصيد</button></div>
           <div class="meta" style="margin-top:7px">المهمة: <span class="badge role-badge">${employeeDutyRoleLabel(e.dutyRole)}</span> <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editEmployeeDutyRole('${e.id}')">تعديل المهمة</button></div>
@@ -2251,7 +2279,7 @@ function renderFullEmployeeReport(){
   box.innerHTML=`<div class="report-document" dir="rtl">
     <div class="section-head"><div><h2>التقرير الكامل للموظف</h2><div class="small-note">الفترة من ${fmtDate(start)} إلى ${fmtDate(end)} · تاريخ الاستخراج: ${fmtDate(todayISO())}</div></div></div>
     <div class="report-summary"><div><strong>${esc(employee.nameAr||employee.name||'-')}</strong><span>اسم الموظف</span></div><div><strong>${esc(employee.empId||'-')}</strong><span>الرقم الوظيفي</span></div><div><strong>${records.length}</strong><span>الملاحظات</span></div><div><strong>${leaves.length}</strong><span>الإجازات</span></div><div><strong>${achievements.length}</strong><span>الإنجازات</span></div></div>
-    <div class="small-note" style="margin:10px 0 18px">Marine ID Access: ${marineExpiryFor(employee)?`${fmtDate(marineExpiryFor(employee))} — ${esc(marineStatus(employee).label)}`:'غير مسجل'}</div>
+    <div class="small-note" style="margin:10px 0 18px">Marine ID Access: ${marineExpiryFor(employee)?`${fmtDate(marineExpiryFor(employee))} — ${esc(marineStatus(employee).label)}`:'غير مسجل'}<br>Access: ${employeeAccessGroups(employee).length?employeeAccessGroups(employee).map(g=>esc(g.title)).join(' · '):'لا توجد صلاحية مسجلة'}</div>
     <h3 style="margin-top:20px">الملاحظات المسجلة</h3>
     <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التفاصيل</th></tr></thead><tbody>${records.length?records.map((r,i)=>`<tr><td>${i+1}</td><td>${fmtDate(r.date)}</td><td>${esc(r.type==='Late'?'تأخير':r.type==='Note'?'ملاحظة':r.type||'-')}</td><td>${esc(r.note||'-')}</td></tr>`).join(''):emptyRow(4,'لا توجد ملاحظات مسجلة')}</tbody></table></div>
     <h3 style="margin-top:20px">الإجازات</h3>
@@ -2563,7 +2591,7 @@ function printMonthlyRoster(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderStats(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
+  renderAccessCards();renderStats(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
 }
 
 function showView(id,btn){
@@ -3230,6 +3258,7 @@ function aiContextForAgent(){
     personalNotes:state.personalNotes.map(n=>({date:n.date||'',text:n.text||'',createdAt:n.createdAt||''})),
     monthlySchedules:state.monthlySchedules||{},
     monthlySchedulePeriods:state.monthlySchedulePeriods||{},
+    accessGroups:ACCESS_GROUPS.map(g=>({title:g.title,badges:g.badges})),
     groupShiftPeriods,
     leaveBalanceHistory:Array.isArray(state.leaveBalanceHistory)?state.leaveBalanceHistory:[]
   };
