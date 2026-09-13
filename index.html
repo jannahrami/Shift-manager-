@@ -515,6 +515,10 @@
       .dashboard-shift-code{font-size:52px;line-height:.9;font-weight:900;letter-spacing:-2px}
       .dashboard-shift-copy strong{display:block;font-size:21px}.dashboard-shift-copy span{display:block;color:#abb7c9;font-size:12px;margin-top:5px}
       .dashboard-next-shift{position:absolute;left:22px;bottom:20px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.08);color:#cbd5e1;font-size:11px}
+      .marine-alert{position:absolute;left:22px;top:20px;z-index:2;border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:10px 13px;color:#fff;background:rgba(255,255,255,.10);font:inherit;text-align:right;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.13)}
+      .marine-alert strong{display:block;font-size:12px}.marine-alert span{display:block;font-size:10px;margin-top:3px;opacity:.9}.marine-alert.danger{background:rgba(190,24,93,.78)}.marine-alert.warning{background:rgba(217,119,6,.82)}.marine-alert.ok{background:rgba(5,150,105,.72)}
+      .marine-mobile-alert{display:none;width:100%;border:0;border-radius:16px;padding:13px 15px;color:#fff;text-align:right;font:inherit;cursor:pointer}.marine-mobile-alert.danger{background:linear-gradient(135deg,#be185d,#9f1239)}.marine-mobile-alert.warning{background:linear-gradient(135deg,#d97706,#b45309)}.marine-mobile-alert.ok{background:linear-gradient(135deg,#059669,#047857)}
+      .marine-list{display:grid;gap:8px}.marine-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:13px;background:#fff}.marine-row .marine-date{font-size:11px;font-weight:900}.marine-row.expired{border-right:5px solid #be185d}.marine-row.soon{border-right:5px solid #d97706}.marine-row.valid{border-right:5px solid #059669}
       .dashboard-add-card{border:0;border-radius:24px;padding:22px;background:linear-gradient(140deg,#6573fa,#3554d8);color:#fff;text-align:right;box-shadow:0 17px 35px rgba(55,77,190,.23);cursor:pointer;transition:.2s ease}
       .dashboard-add-card:hover{transform:translateY(-3px);box-shadow:0 22px 40px rgba(55,77,190,.29)}
       .dashboard-add-icon{display:grid;place-items:center;width:39px;height:39px;border-radius:13px;background:rgba(255,255,255,.14);font-size:25px;margin-bottom:22px}
@@ -528,7 +532,7 @@
       .fab{right:218px;left:auto}
     }
 
-    @media(max-width:899px){.dashboard-hero{display:none}}
+    @media(max-width:899px){.dashboard-hero{display:none}.marine-mobile-alert{display:block}}
     @media(max-width:899px){.bottom-nav{grid-template-columns:repeat(6,1fr);overflow-x:auto}.navbtn{min-width:58px}}
     .report-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
     .report-summary>div{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card2);text-align:center}
@@ -839,6 +843,7 @@
             <div class="dashboard-shift-copy"><strong id="dashboardShiftName">جاري الحساب</strong><span id="dashboardShiftPeriod"></span></div>
           </div>
           <div class="dashboard-next-shift" id="dashboardNextShift">الشفت القادم</div>
+          <button class="marine-alert ok" id="marineAlert" onclick="openMarineAlerts()"><strong>Marine ID Access</strong><span>جاري فحص البطاقات...</span></button>
         </div>
         <button class="dashboard-add-card" onclick="openLeaveModal()">
           <span class="dashboard-add-icon">＋</span>
@@ -846,6 +851,7 @@
           <span>مع فحص العدد والتعارض تلقائيًا قبل الحفظ</span>
         </button>
       </div>
+      <button class="marine-mobile-alert ok" id="marineMobileAlert" onclick="openMarineAlerts()">Marine ID Access — جاري فحص البطاقات...</button>
       <div class="grid4">
         <div class="stat" style="--stat-glow:rgba(65,199,255,.15)"><div class="stat-top"><div class="stat-icon">👥</div><div class="num" id="totalCount">0</div></div><div class="label">إجمالي الموظفين</div></div>
         <div class="stat" style="--stat-glow:rgba(45,212,163,.16)"><div class="stat-top"><div class="stat-icon">✓</div><div class="num" id="workingCount">0</div></div><div class="label">على رأس العمل</div></div>
@@ -1170,6 +1176,8 @@
       <input id="empId" placeholder="الرقم الوظيفي">
       <input type="tel" inputmode="tel" id="empPhone" placeholder="رقم الجوال (مثال: 05XXXXXXXX)">
       <input type="number" min="0" step="1" id="empLeaveBalance" placeholder="رصيد الإجازة المتبقي بالأيام">
+      <label class="small-note">تاريخ انتهاء Marine ID Access</label>
+      <input type="date" id="empMarineIdExpiry">
       <select id="empDutyRole">
         <option value="">اختر مهمة الموظف</option><option value="chief">Shift Chief</option><option value="assistant">Assistant Shift Chief</option><option value="community">Community Supervisor</option><option value="clerk">Shift Clerk</option><option value="scc">SCC</option><option value="visitor">Ind. Visitor</option><option value="commVisitor">Comm. Visitor</option><option value="leader">ليدر</option><option value="officer">فرد</option><option value="patrol">دورية</option><option value="flex">فرد + دورية</option>
       </select>
@@ -1287,6 +1295,14 @@
   </div>
 </div>
 
+<div class="modal" id="marineAlertsModal">
+  <div class="sheet">
+    <div class="section-head"><div><span class="section-kicker">تنبيه قبل 30 يومًا</span><h3>Marine ID Access</h3></div><button class="secondary" onclick="closeModal('marineAlertsModal')">إغلاق</button></div>
+    <div class="status-legend" style="margin-bottom:12px"><span class="legend-item"><span class="legend-dot" style="background:#be185d"></span>منتهية</span><span class="legend-item"><span class="legend-dot" style="background:#d97706"></span>تنتهي خلال شهر</span><span class="legend-item"><span class="legend-dot" style="background:#059669"></span>سارية</span></div>
+    <div class="marine-list" id="marineAlertsList"></div>
+  </div>
+</div>
+
 <script>
 const KEY='shiftManagerDataV3_GroupA_Leaves';
 const OLD_SESSION_KEY='shiftManagerSupabaseSession';
@@ -1297,6 +1313,9 @@ const GUEST_EMAIL='guest@shiftmanager.app';
 const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
 const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
 const SOON_DAYS=3;
+const MARINE_ID_EXPIRY_BY_BADGE={
+  '101703':'2024-03-07','101631':'2026-11-02','101632':'2027-06-11','101650':'2027-01-28','101690':'2026-12-17','101697':'2027-01-28','101701':'2027-07-29','101718':'2026-05-18','101725':'2027-06-11','101738':'2027-01-28','101749':'2027-06-11','101771':'2027-01-28','101988':'2027-01-28','102286':'2027-07-29','102862':'2027-07-29','103389':'2027-01-28','103619':'2027-07-29','103661':'2027-01-28','103871':'2025-05-18','104495':'2027-01-28','104722':'2027-06-11'
+};
 function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[]}}
 let state=emptyState();
 
@@ -1359,6 +1378,28 @@ function ensureAnnualLeaveCredit(){
   }
   state.leaveBalanceAccrualYear=currentYear;
   return true;
+}
+function hydrateMarineIdDates(){let changed=false;state.employees.forEach(e=>{const date=MARINE_ID_EXPIRY_BY_BADGE[String(e.empId||'')];if(date&&!e.marineIdExpiry){e.marineIdExpiry=date;changed=true}});return changed}
+function marineExpiryFor(employee){return employee?.marineIdExpiry||MARINE_ID_EXPIRY_BY_BADGE[String(employee?.empId||'')]||''}
+function marineStatus(employee){
+  const expiry=marineExpiryFor(employee);if(!expiry)return {kind:'missing',days:null,label:'غير مسجل'};
+  const days=diffDays(expiry,todayISO());
+  if(days<0)return {kind:'expired',days,label:`منتهية من ${Math.abs(days)} يوم`};
+  if(days<=30)return {kind:'soon',days,label:days===0?'تنتهي اليوم':`تنتهي بعد ${days} يوم`};
+  return {kind:'valid',days,label:'سارية'};
+}
+function marineEmployees(){return state.employees.filter(e=>marineExpiryFor(e)).map(employee=>({employee,status:marineStatus(employee)})).sort((a,b)=>marineExpiryFor(a.employee).localeCompare(marineExpiryFor(b.employee)))}
+function renderMarineAlert(){
+  const rows=marineEmployees(),expired=rows.filter(x=>x.status.kind==='expired').length,soon=rows.filter(x=>x.status.kind==='soon').length;
+  const cls=expired?'danger':soon?'warning':'ok',text=expired?`${expired} منتهية${soon?` · ${soon} تنتهي خلال شهر`:''}`:soon?`${soon} تنتهي خلال شهر`:'جميع البطاقات سارية';
+  const desktop=document.getElementById('marineAlert'),mobile=document.getElementById('marineMobileAlert');
+  if(desktop){desktop.className=`marine-alert ${cls}`;desktop.innerHTML=`<strong>Marine ID Access</strong><span>${text}</span>`}
+  if(mobile){mobile.className=`marine-mobile-alert ${cls}`;mobile.textContent=`Marine ID Access — ${text}`}
+}
+function openMarineAlerts(){
+  const rows=marineEmployees(),box=document.getElementById('marineAlertsList');
+  box.innerHTML=rows.length?rows.map(({employee,status})=>`<div class="marine-row ${status.kind}" onclick="closeModal('marineAlertsModal');openEmployeeProfile('${employee.id}')" style="cursor:pointer"><div><div class="name">${esc(employee.nameAr||employee.name)}</div><div class="meta">Badge #${esc(employee.empId)} · ${esc(status.label)}</div></div><div class="marine-date">${fmtDate(marineExpiryFor(employee))}</div></div>`).join(''):'<div class="empty">لا توجد بيانات Marine ID مسجلة</div>';
+  document.getElementById('marineAlertsModal').classList.add('show');
 }
 
 function setCloudStatus(mode,title){
@@ -1444,11 +1485,12 @@ async function loadCloudState(){
     state.employees.forEach(e=>{if(!['chief','assistant','community','clerk','scc','visitor','commVisitor','leader','officer','patrol','flex'].includes(e.dutyRole))e.dutyRole=''})
     state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
     if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
+    const marineIdsChanged=isAdmin()?hydrateMarineIdDates():false;
     const rosterLocationsChanged=isAdmin()?pruneOldMonthlyRosterLocations():false;
     const annualCreditChanged=isAdmin()?ensureAnnualLeaveCredit():false;
     loadRuntimeRosterConfig();
     localStorage.setItem(KEY,JSON.stringify(state));
-    if(rosterLocationsChanged||annualCreditChanged)await uploadCloudState();
+    if(marineIdsChanged||rosterLocationsChanged||annualCreditChanged)await uploadCloudState();
     cloudReady=true;setCloudStatus('online','تمت المزامنة');unlockApp();renderAll();
   }catch(e){cloudReady=false;setCloudStatus('offline','تعذرت المزامنة');lockApp(e.message||'تعذر تحميل البيانات')}
 }
@@ -1970,6 +2012,7 @@ function renderEmployeeProfile(){
           ${e.nameAr?`<div class="meta">${esc(e.name)}</div>`:''}
           <div class="meta">Badge #${esc(e.empId)} · GC ${esc(e.gc||'-')}</div>
           <div class="meta">الجوال: ${esc(localPhone(e.phone)||'غير مسجل')}</div>
+          <div class="meta">Marine ID: ${marineExpiryFor(e)?`${fmtDate(marineExpiryFor(e))} · ${esc(marineStatus(e).label)}`:'غير مسجل'}</div>
           <div class="meta">${esc(e.position||e.shift||'-')}</div>
           <div class="meta" style="margin-top:6px">رصيد الإجازة المتبقي: <strong>${formatDays(e.leaveBalance)}</strong> يوم <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editLeaveBalance('${e.id}')">تعديل الرصيد</button></div>
           <div class="meta" style="margin-top:7px">المهمة: <span class="badge role-badge">${employeeDutyRoleLabel(e.dutyRole)}</span> <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editEmployeeDutyRole('${e.id}')">تعديل المهمة</button></div>
@@ -2208,6 +2251,7 @@ function renderFullEmployeeReport(){
   box.innerHTML=`<div class="report-document" dir="rtl">
     <div class="section-head"><div><h2>التقرير الكامل للموظف</h2><div class="small-note">الفترة من ${fmtDate(start)} إلى ${fmtDate(end)} · تاريخ الاستخراج: ${fmtDate(todayISO())}</div></div></div>
     <div class="report-summary"><div><strong>${esc(employee.nameAr||employee.name||'-')}</strong><span>اسم الموظف</span></div><div><strong>${esc(employee.empId||'-')}</strong><span>الرقم الوظيفي</span></div><div><strong>${records.length}</strong><span>الملاحظات</span></div><div><strong>${leaves.length}</strong><span>الإجازات</span></div><div><strong>${achievements.length}</strong><span>الإنجازات</span></div></div>
+    <div class="small-note" style="margin:10px 0 18px">Marine ID Access: ${marineExpiryFor(employee)?`${fmtDate(marineExpiryFor(employee))} — ${esc(marineStatus(employee).label)}`:'غير مسجل'}</div>
     <h3 style="margin-top:20px">الملاحظات المسجلة</h3>
     <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التفاصيل</th></tr></thead><tbody>${records.length?records.map((r,i)=>`<tr><td>${i+1}</td><td>${fmtDate(r.date)}</td><td>${esc(r.type==='Late'?'تأخير':r.type==='Note'?'ملاحظة':r.type||'-')}</td><td>${esc(r.note||'-')}</td></tr>`).join(''):emptyRow(4,'لا توجد ملاحظات مسجلة')}</tbody></table></div>
     <h3 style="margin-top:20px">الإجازات</h3>
@@ -2519,7 +2563,7 @@ function printMonthlyRoster(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderStats(); renderLeaveBalanceInsights(); renderDashboardShift(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
+  renderStats(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
 }
 
 function showView(id,btn){
@@ -2536,7 +2580,7 @@ function showView(id,btn){
 function openEmployeeModal(id=''){
   editingEmployeeId=id||null;const e=editingEmployeeId?state.employees.find(x=>x.id===editingEmployeeId):null;
   document.getElementById('employeeModalTitle').textContent=e?'تعديل بيانات الموظف':'إضافة موظف';document.getElementById('employeeSaveBtn').textContent=e?'حفظ التعديلات':'حفظ';
-  document.getElementById('empName').value=e?.name||'';document.getElementById('empNameAr').value=e?.nameAr||ROSTER_ARABIC_NAMES[String(e?.empId||'')]||'';document.getElementById('empId').value=e?.empId||'';document.getElementById('empPhone').value=localPhone(e?.phone);document.getElementById('empLeaveBalance').value=e?formatDays(e.leaveBalance):'';document.getElementById('empDutyRole').value=e?.dutyRole||'';document.getElementById('empShift').value=e?.shift||'Morning';document.getElementById('empLocation').value=e?.location||'';document.getElementById('empNote').value=e?.note||'';
+  document.getElementById('empName').value=e?.name||'';document.getElementById('empNameAr').value=e?.nameAr||ROSTER_ARABIC_NAMES[String(e?.empId||'')]||'';document.getElementById('empId').value=e?.empId||'';document.getElementById('empPhone').value=localPhone(e?.phone);document.getElementById('empLeaveBalance').value=e?formatDays(e.leaveBalance):'';document.getElementById('empMarineIdExpiry').value=e?marineExpiryFor(e):'';document.getElementById('empDutyRole').value=e?.dutyRole||'';document.getElementById('empShift').value=e?.shift||'Morning';document.getElementById('empLocation').value=e?.location||'';document.getElementById('empNote').value=e?.note||'';
   document.getElementById('employeeModal').classList.add('show');
 }
 function closeEmployeeModal(){editingEmployeeId=null;closeModal('employeeModal')}
@@ -2586,9 +2630,9 @@ function saveEmployee(){
   const leaveBalance=Number(document.getElementById('empLeaveBalance').value||0);
   if(!Number.isFinite(leaveBalance)||leaveBalance<0){alert('أدخل رصيد إجازة صحيحًا');return}
   const duplicate=state.employees.find(e=>e.empId===empId&&e.id!==editingEmployeeId);if(duplicate){alert('الرقم الوظيفي مستخدم لموظف آخر');return}
-  const values={name,nameAr,empId,phone,shift:document.getElementById('empShift').value,dutyRole:document.getElementById('empDutyRole').value,location:document.getElementById('empLocation').value.trim(),note:document.getElementById('empNote').value.trim(),leaveBalance};
+  const values={name,nameAr,empId,phone,marineIdExpiry:document.getElementById('empMarineIdExpiry').value,shift:document.getElementById('empShift').value,dutyRole:document.getElementById('empDutyRole').value,location:document.getElementById('empLocation').value.trim(),note:document.getElementById('empNote').value.trim(),leaveBalance};
   if(editingEmployeeId){const e=state.employees.find(x=>x.id===editingEmployeeId);if(!e)return;Object.assign(e,values)}else state.employees.push({id:crypto.randomUUID(),gc:'',position:'',...values});
-  ['empName','empNameAr','empId','empPhone','empLocation','empNote','empLeaveBalance','empDutyRole'].forEach(id=>document.getElementById(id).value='');
+  ['empName','empNameAr','empId','empPhone','empLocation','empNote','empLeaveBalance','empMarineIdExpiry','empDutyRole'].forEach(id=>document.getElementById(id).value='');
   editingEmployeeId=null;closeModal('employeeModal');save();
 }
 function datesBetween(start,end){
@@ -3178,7 +3222,7 @@ function aiContextForAgent(){
     today:todayISO(),
     dashboardIndicators:aiDashboardSnapshot(),
     annualLeaveIndicators:aiAnnualIndicatorsSnapshot(),
-    employees:state.employees.map(e=>({id:e.id,name:e.name||'',nameAr:e.nameAr||'',empId:e.empId||'',phone:e.phone||'',gc:e.gc||'',position:e.position||'',shift:e.shift||'',location:e.location||'',dutyRole:e.dutyRole||'',leaveBalance:Number(e.leaveBalance)||0,note:e.note||''})),
+    employees:state.employees.map(e=>({id:e.id,name:e.name||'',nameAr:e.nameAr||'',empId:e.empId||'',phone:e.phone||'',marineIdExpiry:marineExpiryFor(e),gc:e.gc||'',position:e.position||'',shift:e.shift||'',location:e.location||'',dutyRole:e.dutyRole||'',leaveBalance:Number(e.leaveBalance)||0,note:e.note||''})),
     leaves:state.leaves.map(l=>({employeeId:l.employeeId,start:l.start,end:l.end,note:l.note||'',balanceDaysCharged:Number(l.balanceDaysCharged)||0})),
     shifts:state.shifts.map(s=>({employeeId:s.employeeId,post:s.post||'',shift:s.shift||''})),
     records:state.records.map(r=>({employeeId:r.employeeId,type:r.type||'',date:r.date||'',note:r.note||''})),
