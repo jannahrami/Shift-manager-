@@ -3268,7 +3268,7 @@ function aiContextForAgent(){
 }
 async function aiAskGroq(message){
   if(!session?.access_token)throw new Error('NO_SESSION');
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),35000);
   try{
     const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{
       method:'POST',signal:controller.signal,
@@ -3354,7 +3354,9 @@ async function sendAIMessage(){
     if(aiConversationHistory.length>24)aiConversationHistory=aiConversationHistory.slice(-24);
     if(!aiPrepareAgentAction(result.action))aiAddMessage(reply);
   }catch(error){
-    console.warn('Groq assistant fallback',error);aiHandleQuery(text);
+    console.warn('Groq assistant fallback',error);
+    aiAddMessage('تعذر الوصول للمساعد الذكي حاليًا (شبكة بطيئة أو ضغط على الخدمة)، هذا رد مبدئي بالبحث المباشر:','error');
+    aiHandleQuery(text);
   }finally{if(btn){btn.disabled=false;btn.textContent='إرسال'}}
 }
 async function aiConfirmAction(){
