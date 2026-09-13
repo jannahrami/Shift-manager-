@@ -779,7 +779,10 @@
     /* الجداول والتقويم — نفس اللوحة الداكنة */
     .leave-table-wrap,.calendar-scroll,.monthly-roster-wrap{background:var(--card)!important;border-color:var(--line)!important}
     .leave-table th,.calendar-weekday,.monthly-roster-table th{background:var(--card2)!important;color:var(--muted)!important}
-    .leave-table td,.calendar-day,.monthly-roster-table td{color:var(--text)!important}
+    .leave-table td,.calendar-day,.monthly-roster-table td{color:var(--text)!important;background:transparent!important}
+    .leave-table tr.status-yellow{background:linear-gradient(90deg,rgba(224,169,64,.14),transparent 60%)!important}
+    .leave-table tr.status-blue{background:linear-gradient(90deg,rgba(106,155,216,.14),transparent 60%)!important}
+    .leave-table tr.status-green{background:linear-gradient(90deg,rgba(76,175,130,.16),transparent 60%)!important}
     .calendar-day.today{box-shadow:inset 0 0 0 2px var(--primary)!important}
 
     /* سطح المكتب — نفس النظام، بدون تلوين مختلف لكل زر تنقل */
