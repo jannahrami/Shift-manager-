@@ -969,9 +969,9 @@
         </div>
         <div class="month-filter" style="margin-top:10px">
           <label class="small-note">الإجازات خلال الفترة من</label>
-          <input type="date" id="leaveRangeStart" aria-label="بداية فترة البحث">
+          <input type="text" id="leaveRangeStart" placeholder="اختر تاريخ البداية" readonly onclick="openShiftDatePicker('leaveRangeStart')" aria-label="بداية فترة البحث">
           <label class="small-note">إلى</label>
-          <input type="date" id="leaveRangeEnd" aria-label="نهاية فترة البحث">
+          <input type="text" id="leaveRangeEnd" placeholder="اختر تاريخ النهاية" readonly onclick="openShiftDatePicker('leaveRangeEnd')" aria-label="نهاية فترة البحث">
           <button class="primary" onclick="applyLeaveRange()">عرض الموظفين</button>
           <button class="secondary" onclick="clearLeaveRange()">مسح الفترة</button>
         </div>
@@ -1212,7 +1212,7 @@
       <button class="secondary" onclick="changeDatePickerMonth(1)">التالي</button>
     </div>
     <div class="date-picker-legend">
-      <span class="shift-morning">M · صباح</span><span class="shift-afternoon">A · مساء</span><span class="shift-night">N · ليل</span><span class="shift-off">OFF · إجازة</span>
+      <span class="shift-morning">M · صباح</span><span class="shift-afternoon">A · ظهر</span><span class="shift-night">N · ليل</span><span class="shift-off">OFF · أوف</span>
     </div>
     <div class="shift-date-weekdays" id="shiftDateWeekdays"></div>
     <div class="shift-date-grid" id="shiftDateGrid"></div>
@@ -1656,7 +1656,7 @@ function groupShiftForDate(date){
 }
 function shiftPickerLabel(shift){
   if(shift.code==='M')return 'صباح';
-  if(shift.code==='A')return 'مساء';
+  if(shift.code==='A')return 'ظهر';
   if(shift.code==='N')return 'ليل';
   return 'أوف';
 }
@@ -1664,7 +1664,8 @@ function openShiftDatePicker(targetId){
   shiftDatePickerTarget=targetId;
   const selected=document.getElementById(targetId)?.value;
   shiftDatePickerMonth=(selected&&/^\d{4}-\d{2}-\d{2}$/.test(selected)?selected:todayISO()).slice(0,7);
-  document.getElementById('datePickerTargetLabel').textContent=targetId==='leaveStart'?'اختيار بداية الإجازة':'اختيار نهاية الإجازة';
+  const labels={leaveStart:'اختيار بداية الإجازة',leaveEnd:'اختيار نهاية الإجازة',leaveRangeStart:'اختيار بداية فترة البحث',leaveRangeEnd:'اختيار نهاية فترة البحث'};
+  document.getElementById('datePickerTargetLabel').textContent=labels[targetId]||'اختيار التاريخ';
   renderShiftDatePicker();document.getElementById('shiftDatePickerModal').classList.add('show');
 }
 function changeDatePickerMonth(step){
@@ -1676,9 +1677,8 @@ function goDatePickerToday(){shiftDatePickerMonth=todayISO().slice(0,7);renderSh
 function chooseShiftDate(date){
   const input=document.getElementById(shiftDatePickerTarget);if(!input)return;
   input.value=date;
-  if(shiftDatePickerTarget==='leaveStart'){
-    const end=document.getElementById('leaveEnd');if(end.value&&end.value<date)end.value='';
-  }
+  const pairedEnd=shiftDatePickerTarget==='leaveStart'?'leaveEnd':shiftDatePickerTarget==='leaveRangeStart'?'leaveRangeEnd':'';
+  if(pairedEnd){const end=document.getElementById(pairedEnd);if(end?.value&&end.value<date)end.value=''}
   closeModal('shiftDatePickerModal');
 }
 function renderShiftDatePicker(){
