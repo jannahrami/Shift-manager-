@@ -3268,7 +3268,7 @@ function aiContextForAgent(){
 }
 async function aiAskGroq(message){
   if(!session?.access_token)throw new Error('NO_SESSION');
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),35000);
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),40000);
   try{
     const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{
       method:'POST',signal:controller.signal,
