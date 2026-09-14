@@ -686,8 +686,8 @@
        يمس هذا العرض المرئي فقط؛ لا تغيير على أي JS أو بيانات أو IDs.
        ========================================================= */
     :root{
-      --bg:#050807;--card:#0b0f0e;--card2:#111716;--ink:#050807;
-      --text:#dfe7e4;--muted:#7c8d89;--line:rgba(255,255,255,.09);
+      --bg:#050807;--card:#0f1614;--card2:#161f1c;--ink:#050807;
+      --text:#e9f0ed;--muted:#8b9c98;--line:rgba(255,255,255,.13);
       --primary:#2ec4b3;--primary2:#1a9c8d;
       --green:#4caf82;--yellow:#e0a940;--red:#e2696d;--blue:#6a9bd8;
       --shadow:none;--shadow-lg:none;
@@ -716,7 +716,8 @@
 
     /* مؤشرات لوحة التحكم — سطر بيانات بخط نقطي رابط بدل بطاقة/أيقونة،
        تماماً كسطر في تقرير نظام: التسمية ...... القيمة */
-    .grid4{display:flex!important;flex-direction:column!important;gap:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+    .grid4{display:flex!important;flex-direction:column!important;gap:0!important;background:var(--card)!important;border:1px solid var(--line)!important;border-radius:4px!important;box-shadow:none!important;padding:4px 12px!important;position:relative}
+    .grid4::before{content:"[ ملخص اليوم ]";display:block;font-family:var(--mono);color:var(--primary);font-size:11px;padding:10px 0 8px;border-bottom:1px dashed var(--line)}
     .stat{display:flex!important;align-items:baseline!important;gap:0!important;background:transparent!important;border:0!important;border-bottom:1px dashed var(--line)!important;border-radius:0!important;box-shadow:none!important;padding:9px 2px!important;color:var(--text)!important;transition:none}
     .grid4 .stat:last-child{border-bottom:0!important}
     .stat:hover{background:transparent!important;transform:none!important}
@@ -743,7 +744,7 @@
     .dashboard-add-icon{background:transparent!important;border:1px solid rgba(46,196,179,.4)!important;border-radius:4px!important;color:var(--primary)!important}
 
     /* الأقسام — بلا صناديق؛ عنوان بأقواس وخط متقطع بدل كرت وظل */
-    .section{background:transparent!important;border:0!important;border-top:1px dashed var(--line)!important;box-shadow:none!important;border-radius:0!important;position:relative;padding-top:14px!important}
+    .section{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:4px!important;position:relative;padding:14px!important}
     .section::before{display:none!important}
     .section-head h2,.name,.note-text,.days-remaining,.calendar-title,.schedule-title{color:var(--text)!important}
     .section-kicker{color:var(--primary)!important;font-family:var(--mono)!important;font-size:11px!important}
@@ -785,13 +786,28 @@
     .auth-card h2{color:var(--text)!important}
 
     /* الجداول والتقويم — نفس لغة السجل: بلا صناديق، خطوط متقطعة */
-    .leave-table-wrap,.calendar-scroll,.monthly-roster-wrap{background:transparent!important;border:1px solid var(--line)!important;border-radius:4px!important}
+    .leave-table-wrap,.calendar-scroll,.monthly-roster-wrap{background:var(--card)!important;border:1px solid var(--line)!important;border-radius:4px!important}
     .leave-table th,.calendar-weekday,.monthly-roster-table th{background:var(--card2)!important;color:var(--muted)!important;font-family:var(--mono)!important}
     .leave-table td,.calendar-day,.monthly-roster-table td{color:var(--text)!important;background:transparent!important}
     .leave-table tr.status-yellow{background:linear-gradient(90deg,rgba(224,169,64,.1),transparent 60%)!important}
     .leave-table tr.status-blue{background:linear-gradient(90deg,rgba(106,155,216,.1),transparent 60%)!important}
     .leave-table tr.status-green{background:linear-gradient(90deg,rgba(76,175,130,.12),transparent 60%)!important}
     .calendar-day.today{box-shadow:inset 0 0 0 1px var(--primary)!important}
+
+    /* منتقي نوع التقرير وبطاقات المؤشرات — كانت لسا بالثيم الفاتح القديم */
+    .report-choice{background:var(--card)!important;border:1px solid var(--line)!important;color:var(--text)!important;box-shadow:none!important;border-radius:4px!important}
+    .report-choice>span{background:var(--card2)!important}
+    .report-choice small{color:var(--muted)!important}
+    .report-choice.active{background:transparent!important;border-color:var(--primary)!important;color:var(--primary)!important;box-shadow:none!important}
+    .report-choice.active>span{background:rgba(46,196,179,.12)!important}
+    .report-choice.active small{color:#8fd9b4!important}
+    .insight-chart-card,.charts .card{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:4px!important;color:var(--text)!important}
+    .insight-copy h3,.charts .card h2{color:var(--text)!important}
+    .insight-copy p,.charts .card p{color:var(--muted)!important}
+    .insight-donut,.donut{background:var(--card2)!important}
+    .insight-compare strong{font-family:var(--mono)!important;color:#fff!important}
+    .liquidation-person{background:var(--card2)!important;border:1px solid var(--line)!important;border-radius:4px!important}
+    .liquidation-excess{color:var(--yellow)!important;font-family:var(--mono)!important}
 
     /* سطح المكتب — نفس اللغة البصرية */
     @media(min-width:900px){
