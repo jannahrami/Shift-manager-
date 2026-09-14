@@ -2908,13 +2908,24 @@ function aiDashboardSnapshot(year=Number(todayISO().slice(0,4))){
   };
 }
 function aiRealtimeInstructions(){
-  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي. استخدم أسماء الموظفين والتواريخ والأرقام من بيانات الشفت فقط ولا تخترع أي معلومة أو رقم. إذا نقصتك معلومة اسأل سؤالًا واحدًا بسيطًا. يمكنك الإجابة عن الإجازات القديمة والحالية والقادمة، أرقام الجوال، الملاحظات، الإنجازات والدوام من البيانات مباشرة. أرقام إجمالي الموظفين وعلى رأس العمل وفي إجازة والتنبيهات ومؤشرات السنة موجودة جاهزة في «المؤشرات الموثقة حاليًا» أدناه؛ اقرأها مباشرة وأعطِ النتيجة من أول سؤال بدون أن تقول بأشيك أو لحظة. جدول دوام Group A موجود في groupShiftPeriods داخل «بيانات الشفت الحالية»؛ عند سؤال «دوامي» أو «دوامنا» أو «شفتنا» ابحث مباشرة عن الفترة التي تشمل التاريخ وأعطِ code وarabic، ولا تقل إن الجدول غير موجود ما دام التاريخ داخل الفترات. monthlySchedules خاص بتوزيع الموظفين على المواقع والبوابات وليس شفت Group A اليومي. عند السؤال عن ملاحظات أو تأخيرات موظف، ابحث في records عن employeeId الخاص به؛ النوع Note يعني ملاحظة وLate يعني تأخير. وعند السؤال عن إنجازاته استخدم achievements. الملاحظات الشخصية الخاصة برامي موجودة في personalNotes. تسجيل الملاحظات والتأخير والتذكيرات لا يحتاج تكرار تأكيد؛ نفّذها مباشرة بعد اكتمال الاسم والتاريخ والتفصيل. الإجازة فقط تحتاج تأكيدًا واحدًا: كرر الاسم والتاريخ مرة واحدة، وبعد أي موافقة طبيعية مثل نعم أو تمام أو أوكي أو أبشر أو اعتمد نفّذ الحفظ ولا تطلب تأكيدًا ثانيًا. افحص تداخل الإجازة والرصيد قبل الحفظ. إذا طلب رامي إرسال واتساب لموظف، استخدم أداة open_whatsapp مع الموظف ونص الرسالة، واعرض الاسم والرقم والنص واطلب تأكيدًا واحدًا؛ بعد الموافقة ستفتح الصفحة واتساب بالنص الجاهز، ولا تقل إن الرسالة أُرسلت لأن رامي هو من يضغط إرسال داخل واتساب. لا تقل «تم الحفظ» إلا إذا أعادت الأداة ok:true. تاريخ اليوم ${todayISO()}.
-المؤشرات الموثقة حاليًا:
-${JSON.stringify(aiDashboardSnapshot())}
-بيانات الشفت الحالية:
-${JSON.stringify(aiContextForAgent())}`;
+  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي.
+عندك أدوات توصلك ببيانات النظام الفعلية (موظفين، إجازات، مؤشرات، سجلات، إنجازات، شفتات، مواقع، Marine ID، ملاحظات). استخدمها دائمًا لأي رقم أو اسم أو تاريخ حقيقي — ممنوع تختلق أو تخمّن أي بيانة. نفّذ كل الأدوات اللازمة أولًا، ثم رد فورًا في نفس الدورة؛ ممنوع تقول «بأشيك» أو «لحظة» أو «بأجهز» وتتوقف قبل تنفيذ الأداة. إذا احتجت تحدد موظف بالاسم استخدم find_employee أولًا؛ إذا رجع أكثر من نتيجة لا تخمّن، اسأل رامي أيهم يقصد.
+تسجيل الملاحظات والتأخير والتذكيرات لا يحتاج تكرار تأكيد؛ نفّذها مباشرة بعد اكتمال الاسم والتاريخ والتفصيل. الإجازة فقط تحتاج تأكيدًا واحدًا: كرر الاسم والتاريخ مرة واحدة، وبعد أي موافقة طبيعية مثل نعم أو تمام أو أوكي أو أبشر أو اعتمد نفّذ الحفظ ولا تطلب تأكيدًا ثانيًا. افحص تداخل الإجازة والرصيد قبل الحفظ. إذا طلب رامي إرسال واتساب لموظف، استخدم أداة open_whatsapp مع الموظف ونص الرسالة، واعرض الاسم والرقم والنص واطلب تأكيدًا واحدًا؛ بعد الموافقة ستفتح الصفحة واتساب بالنص الجاهز، ولا تقل إن الرسالة أُرسلت لأن رامي هو من يضغط إرسال داخل واتساب. لا تقل «تم الحفظ» إلا إذا أعادت الأداة ok:true.
+تاريخ اليوم ${todayISO()}.`;
 }
 function aiRealtimeTools(){return [
+  {type:'function',name:'find_employee',description:'ابحث عن موظف بالاسم أو رقمه لتحديد هويته أو جلب رقم جواله أو رصيده أو شفته.',parameters:{type:'object',properties:{query:{type:'string'}},required:['query']}},
+  {type:'function',name:'get_employee_leaves',description:'إجازات موظف محدد (سابقة وحالية وقادمة).',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'}}}},
+  {type:'function',name:'get_leaves_in_range',description:'كل الإجازات المتقاطعة مع نطاق تاريخ معيّن، مثل شهر كامل.',parameters:{type:'object',properties:{start:{type:'string',description:'YYYY-MM-DD'},end:{type:'string',description:'YYYY-MM-DD'}},required:['start','end']}},
+  {type:'function',name:'list_employees_on_leave_at',description:'كل الموظفين اللي في إجازة في تاريخ محدد.',parameters:{type:'object',properties:{date:{type:'string',description:'YYYY-MM-DD'}},required:['date']}},
+  {type:'function',name:'get_dashboard_indicators',description:'إجمالي الموظفين، على رأس العمل، في إجازة الآن، والتنبيهات خلال 3 أيام.',parameters:{type:'object',properties:{}}},
+  {type:'function',name:'get_annual_leave_indicators',description:'مؤشرات إجازات السنة: المدخلة، المأخوذة، نسبة الإنجاز، ومن يحتاج تصفية.',parameters:{type:'object',properties:{year:{type:'integer'}}}},
+  {type:'function',name:'get_group_shift',description:'كود واسم شفت Group A الساري في تاريخ محدد.',parameters:{type:'object',properties:{date:{type:'string',description:'YYYY-MM-DD'}},required:['date']}},
+  {type:'function',name:'get_employee_records',description:'سجلات تأخير أو ملاحظات موظف محدد.',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},type:{type:'string',description:'Late أو Note، اختياري'}}}},
+  {type:'function',name:'get_employee_achievements',description:'إنجازات موظف محدد.',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'}}}},
+  {type:'function',name:'list_personal_notes',description:'تذكيرات رامي الشخصية، مع إمكانية تصفية بتاريخ محدد.',parameters:{type:'object',properties:{date:{type:'string',description:'YYYY-MM-DD، اختياري'}}}},
+  {type:'function',name:'get_employee_marine_status',description:'حالة بطاقة Marine ID لموظف محدد: سارية أو تنتهي قريبًا أو منتهية.',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'}}}},
+  {type:'function',name:'get_employee_location',description:'الموقع أو البوابة المخصصة لموظف في تاريخ محدد؛ يستخدم اليوم افتراضيًا إن لم يُذكر تاريخ.',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD، اختياري'}}}},
   {type:'function',name:'save_leave',description:'حفظ إجازة موظف بعد فحص التداخل والرصيد وبعد تأكيد واحد فقط من رامي',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},start:{type:'string',description:'YYYY-MM-DD'},end:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','start','end']}},
   {type:'function',name:'save_late',description:'حفظ تأخير موظف مباشرة عند اكتمال البيانات',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},minutes:{type:'integer'}},required:['employee_id','date','minutes']}},
   {type:'function',name:'save_employee_note',description:'حفظ ملاحظة موظف مباشرة عند اكتمال البيانات',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','date','note']}},
@@ -2971,9 +2982,81 @@ async function aiPersistAssistantMutation(snapshot){
   try{setCloudStatus('','جاري الحفظ');await uploadCloudState();setCloudStatus('online','تم الحفظ والمزامنة');return true}
   catch(error){state=snapshot;localStorage.setItem(KEY,JSON.stringify(state));renderAll();setCloudStatus('offline','تعذر الحفظ');return false}
 }
+function aiRealtimeEmployeeBrief(e){
+  return {id:e.id,name:aiDisplayEmployee(e),empId:e.empId||'',phone:localPhone(e.phone)||'',leaveBalance:formatDays(e.leaveBalance),shift:e.shift||'',position:e.position||'',dutyRole:e.dutyRole||''};
+}
+function aiRealtimeRunReadTool(name,args){
+  switch(name){
+    case 'find_employee':{
+      const found=aiFindEmployee(args?.query||'');
+      if(found.status==='one')return {count:1,employees:[aiRealtimeEmployeeBrief(found.employee)]};
+      if(found.status==='many')return {count:found.items.length,employees:found.items.slice(0,6).map(aiRealtimeEmployeeBrief)};
+      return {count:0,employees:[]};
+    }
+    case 'get_employee_leaves':{
+      const employee=aiRealtimeEmployee(args);if(!employee)return {error:'لم أجد الموظف المحدد'};
+      const rows=state.leaves.filter(l=>l.employeeId===employee.id).sort((a,b)=>String(a.start).localeCompare(String(b.start)));
+      return {count:rows.length,leaves:rows.map(l=>({start:l.start,end:l.end,note:l.note||''}))};
+    }
+    case 'get_leaves_in_range':{
+      const start=String(args?.start||''),end=String(args?.end||'');
+      const rows=state.leaves.filter(l=>l.start<=end&&l.end>=start).sort((a,b)=>String(a.start).localeCompare(String(b.start))).slice(0,30);
+      return {count:rows.length,leaves:rows.map(l=>({employeeId:l.employeeId,name:aiEmployeeName(l.employeeId),start:l.start,end:l.end}))};
+    }
+    case 'list_employees_on_leave_at':{
+      const date=String(args?.date||'');
+      const rows=state.leaves.filter(l=>l.start<=date&&l.end>=date);
+      return {count:rows.length,employees:rows.map(l=>({employeeId:l.employeeId,name:aiEmployeeName(l.employeeId),returnDate:l.end}))};
+    }
+    case 'get_dashboard_indicators':{
+      const s=aiDashboardSnapshot();
+      return {today:s.today,totalEmployees:s.totalEmployees,onDuty:s.onDuty,onLeave:s.onLeave,alertsNext3Days:s.alertsNext3Days,currentGroupShift:s.currentGroupShift};
+    }
+    case 'get_annual_leave_indicators':
+      return aiAnnualIndicatorsSnapshot(Number(args?.year)||undefined);
+    case 'get_group_shift':{
+      const date=String(args?.date||'');if(!date)return {error:'التاريخ مطلوب'};
+      const info=groupShiftForDate(date);
+      return {code:info.code,arabic:info.code==='OFF'?'راحة':info.arabic,periodStart:shiftPeriodStart(date,info.code),periodEnd:shiftPeriodEnd(date,info.code)};
+    }
+    case 'get_employee_records':{
+      const employee=aiRealtimeEmployee(args);if(!employee)return {error:'لم أجد الموظف المحدد'};
+      let rows=state.records.filter(r=>r.employeeId===employee.id);
+      if(args?.type)rows=rows.filter(r=>r.type===args.type);
+      rows=rows.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+      return {count:rows.length,records:rows.map(r=>({type:r.type,date:r.date,note:r.note||''}))};
+    }
+    case 'get_employee_achievements':{
+      const employee=aiRealtimeEmployee(args);if(!employee)return {error:'لم أجد الموظف المحدد'};
+      const rows=state.achievements.filter(a=>a.employeeId===employee.id);
+      return {count:rows.length,achievements:rows.map(a=>({type:a.type,date:a.date,note:a.note||''}))};
+    }
+    case 'list_personal_notes':{
+      let rows=Array.isArray(state.personalNotes)?state.personalNotes:[];
+      if(args?.date)rows=rows.filter(n=>n.date===args.date);
+      rows=rows.slice(-20);
+      return {count:rows.length,notes:rows.map(n=>({date:n.date,text:n.text}))};
+    }
+    case 'get_employee_marine_status':{
+      const employee=aiRealtimeEmployee(args);if(!employee)return {error:'لم أجد الموظف المحدد'};
+      const expiry=marineExpiryFor(employee);if(!expiry)return {status:'missing',label:'غير مسجل'};
+      const status=marineStatus(employee);
+      return {expiry,status:status.kind,label:status.label};
+    }
+    case 'get_employee_location':{
+      const employee=aiRealtimeEmployee(args);if(!employee)return {error:'لم أجد الموظف المحدد'};
+      const date=aiSafeDate(args?.date);
+      return {date,location:rosterLocationForDate(employee,date)};
+    }
+    default:
+      return {error:'أداة غير معروفة'};
+  }
+}
+const AI_REALTIME_READ_TOOLS=new Set(['find_employee','get_employee_leaves','get_leaves_in_range','list_employees_on_leave_at','get_dashboard_indicators','get_annual_leave_indicators','get_group_shift','get_employee_records','get_employee_achievements','list_personal_notes','get_employee_marine_status','get_employee_location']);
 async function aiHandleRealtimeTool(event){
   const callId=event.call_id;if(!callId||aiRealtimeHandledCalls.has(callId))return;aiRealtimeHandledCalls.add(callId);
   let args={};try{args=JSON.parse(event.arguments||'{}')}catch{return aiRealtimeToolResult(callId,{ok:false,error:'البيانات غير مفهومة'})}
+  if(AI_REALTIME_READ_TOOLS.has(event.name))return aiRealtimeToolResult(callId,aiRealtimeRunReadTool(event.name,args));
   if(event.name==='save_leave'&&!aiRealtimeLeaveApprovalPending?.approved){
     aiRealtimeLeaveApprovalPending={args,approved:false};
     return aiRealtimeToolResult(callId,{ok:false,needs_confirmation:true,error:'اعرض الاسم وتاريخ البداية والنهاية واطلب تأكيدًا واحدًا فقط. بعد موافقة رامي ستنفذ الصفحة الحفظ مباشرة'})
@@ -2991,7 +3074,7 @@ async function aiHandleRealtimeTool(event){
   const date=aiSafeDate(args.date),now=new Date().toISOString(),snapshot=JSON.parse(JSON.stringify(state));
   if(event.name==='save_personal_note'){
     const note=String(args.note||'').trim().slice(0,500);if(!note)return aiRealtimeToolResult(callId,{ok:false,error:'الملاحظة فارغة'});
-    state.personalNotes.push({id:(crypto.randomUUID?crypto.randomUUID():('note-'+Date.now())),date,text:note,createdAt:now,source:'realtime'});if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل التذكير'});aiRealtimeUpdateContext();
+    state.personalNotes.push({id:(crypto.randomUUID?crypto.randomUUID():('note-'+Date.now())),date,text:note,createdAt:now,source:'realtime'});if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل التذكير'});
     return aiRealtimeToolResult(callId,{ok:true,message:'تم حفظ التذكير'});
   }
   const employee=aiRealtimeEmployee(args);if(!employee)return aiRealtimeToolResult(callId,{ok:false,error:'لم أجد الموظف المحدد'});
@@ -3008,17 +3091,17 @@ async function aiHandleRealtimeTool(event){
     const days=diffDays(end,start)+1,available=Number(employee.leaveBalance)||0;
     if(days>available)return aiRealtimeToolResult(callId,{ok:false,error:`مدة الإجازة ${days} يوم والرصيد المتاح ${formatDays(available)} يوم فقط`});
     employee.leaveBalance=available-days;
-    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start,end,note:String(args.note||'').trim().slice(0,500),balanceDaysCharged:days,source:'realtime'});aiRealtimeLeaveApprovalPending=null;if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل الإجازة'});aiRealtimeUpdateContext();
+    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start,end,note:String(args.note||'').trim().slice(0,500),balanceDaysCharged:days,source:'realtime'});aiRealtimeLeaveApprovalPending=null;if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل الإجازة'});
     return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ إجازة ${aiDisplayEmployee(employee)} من ${start} إلى ${end} وخصم ${days} يوم من الرصيد`});
   }
   if(event.name==='save_late'){
     const minutes=Math.max(1,Math.min(1440,Number(args.minutes)||0));if(!minutes)return aiRealtimeToolResult(callId,{ok:false,error:'مدة التأخير غير صحيحة'});
-    state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Late',date,note:`تأخير ${minutes} دقيقة`,createdAt:now,source:'realtime'});if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل التأخير'});aiRealtimeUpdateContext();
+    state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Late',date,note:`تأخير ${minutes} دقيقة`,createdAt:now,source:'realtime'});if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل التأخير'});
     return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ تأخير ${aiDisplayEmployee(employee)} لمدة ${minutes} دقيقة`});
   }
   if(event.name==='save_employee_note'){
     const note=String(args.note||'').trim().slice(0,500);if(!note)return aiRealtimeToolResult(callId,{ok:false,error:'الملاحظة فارغة'});
-    state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Note',date,note,createdAt:now,source:'realtime'});if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل الملاحظة'});aiRealtimeUpdateContext();
+    state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Note',date,note,createdAt:now,source:'realtime'});if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل الملاحظة'});
     return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ الملاحظة في سجل ${aiDisplayEmployee(employee)}`});
   }
   aiRealtimeToolResult(callId,{ok:false,error:'الأداة غير معروفة'});
