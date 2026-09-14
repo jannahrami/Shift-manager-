@@ -2917,9 +2917,22 @@ function aiDailyGreetingText(){
 }
 async function runDailyGreeting(){
   const key='shiftManagerGreeting_'+todayISO();
-  if(localStorage.getItem(key))return;
-  await aiSpeak(aiDailyGreetingText());
-  if(aiSpeechAudio&&!aiSpeechAudio.paused)localStorage.setItem(key,'1');
+  console.log('[DEBUG runDailyGreeting] تم استدعاؤها');
+  console.log('[DEBUG runDailyGreeting] localStorage قبل المسح:',localStorage.getItem(key));
+  localStorage.removeItem(key); // TEMP: للاختبار فقط — احذف هذا السطر بعد انتهاء التشخيص
+  console.log('[DEBUG runDailyGreeting] aiVoiceEnabled:',aiVoiceEnabled);
+  const text=aiDailyGreetingText();
+  console.log('[DEBUG runDailyGreeting] نص الترحيب:',text);
+  console.log('[DEBUG runDailyGreeting] استدعاء aiSpeak الآن...');
+  await aiSpeak(text);
+  console.log('[DEBUG runDailyGreeting] رجعت aiSpeak. aiSpeechAudio:',aiSpeechAudio);
+  console.log('[DEBUG runDailyGreeting] aiSpeechAudio?.paused:',aiSpeechAudio?.paused);
+  if(aiSpeechAudio&&!aiSpeechAudio.paused){
+    localStorage.setItem(key,'1');
+    console.log('[DEBUG runDailyGreeting] تم تسجيل localStorage — التشغيل بدأ فعليًا');
+  }else{
+    console.log('[DEBUG runDailyGreeting] لم يُسجَّل localStorage — التشغيل لم يبدأ');
+  }
 }
 function toggleAIVoice(){
   aiVoiceEnabled=!aiVoiceEnabled;localStorage.setItem('shiftManagerAIVoice',aiVoiceEnabled?'on':'off');updateAIVoiceButton();
