@@ -1847,11 +1847,21 @@ function conditionalShiftReminder(date){
   const shift=groupShiftForDate(date),weekday=new Date(date+'T12:00:00').getDay();
   return SHIFT_CONDITIONAL_REMINDERS.find(r=>r.shift===shift.code&&r.weekday===weekday)||null;
 }
+function personalNotesForToday(){
+  return state.personalNotes.filter(n=>n.date===todayISO());
+}
+function todaySummaryItems(){
+  const items=[];
+  const shift=conditionalShiftReminder(todayISO());
+  if(shift)items.push(shift.title);
+  personalNotesForToday().forEach(n=>items.push(n.text));
+  return items;
+}
 function renderConditionalReminder(){
   const box=document.getElementById('conditionalShiftReminder');if(!box)return;
-  const hit=conditionalShiftReminder(todayISO());
-  box.style.display=hit?'flex':'none';
-  if(hit)box.textContent='📋 '+hit.title;
+  const items=todaySummaryItems();
+  box.style.display=items.length?'flex':'none';
+  box.innerHTML=items.map(t=>`<span>📋 ${esc(t)}</span>`).join('');
 }
 function changeScheduleMonth(step){
   let [year,month]=scheduleMonth.split('-').map(Number);month+=step;
