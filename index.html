@@ -262,6 +262,8 @@
       .capacity-label{font-size:7px!important;padding:1px 3px!important;margin:0!important}.calendar-event{display:block!important;width:100%!important;font-size:7.5px!important;font-weight:700!important;line-height:1!important;padding:1px 3px!important;margin:1px 0!important;color:#111!important;border-radius:3px!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;direction:rtl!important;text-align:right!important}
     }
 
+    .dashboard-conditional-reminder{display:none;align-items:center;gap:6px;margin-top:10px;padding:8px 12px;border-radius:11px;background:rgba(247,185,85,.18);color:#fde68a;font-size:12px;font-weight:800;position:relative;z-index:1}
+
     /* Desktop / tablet layout */
     @media(min-width:900px){
       body{background:radial-gradient(circle at 80% -10%,rgba(56,189,248,.13),transparent 30%),#07101f}
@@ -872,6 +874,7 @@
             <div class="dashboard-shift-copy"><strong id="dashboardShiftName">جاري الحساب</strong><span id="dashboardShiftPeriod"></span></div>
           </div>
           <div class="dashboard-next-shift" id="dashboardNextShift">الشفت القادم</div>
+          <div class="dashboard-conditional-reminder" id="conditionalShiftReminder" style="display:none"></div>
           <button class="marine-alert ok" id="marineAlert" onclick="openMarineAlerts()"><strong>Marine ID Access</strong><span>جاري فحص البطاقات...</span></button>
         </div>
         <button class="dashboard-add-card" onclick="openLeaveModal()">
@@ -1833,6 +1836,22 @@ function renderDashboardShift(){
   document.getElementById('dashboardShiftName').textContent=current.code==='OFF'?'يوم راحة':current.name+' Shift';
   document.getElementById('dashboardShiftPeriod').textContent=current.code==='OFF'?`الراحة مستمرة حتى ${shortDate(end)}`:`${current.arabic} حتى ${shortDate(end)}`;
   document.getElementById('dashboardNextShift').textContent=next?`القادم: ${next.code} · ${next.name} — ${shortDate(next.date)}`:'—';
+  renderConditionalReminder();
+}
+const SHIFT_CONDITIONAL_REMINDERS=[
+  {shift:'A',weekday:0,title:'Weekly Fence and Light Inspection'},
+  {shift:'M',weekday:5,title:'Gate and Patrol Check'},
+  {shift:'N',weekday:5,title:'Weapons Inspection'}
+];
+function conditionalShiftReminder(date){
+  const shift=groupShiftForDate(date),weekday=new Date(date+'T12:00:00').getDay();
+  return SHIFT_CONDITIONAL_REMINDERS.find(r=>r.shift===shift.code&&r.weekday===weekday)||null;
+}
+function renderConditionalReminder(){
+  const box=document.getElementById('conditionalShiftReminder');if(!box)return;
+  const hit=conditionalShiftReminder(todayISO());
+  box.style.display=hit?'flex':'none';
+  if(hit)box.textContent='📋 '+hit.title;
 }
 function changeScheduleMonth(step){
   let [year,month]=scheduleMonth.split('-').map(Number);month+=step;
