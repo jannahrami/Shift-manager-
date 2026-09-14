@@ -2928,10 +2928,7 @@ function aiDailyGreetingText(){
   return `${prefix}. عندك اليوم ${countWord}: ${items.join('، و')}.`;
 }
 async function runDailyGreeting(){
-  const key='shiftManagerGreeting_'+todayISO();
-  if(localStorage.getItem(key))return;
   await aiSpeak(aiDailyGreetingText());
-  if(aiSpeechAudio&&!aiSpeechAudio.paused)localStorage.setItem(key,'1');
 }
 function toggleAIVoice(){
   aiVoiceEnabled=!aiVoiceEnabled;localStorage.setItem('shiftManagerAIVoice',aiVoiceEnabled?'on':'off');updateAIVoiceButton();
