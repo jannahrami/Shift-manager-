@@ -2811,6 +2811,8 @@ let aiRealtimeLeaveApprovalPending=null;
 let aiRealtimeWhatsAppPending=null;
 let aiRealtimeWaitingRetry=false;
 const aiRealtimeHandledCalls=new Set();
+let aiRealtimeResponseActive=false;
+let aiRealtimeResponsePending=null;
 function aiNormalize(value=''){
   return String(value).toLowerCase().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u065F]/g,'').replace(/[^\u0600-\u06ff\w\s-]/g,' ').replace(/\s+/g,' ').trim();
 }
@@ -2936,11 +2938,11 @@ function aiRealtimeSend(event){if(aiRealtimeDc?.readyState==='open')aiRealtimeDc
 function aiRealtimeUpdateContext(){aiRealtimeSend({type:'session.update',session:{type:'realtime',instructions:aiRealtimeInstructions(),tools:aiRealtimeTools(),tool_choice:'auto'}})}
 function aiRealtimeToolResult(callId,result){
   aiRealtimeSend({type:'conversation.item.create',item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}});
-  if(result?.ok&&result?.message){
-    aiRealtimeSend({type:'response.create',response:{instructions:`انطق نتيجة التنفيذ التالية فورًا فقط كما هي، بدون تمهيد أو وعد بالرجوع أو إعادة فحص: ${result.message}`}});
-  }else{
-    aiRealtimeSend({type:'response.create'});
-  }
+  const payload=(result?.ok&&result?.message)
+    ?{type:'response.create',response:{instructions:`انطق نتيجة التنفيذ التالية فورًا فقط كما هي، بدون تمهيد أو وعد بالرجوع أو إعادة فحص: ${result.message}`}}
+    :{type:'response.create'};
+  if(aiRealtimeResponseActive){aiRealtimeResponsePending=payload;return}
+  aiRealtimeSend(payload);
 }
 function aiRealtimeEmployee(args){
   let employee=state.employees.find(e=>e.id===args.employee_id);
@@ -3107,6 +3109,7 @@ async function aiHandleRealtimeTool(event){
   aiRealtimeToolResult(callId,{ok:false,error:'الأداة غير معروفة'});
 }
 function aiHandleRealtimeEvent(event){
+  if(event.type==='response.created')aiRealtimeResponseActive=true;
   if(event.type==='conversation.item.input_audio_transcription.completed'&&event.transcript?.trim()){
     aiRealtimeLastUserText=event.transcript.trim();const q=aiNormalize(aiRealtimeLastUserText);
     aiRealtimeWaitingRetry=false;
@@ -3129,19 +3132,23 @@ function aiHandleRealtimeEvent(event){
   if(event.type==='response.output_audio_transcript.done'){
     const text=(event.transcript||aiRealtimeTranscript).trim();aiRealtimeTranscript='';if(text)aiAddMessage(text,'bot','',false);
     const waiting=/(خليني|لحظة|ثواني|بأشيك|باشيك|أشيك|بشوف|أشوف|براجع|أراجع|بأتأكد|أتأكد|أتحقق|بأجهز|بجهز|أجهز|راح\s+أجهز).{0,80}(وأرد|وارجع|وأرجع|عليك|لك|الرد|النتيجة|من البيانات|من التداخل|من الرصيد|بناء\s+على)/i;
-    if(text&&waiting.test(text)&&!aiRealtimeWaitingRetry){
+    if(text&&waiting.test(text)&&!aiRealtimeWaitingRetry&&!aiRealtimeResponseActive){
       aiRealtimeWaitingRetry=true;
       aiRealtimeSend({type:'response.create',response:{instructions:'أكمل الآن ولا تنتظر سؤالًا آخر. افحص بيانات السياق وأعطِ رامي النتيجة النهائية مباشرة. ممنوع قول لحظة أو بأشيك أو سأرد عليك.'}});
     }
   }
   if(event.type==='response.function_call_arguments.done')aiHandleRealtimeTool(event).catch(error=>console.error('Realtime tool',error));
+  if(event.type==='response.done'){
+    aiRealtimeResponseActive=false;
+    if(aiRealtimeResponsePending){const pending=aiRealtimeResponsePending;aiRealtimeResponsePending=null;aiRealtimeSend(pending)}
+  }
   if(event.type==='error'){console.error('OpenAI realtime',event);aiAddMessage('صار خلل بسيط في الاتصال الصوتي. اقفل المايك وشغّله مرة ثانية.','error','',false)}
 }
 function aiStopRealtime(showMessage=true){
   const wasActive=aiRealtimeConnected||aiRealtimeConnecting;aiRealtimeConnected=false;aiRealtimeConnecting=false;aiIsListening=false;
   try{aiRealtimeDc?.close()}catch{}try{aiRealtimePc?.close()}catch{}aiRealtimeStream?.getTracks().forEach(t=>t.stop());
   if(aiRealtimeAudio){aiRealtimeAudio.pause();aiRealtimeAudio.srcObject=null}
-  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=null;aiRealtimeWhatsAppPending=null;aiRealtimeWaitingRetry=false;aiRealtimeHandledCalls.clear();
+  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=null;aiRealtimeWhatsAppPending=null;aiRealtimeWaitingRetry=false;aiRealtimeHandledCalls.clear();aiRealtimeResponseActive=false;aiRealtimeResponsePending=null;
   document.getElementById('aiMicBtn')?.classList.remove('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='مثال: سجل عند أحمد تأخير اليوم 20 دقيقة';
   if(showMessage&&wasActive)aiAddMessage('تم إنهاء المحادثة الصوتية.','bot','',false);
 }
