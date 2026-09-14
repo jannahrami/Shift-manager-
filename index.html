@@ -2937,6 +2937,12 @@ function aiRealtimeTools(){return [
 function aiRealtimeSend(event){if(aiRealtimeDc?.readyState==='open')aiRealtimeDc.send(JSON.stringify(event))}
 function aiRealtimeUpdateContext(){aiRealtimeSend({type:'session.update',session:{type:'realtime',instructions:aiRealtimeInstructions(),tools:aiRealtimeTools(),tool_choice:'auto'}})}
 function aiRealtimeToolResult(callId,result){
+  if(String(callId).startsWith('approved-')){
+    const speak=result?.message||result?.error||(result?.ok?'تم التنفيذ':'حدث خطأ ولم يتم التنفيذ');
+    const payload={type:'response.create',response:{instructions:`انطق نتيجة التنفيذ التالية فورًا فقط كما هي، بدون تمهيد أو وعد بالرجوع أو إعادة فحص: ${speak}`}};
+    if(aiRealtimeResponseActive){aiRealtimeResponsePending=payload;return}
+    aiRealtimeSend(payload);return;
+  }
   aiRealtimeSend({type:'conversation.item.create',item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}});
   const payload=(result?.ok&&result?.message)
     ?{type:'response.create',response:{instructions:`انطق نتيجة التنفيذ التالية فورًا فقط كما هي، بدون تمهيد أو وعد بالرجوع أو إعادة فحص: ${result.message}`}}
@@ -2982,7 +2988,7 @@ function aiRealtimeAnswerVerified(reply){
 async function aiPersistAssistantMutation(snapshot){
   localStorage.setItem(KEY,JSON.stringify(state));renderAll();clearTimeout(syncTimer);
   try{setCloudStatus('','جاري الحفظ');await uploadCloudState();setCloudStatus('online','تم الحفظ والمزامنة');return true}
-  catch(error){state=snapshot;localStorage.setItem(KEY,JSON.stringify(state));renderAll();setCloudStatus('offline','تعذر الحفظ');return false}
+  catch(error){console.error('[DEBUG] aiPersistAssistantMutation failed:',error?.message||error);state=snapshot;localStorage.setItem(KEY,JSON.stringify(state));renderAll();setCloudStatus('offline','تعذر الحفظ');return false}
 }
 function aiRealtimeEmployeeBrief(e){
   return {id:e.id,name:aiDisplayEmployee(e),empId:e.empId||'',phone:localPhone(e.phone)||'',leaveBalance:formatDays(e.leaveBalance),shift:e.shift||'',position:e.position||'',dutyRole:e.dutyRole||''};
