@@ -816,7 +816,7 @@
 @media(min-width:900px){
   html,body{background:var(--sm-bg)!important;color:var(--sm-text)!important;min-height:100%}
   body{background-image:radial-gradient(circle at 68% -20%,rgba(54,213,208,.11),transparent 34%),linear-gradient(180deg,#07111d,#08131f)!important}
-  .app{max-width:none!important;margin:0!important;padding:22px 34px 55px 140px!important;min-height:100vh}
+  .app{max-width:none!important;margin:0!important;padding:18px 24px 42px 128px!important;min-height:100vh;width:100%!important}
   .topbar{margin:0 0 18px!important;padding:12px 4px!important;min-height:64px!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
   .title h1{color:var(--sm-text)!important;font-size:21px!important}.title p{color:var(--sm-muted)!important}.brand-mark{background:linear-gradient(135deg,#1abbb6,#0a6c75)!important;box-shadow:0 8px 24px rgba(54,213,208,.16)!important}
   .iconbtn,.role-badge-top{background:#0d1a29!important;color:#dce9f6!important;border:1px solid var(--sm-line)!important;box-shadow:none!important}.cloud-status{border-color:var(--sm-line)!important}
@@ -825,17 +825,17 @@
   .navbtn,.navbtn:nth-child(n){width:100%!important;min-height:66px!important;padding:8px 3px!important;display:flex!important;flex-direction:column!important;justify-content:center!important;gap:5px!important;border-radius:15px!important;background:transparent!important;border:1px solid transparent!important;color:#8094a9!important;font-size:10px!important;box-shadow:none!important}
   .navbtn span,.navbtn:nth-child(n) span{font-size:20px!important;color:inherit!important;background:transparent!important;padding:0!important}
   .navbtn.active,.navbtn:nth-child(n).active{background:#11283a!important;border-color:#1e4658!important;color:#64e3dc!important;box-shadow:inset 3px 0 0 #36d5d0!important}
-  .global-search{max-width:620px;margin:0 0 22px!important}.global-search input{height:48px!important;background:#0b1826!important;color:#eaf4ff!important;border:1px solid var(--sm-line)!important;border-radius:15px!important;box-shadow:none!important}.global-search input::placeholder{color:#657a90!important}.global-search-icon{color:#6e849a!important}
+  .global-search{max-width:none!important;width:100%!important;margin:0 0 16px!important}.global-search input{height:48px!important;background:#0b1826!important;color:#eaf4ff!important;border:1px solid var(--sm-line)!important;border-radius:15px!important;box-shadow:none!important}.global-search input::placeholder{color:#657a90!important}.global-search-icon{color:#6e849a!important}
   .access-cards{display:none!important}
-  main{max-width:1540px;margin:0 auto}
+  main{max-width:none!important;width:100%!important;margin:0!important}
   .view>.section,.view>.section-wide{background:#0d1a29!important;color:var(--sm-text)!important;border:1px solid var(--sm-line)!important;box-shadow:none!important}
 }
-.sm-dashboard{direction:rtl}.sm-welcome{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:2px 0 18px}.sm-welcome h2{margin:4px 0 5px;font-size:30px;letter-spacing:-.8px}.sm-welcome p{margin:0;color:var(--sm-muted);font-size:12px}.sm-eyebrow{font:800 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--sm-cyan);letter-spacing:1.4px}.sm-live{font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#8de9bd;padding:8px 11px;border:1px solid #1d5743;border-radius:999px;background:#0b261f}.sm-live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#39d98a;margin-left:6px;box-shadow:0 0 12px #39d98a}
-.sm-primary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}.sm-kpi{min-height:126px;padding:18px;border:1px solid var(--sm-line);border-radius:20px;background:linear-gradient(145deg,#0d1a29,#101f30);color:var(--sm-text);text-align:right;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:none;transition:.18s ease}.sm-kpi:hover{transform:translateY(-2px);border-color:#35516d}.sm-kpi-icon{display:grid;place-items:center;width:46px;height:46px;flex:0 0 auto;border-radius:15px;background:#14263a;font-size:21px}.sm-kpi-copy{display:block;min-width:0}.sm-kpi small{display:block;color:#8ca0b5;font-size:11px;font-weight:750}.sm-kpi strong{display:block;margin:5px 0 1px;font:900 32px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.sm-kpi em{display:block;color:#637a91;font-size:9px;font-style:normal}.sm-kpi-people strong{color:#78aaff}.sm-kpi-leave strong{color:#52dfa0}.sm-kpi-alert strong{color:#ffc760}.sm-kpi-note strong{color:#7de4df}.sm-kpi-people .sm-kpi-icon{color:#78aaff}.sm-kpi-leave .sm-kpi-icon{color:#52dfa0}.sm-kpi-alert .sm-kpi-icon{color:#ffc760}.sm-kpi-note .sm-kpi-icon{color:#7de4df}.sm-hidden-counter{display:none!important}
-.sm-dashboard-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(310px,.75fr);grid-template-areas:'alerts shift' 'notes leave';gap:14px}.sm-panel{background:linear-gradient(145deg,#0d1a29,#0b1724);border:1px solid var(--sm-line);border-radius:20px;padding:17px;box-shadow:0 16px 35px rgba(0,0,0,.10)}.sm-alert-panel{grid-area:alerts;min-height:270px}.sm-shift-card{grid-area:shift;min-height:270px!important;margin:0!important;border:1px solid #20505b!important;border-radius:20px!important;background:radial-gradient(circle at 20% 10%,rgba(54,213,208,.24),transparent 38%),linear-gradient(145deg,#0c1b2b,#0b2a32)!important;box-shadow:none!important}.sm-notes-panel{grid-area:notes}.sm-leave-panel{grid-area:leave}.sm-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.sm-panel-head span:not(.chip){display:block;color:#60778f;font:800 9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:1px}.sm-panel-head h3{margin:3px 0 0;font-size:17px;color:var(--sm-text)}.sm-date{color:#748aa0!important;font-size:9px!important}.sm-mini-btn{padding:8px 11px!important;border-radius:10px!important;background:#13263a!important;border:1px solid #28415a!important;color:#bcd0e4!important;font-size:10px!important;box-shadow:none!important}.sm-alert-list .row,.sm-alert-list .list-item{background:#101f30!important;border:1px solid #1d3349!important;color:#eaf4ff!important}.sm-panel .empty{background:#101f30!important;color:#6f859b!important;border:1px dashed #284058!important}.sm-panel .note-row{background:#101f30!important;border-color:#20374d!important;color:#eaf4ff!important}.sm-panel .note-text{color:#eaf4ff!important}.sm-panel .note-date{color:#7f94aa!important}.sm-panel .row{background:#101f30!important;border-color:#20374d!important;color:#eaf4ff!important}.sm-panel .row strong,.sm-panel h4{color:#edf6ff!important}.sm-panel .meta{color:#8196ab!important}.sm-shift-preview{margin-top:14px}.sm-dashboard-secondary{margin-top:14px!important}.sm-dashboard-secondary .section-head h2{color:#eef6ff!important}.sm-dashboard-secondary .section-kicker{color:#5c748d!important}
+.sm-dashboard{direction:rtl}.sm-welcome{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0 0 12px}.sm-welcome h2{margin:4px 0 5px;font-size:30px;letter-spacing:-.8px}.sm-welcome p{margin:0;color:var(--sm-muted);font-size:12px}.sm-eyebrow{font:800 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--sm-cyan);letter-spacing:1.4px}.sm-live{font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#8de9bd;padding:8px 11px;border:1px solid #1d5743;border-radius:999px;background:#0b261f}.sm-live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#39d98a;margin-left:6px;box-shadow:0 0 12px #39d98a}
+.sm-primary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}.sm-kpi{min-height:108px;padding:16px 18px;border:1px solid var(--sm-line);border-radius:20px;background:linear-gradient(145deg,#0d1a29,#101f30);color:var(--sm-text);text-align:right;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:none;transition:.18s ease}.sm-kpi:hover{transform:translateY(-2px);border-color:#35516d}.sm-kpi-icon{display:grid;place-items:center;width:46px;height:46px;flex:0 0 auto;border-radius:15px;background:#14263a;font-size:21px}.sm-kpi-copy{display:block;min-width:0}.sm-kpi small{display:block;color:#8ca0b5;font-size:11px;font-weight:750}.sm-kpi strong{display:block;margin:5px 0 1px;font:900 32px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.sm-kpi em{display:block;color:#637a91;font-size:9px;font-style:normal}.sm-kpi-people strong{color:#78aaff}.sm-kpi-leave strong{color:#52dfa0}.sm-kpi-alert strong{color:#ffc760}.sm-kpi-note strong{color:#7de4df}.sm-kpi-people .sm-kpi-icon{color:#78aaff}.sm-kpi-leave .sm-kpi-icon{color:#52dfa0}.sm-kpi-alert .sm-kpi-icon{color:#ffc760}.sm-kpi-note .sm-kpi-icon{color:#7de4df}.sm-hidden-counter{display:none!important}
+.sm-dashboard-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-areas:'alerts alerts alerts alerts alerts shift shift shift shift preview preview preview' 'notes notes notes notes notes notes leave leave leave leave leave leave';gap:12px;align-items:stretch}.sm-panel{background:linear-gradient(145deg,#0d1a29,#0b1724);border:1px solid var(--sm-line);border-radius:18px;padding:16px;box-shadow:0 12px 28px rgba(0,0,0,.09)}.sm-alert-panel{grid-area:alerts;min-height:245px}.sm-shift-card{grid-area:shift;min-height:245px!important;margin:0!important;border:1px solid #20505b!important;border-radius:18px!important;background:radial-gradient(circle at 20% 10%,rgba(54,213,208,.24),transparent 38%),linear-gradient(145deg,#0c1b2b,#0b2a32)!important;box-shadow:none!important}.sm-shift-preview{grid-area:preview;min-height:245px!important;margin:0!important}.sm-notes-panel{grid-area:notes;min-height:250px}.sm-leave-panel{grid-area:leave;min-height:250px}.sm-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.sm-panel-head span:not(.chip){display:block;color:#60778f;font:800 9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:1px}.sm-panel-head h3{margin:3px 0 0;font-size:17px;color:var(--sm-text)}.sm-date{color:#748aa0!important;font-size:9px!important}.sm-mini-btn{padding:8px 11px!important;border-radius:10px!important;background:#13263a!important;border:1px solid #28415a!important;color:#bcd0e4!important;font-size:10px!important;box-shadow:none!important}.sm-alert-list .row,.sm-alert-list .list-item{background:#101f30!important;border:1px solid #1d3349!important;color:#eaf4ff!important}.sm-panel .empty{background:#101f30!important;color:#6f859b!important;border:1px dashed #284058!important}.sm-panel .note-row{background:#101f30!important;border-color:#20374d!important;color:#eaf4ff!important}.sm-panel .note-text{color:#eaf4ff!important}.sm-panel .note-date{color:#7f94aa!important}.sm-panel .row{background:#101f30!important;border-color:#20374d!important;color:#eaf4ff!important}.sm-panel .row strong,.sm-panel h4{color:#edf6ff!important}.sm-panel .meta{color:#8196ab!important}.sm-shift-preview{margin-top:0}.sm-dashboard-secondary{margin-top:14px!important}.sm-dashboard-secondary .section-head h2{color:#eef6ff!important}.sm-dashboard-secondary .section-kicker{color:#5c748d!important}
 @media(max-width:899px){
   body{background:#07111d!important;color:#eef6ff!important}.app{background:#07111d!important;padding:10px 12px 100px!important}.topbar{background:#0b1826!important;border:1px solid #1d3045!important;border-radius:18px!important;box-shadow:none!important}.title h1{color:#eef6ff!important}.title p{color:#748ba2!important}.iconbtn,.role-badge-top{background:#112033!important;color:#dce9f6!important;border-color:#263a50!important}.global-search input{background:#0b1826!important;color:#eef6ff!important;border-color:#20344a!important;box-shadow:none!important}.access-cards{display:none!important}
-  .sm-welcome{align-items:center;margin:8px 2px 14px}.sm-welcome h2{font-size:24px}.sm-welcome p{font-size:10px;max-width:260px}.sm-live{font-size:9px;padding:6px 8px}.sm-primary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.sm-kpi{min-height:105px;padding:13px;gap:10px;border-radius:17px}.sm-kpi-icon{width:38px;height:38px;border-radius:12px;font-size:17px}.sm-kpi strong{font-size:27px}.sm-kpi small{font-size:10px}.sm-dashboard-grid{display:flex;flex-direction:column}.sm-alert-panel{order:1;min-height:0}.sm-shift-card{order:2;min-height:220px!important}.sm-notes-panel{order:3}.sm-leave-panel{order:4}.sm-panel{padding:14px;border-radius:17px}.sm-dashboard-secondary{display:none!important}.sm-shift-preview{margin-bottom:8px}.bottom-nav{background:rgba(9,21,34,.97)!important;border-color:#20344a!important}.navbtn{color:#70869b!important}.navbtn.active{color:#5fe0da!important;background:#10283a!important}.fab{bottom:82px!important}.marine-mobile-alert{margin:12px 0;background:#0f3540!important;border:1px solid #1c5964!important}.section{background:#0d1a29!important;color:#eef6ff!important;border-color:#20344a!important}.section h2{color:#eef6ff!important}
+  .sm-welcome{align-items:center;margin:8px 2px 14px}.sm-welcome h2{font-size:24px}.sm-welcome p{font-size:10px;max-width:260px}.sm-live{font-size:9px;padding:6px 8px}.sm-primary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.sm-kpi{min-height:105px;padding:13px;gap:10px;border-radius:17px}.sm-kpi-icon{width:38px;height:38px;border-radius:12px;font-size:17px}.sm-kpi strong{font-size:27px}.sm-kpi small{font-size:10px}.sm-dashboard-grid{display:flex;flex-direction:column}.sm-alert-panel{order:1;min-height:0}.sm-shift-card{order:2;min-height:220px!important}.sm-notes-panel{order:3}.sm-leave-panel{order:4}.sm-shift-preview{order:5;min-height:0!important}.sm-panel{padding:14px;border-radius:17px}.sm-dashboard-secondary{display:none!important}.sm-shift-preview{margin-bottom:8px}.bottom-nav{background:rgba(9,21,34,.97)!important;border-color:#20344a!important}.navbtn{color:#70869b!important}.navbtn.active{color:#5fe0da!important;background:#10283a!important}.fab{bottom:82px!important}.marine-mobile-alert{margin:12px 0;background:#0f3540!important;border:1px solid #1c5964!important}.section{background:#0d1a29!important;color:#eef6ff!important;border-color:#20344a!important}.section h2{color:#eef6ff!important}
 }
 </style>
 </head>
@@ -918,6 +918,8 @@
           <button class="marine-alert ok" id="marineAlert" onclick="openMarineAlerts()"><strong>Marine ID Access</strong><span>جاري فحص البطاقات...</span></button>
         </div>
 
+      <div class="sm-panel sm-shift-preview"><div class="sm-panel-head"><div><span>TODAY</span><h3>التوزيع الحالي</h3></div><button class="sm-mini-btn" onclick="showView('shiftView')">إدارة الشفت</button></div><div id="currentShiftPreview"></div></div>
+
         <div class="sm-panel sm-notes-panel">
           <div class="sm-panel-head"><div><span>PERSONAL</span><h3>التذكير الشخصي</h3></div><button class="sm-mini-btn" onclick="openPersonalNoteModal()">＋ إضافة</button></div>
           <div class="note-list" id="personalNotesList"></div>
@@ -930,7 +932,6 @@
       </div>
 
       <button class="marine-mobile-alert ok" id="marineMobileAlert" onclick="openMarineAlerts()">Marine ID Access — جاري فحص البطاقات...</button>
-      <div class="sm-panel sm-shift-preview"><div class="sm-panel-head"><div><span>TODAY</span><h3>التوزيع الحالي</h3></div><button class="sm-mini-btn" onclick="showView('shiftView')">إدارة الشفت</button></div><div id="currentShiftPreview"></div></div>
 
       <div class="section section-wide leave-insights-section sm-dashboard-secondary">
         <div class="section-head"><div><span class="section-kicker">مؤشرات السنة الحالية</span><h2>متابعة استخدام وتصفية رصيد الإجازات</h2></div><div style="display:flex;gap:8px;align-items:center"><span class="chip" id="leaveInsightsYear"></span><button class="secondary" onclick="exportLeaveInsightsPDF()">⬇ PDF</button></div></div>
@@ -2819,6 +2820,8 @@ let aiRealtimeLastUserText='';
 let aiRealtimeLeaveApprovalPending=null;
 let aiRealtimeWhatsAppPending=null;
 let aiRealtimeWaitingRetry=false;
+let aiRealtimeResponseActive=false;
+let aiRealtimePendingResponse=null;
 const aiRealtimeHandledCalls=new Set();
 function aiNormalize(value=''){
   return String(value).toLowerCase().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u065F]/g,'').replace(/[^\u0600-\u06ff\w\s-]/g,' ').replace(/\s+/g,' ').trim();
@@ -2935,9 +2938,9 @@ function aiRealtimeUpdateContext(){aiRealtimeSend({type:'session.update',session
 function aiRealtimeToolResult(callId,result){
   aiRealtimeSend({type:'conversation.item.create',item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}});
   if(result?.ok&&result?.message){
-    aiRealtimeSend({type:'response.create',response:{instructions:`انطق نتيجة التنفيذ التالية فورًا فقط كما هي، بدون تمهيد أو وعد بالرجوع أو إعادة فحص: ${result.message}`}});
+    aiRealtimeRequestResponse({instructions:`انطق نتيجة التنفيذ التالية فورًا فقط كما هي، بدون تمهيد أو وعد بالرجوع أو إعادة فحص: ${result.message}`});
   }else{
-    aiRealtimeSend({type:'response.create'});
+    aiRealtimeRequestResponse();
   }
 }
 function aiRealtimeEmployee(args){
@@ -2973,7 +2976,7 @@ function aiVerifiedReadReply(raw){
   return '';
 }
 function aiRealtimeAnswerVerified(reply){
-  aiRealtimeSend({type:'response.create',response:{instructions:`انطق الجواب التالي فقط كما هو، بدون مقدمة أو إضافة أو اعتذار: ${reply}`}});
+  aiRealtimeRequestResponse({instructions:`انطق الجواب التالي فقط كما هو، بدون مقدمة أو إضافة أو اعتذار: ${reply}`});
 }
 async function aiPersistAssistantMutation(snapshot){
   localStorage.setItem(KEY,JSON.stringify(state));renderAll();clearTimeout(syncTimer);
@@ -3032,7 +3035,26 @@ async function aiHandleRealtimeTool(event){
   }
   aiRealtimeToolResult(callId,{ok:false,error:'الأداة غير معروفة'});
 }
+function aiRealtimeRequestResponse(response=null){
+  if(!aiRealtimeDc||aiRealtimeDc.readyState!=='open')return false;
+  if(aiRealtimeResponseActive){
+    // إذا تكلم رامي قبل انتهاء الرد الحالي، لا نرسل response.create متداخل.
+    // نحفظ الطلب الأخير ونطلقه فور انتهاء الرد الحالي.
+    aiRealtimePendingResponse=response||{};
+    return true;
+  }
+  aiRealtimeResponseActive=true;
+  const event={type:'response.create'};
+  if(response&&Object.keys(response).length)event.response=response;
+  aiRealtimeSend(event);
+  return true;
+}
 function aiHandleRealtimeEvent(event){
+  if(event.type==='response.created')aiRealtimeResponseActive=true;
+  if(event.type==='response.done'){
+    aiRealtimeResponseActive=false;
+    if(aiRealtimePendingResponse){const pending=aiRealtimePendingResponse;aiRealtimePendingResponse=null;setTimeout(()=>aiRealtimeRequestResponse(pending),40)}
+  }
   if(event.type==='conversation.item.input_audio_transcription.completed'&&event.transcript?.trim()){
     aiRealtimeLastUserText=event.transcript.trim();const q=aiNormalize(aiRealtimeLastUserText);
     aiRealtimeWaitingRetry=false;
@@ -3048,16 +3070,16 @@ function aiHandleRealtimeEvent(event){
     if(aiRealtimeWhatsAppPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){aiRealtimeWhatsAppPending=null;aiRealtimeAnswerVerified('تم إلغاء رسالة واتساب.');return}
     if(aiRealtimeWhatsAppPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد'))){const pending=aiRealtimeWhatsAppPending;pending.approved=true;aiHandleRealtimeTool({call_id:'approved-whatsapp-'+Date.now(),name:'open_whatsapp',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved WhatsApp',error));return}
     const verifiedReply=aiVerifiedReadReply(aiRealtimeLastUserText);
-    if(verifiedReply)aiRealtimeAnswerVerified(verifiedReply);else aiRealtimeSend({type:'response.create'});
+    if(verifiedReply)aiRealtimeAnswerVerified(verifiedReply);else aiRealtimeRequestResponse();
   }
-  if(event.type==='conversation.item.input_audio_transcription.failed')aiRealtimeSend({type:'response.create'});
+  if(event.type==='conversation.item.input_audio_transcription.failed')aiRealtimeRequestResponse();
   if(event.type==='response.output_audio_transcript.delta')aiRealtimeTranscript+=(event.delta||'');
   if(event.type==='response.output_audio_transcript.done'){
     const text=(event.transcript||aiRealtimeTranscript).trim();aiRealtimeTranscript='';if(text)aiAddMessage(text,'bot','',false);
     const waiting=/(خليني|لحظة|ثواني|بأشيك|باشيك|أشيك|بشوف|أشوف|براجع|أراجع|بأتأكد|أتأكد|أتحقق|بأجهز|بجهز|أجهز|راح\s+أجهز).{0,80}(وأرد|وارجع|وأرجع|عليك|لك|الرد|النتيجة|من البيانات|من التداخل|من الرصيد|بناء\s+على)/i;
     if(text&&waiting.test(text)&&!aiRealtimeWaitingRetry){
       aiRealtimeWaitingRetry=true;
-      aiRealtimeSend({type:'response.create',response:{instructions:'أكمل الآن ولا تنتظر سؤالًا آخر. افحص بيانات السياق وأعطِ رامي النتيجة النهائية مباشرة. ممنوع قول لحظة أو بأشيك أو سأرد عليك.'}});
+      aiRealtimeRequestResponse({instructions:'أكمل الآن ولا تنتظر سؤالًا آخر. افحص بيانات السياق وأعطِ رامي النتيجة النهائية مباشرة. ممنوع قول لحظة أو بأشيك أو سأرد عليك.'});
     }
   }
   if(event.type==='response.function_call_arguments.done')aiHandleRealtimeTool(event).catch(error=>console.error('Realtime tool',error));
@@ -3067,7 +3089,7 @@ function aiStopRealtime(showMessage=true){
   const wasActive=aiRealtimeConnected||aiRealtimeConnecting;aiRealtimeConnected=false;aiRealtimeConnecting=false;aiIsListening=false;
   try{aiRealtimeDc?.close()}catch{}try{aiRealtimePc?.close()}catch{}aiRealtimeStream?.getTracks().forEach(t=>t.stop());
   if(aiRealtimeAudio){aiRealtimeAudio.pause();aiRealtimeAudio.srcObject=null}
-  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=null;aiRealtimeWhatsAppPending=null;aiRealtimeWaitingRetry=false;aiRealtimeHandledCalls.clear();
+  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=null;aiRealtimeWhatsAppPending=null;aiRealtimeWaitingRetry=false;aiRealtimeResponseActive=false;aiRealtimePendingResponse=null;aiRealtimeHandledCalls.clear();
   document.getElementById('aiMicBtn')?.classList.remove('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='مثال: سجل عند أحمد تأخير اليوم 20 دقيقة';
   if(showMessage&&wasActive)aiAddMessage('تم إنهاء المحادثة الصوتية.','bot','',false);
 }
@@ -3081,7 +3103,7 @@ async function aiStartRealtime(){
     aiRealtimePc.ontrack=e=>{aiRealtimeAudio.srcObject=e.streams[0];aiRealtimeAudio.play().catch(()=>{})};
     aiRealtimeStream.getTracks().forEach(track=>aiRealtimePc.addTrack(track,aiRealtimeStream));
     aiRealtimeDc=aiRealtimePc.createDataChannel('oai-events');
-    aiRealtimeDc.onopen=()=>{aiRealtimeConnecting=false;aiRealtimeConnected=true;aiIsListening=true;if(input)input.placeholder='المحادثة شغالة… تكلم براحتك';aiRealtimeUpdateContext();aiAddMessage('المحادثة الصوتية المباشرة جاهزة 🎙️','bot','',false)};
+    aiRealtimeDc.onopen=()=>{aiRealtimeConnecting=false;aiRealtimeConnected=true;aiIsListening=true;aiRealtimeResponseActive=false;aiRealtimePendingResponse=null;if(input)input.placeholder='المحادثة شغالة… تكلم براحتك';aiRealtimeUpdateContext();aiAddMessage('المحادثة الصوتية المباشرة جاهزة 🎙️','bot','',false)};
     aiRealtimeDc.onmessage=e=>{try{aiHandleRealtimeEvent(JSON.parse(e.data))}catch(error){console.warn('Realtime event',error)}};
     aiRealtimeDc.onclose=()=>{if(aiRealtimeConnected)aiStopRealtime(false)};
     const offer=await aiRealtimePc.createOffer();await aiRealtimePc.setLocalDescription(offer);
@@ -3364,7 +3386,7 @@ async function sendAIMessage(){
     if(aiRealtimeWhatsAppPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){aiRealtimeWhatsAppPending=null;aiRealtimeAnswerVerified('تم إلغاء رسالة واتساب.');return}
     if(aiRealtimeWhatsAppPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد')||q.includes('افتح'))){const pending=aiRealtimeWhatsAppPending;pending.approved=true;aiHandleRealtimeTool({call_id:'approved-whatsapp-'+Date.now(),name:'open_whatsapp',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved WhatsApp',error));return}
     const verifiedReply=aiVerifiedReadReply(text);if(verifiedReply){aiRealtimeAnswerVerified(verifiedReply);return}
-    aiRealtimeSend({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}});aiRealtimeSend({type:'response.create'});return;
+    aiRealtimeSend({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}});aiRealtimeRequestResponse();return;
   }
   aiAddMessage(text,'user');input.value='';
   const q=aiNormalize(text);
