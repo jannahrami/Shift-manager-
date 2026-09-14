@@ -1548,7 +1548,7 @@ async function loadCloudState(){
     loadRuntimeRosterConfig();
     localStorage.setItem(KEY,JSON.stringify(state));
     if(marineIdsChanged||rosterLocationsChanged||annualCreditChanged)await uploadCloudState();
-    cloudReady=true;setCloudStatus('online','تمت المزامنة');unlockApp();renderAll();
+    cloudReady=true;setCloudStatus('online','تمت المزامنة');unlockApp();renderAll();runDailyGreeting();
   }catch(e){cloudReady=false;setCloudStatus('offline','تعذرت المزامنة');lockApp(e.message||'تعذر تحميل البيانات')}
 }
 async function uploadCloudState(){
@@ -2906,6 +2906,21 @@ async function aiSpeak(text){
   }catch(error){console.warn('Abdullah voice unavailable',error)}
 }
 function updateAIVoiceButton(){const btn=document.getElementById('aiVoiceToggle');if(btn){btn.textContent=aiVoiceEnabled?'🔊':'🔇';btn.classList.toggle('off',!aiVoiceEnabled)}}
+function aiDailyGreetingText(){
+  const hour=new Date().getHours();
+  const prefix=hour<12?'صباح الخير رامي':'مساء الخير رامي';
+  const items=todaySummaryItems();
+  if(!items.length)return `${prefix}. ما عندك تذكيرات مجدولة اليوم.`;
+  if(items.length===1)return `${prefix}. عندك اليوم ${items[0]}.`;
+  const countWord=items.length===2?'تذكيرين':`${items.length} تذكيرات`;
+  return `${prefix}. عندك اليوم ${countWord}: ${items.join('، و')}.`;
+}
+async function runDailyGreeting(){
+  const key='shiftManagerGreeting_'+todayISO();
+  if(localStorage.getItem(key))return;
+  await aiSpeak(aiDailyGreetingText());
+  if(aiSpeechAudio&&!aiSpeechAudio.paused)localStorage.setItem(key,'1');
+}
 function toggleAIVoice(){
   aiVoiceEnabled=!aiVoiceEnabled;localStorage.setItem('shiftManagerAIVoice',aiVoiceEnabled?'on':'off');updateAIVoiceButton();
   if(aiRealtimeAudio)aiRealtimeAudio.muted=!aiVoiceEnabled;
