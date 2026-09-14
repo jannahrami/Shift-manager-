@@ -3076,7 +3076,11 @@ async function aiStartRealtime(){
     aiRealtimeDc.onmessage=e=>{try{aiHandleRealtimeEvent(JSON.parse(e.data))}catch(error){console.warn('Realtime event',error)}};
     aiRealtimeDc.onclose=()=>{if(aiRealtimeConnected)aiStopRealtime(false)};
     const offer=await aiRealtimePc.createOffer();await aiRealtimePc.setLocalDescription(offer);
-    const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({mode:'realtime',sdp:offer.sdp})});
+    const realtimeController=new AbortController(),realtimeTimer=setTimeout(()=>realtimeController.abort(),18000);
+    let res;
+    try{
+      res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{method:'POST',signal:realtimeController.signal,headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({mode:'realtime',sdp:offer.sdp})});
+    }finally{clearTimeout(realtimeTimer)}
     const answer=await res.text();if(!res.ok)throw new Error(answer||'REALTIME_FAILED');
     await aiRealtimePc.setRemoteDescription({type:'answer',sdp:answer});
   }catch(error){console.error('Realtime start',error);aiStopRealtime(false);aiAddMessage(error?.name==='NotAllowedError'?'فعّل إذن الميكروفون من إعدادات Safari وبعدها جرّب مرة ثانية.':'ما قدرت أشغّل الاتصال الصوتي. تأكد من نشر آخر كود للدالة وجرّب مرة ثانية.','error','',false)}
@@ -3371,17 +3375,18 @@ async function sendAIMessage(){
   if(aiHandleGroupShiftQuery(text))return;
   if(aiHandleEmployeeLookup(text))return;
   const btn=document.getElementById('aiSendBtn');if(btn){btn.disabled=true;btn.textContent='...'}
+  input.disabled=true;
   try{
     const result=await aiAskGroq(text);
     const reply=String(result.reply||'تم').trim()||'تم';
     aiConversationHistory.push({role:'user',content:text},{role:'assistant',content:reply});
     if(aiConversationHistory.length>24)aiConversationHistory=aiConversationHistory.slice(-24);
-    if(!aiPrepareAgentAction(result.action))aiAddMessage(reply);
+    if(!aiPrepareAgentAction(result.action))aiAddMessage(reply,'bot','',true);
   }catch(error){
     console.warn('Groq assistant fallback',error);
     aiAddMessage('تعذر الوصول للمساعد الذكي حاليًا (شبكة بطيئة أو ضغط على الخدمة)، هذا رد مبدئي بالبحث المباشر:','error');
     aiHandleQuery(text);
-  }finally{if(btn){btn.disabled=false;btn.textContent='إرسال'}}
+  }finally{if(btn){btn.disabled=false;btn.textContent='إرسال'}input.disabled=false}
 }
 async function aiConfirmAction(){
   if(!aiPendingAction)return aiAddMessage('كل شيء تمام، ما عندي عملية معلّقة تحتاج تأكيد.','bot');
