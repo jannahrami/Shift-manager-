@@ -1850,11 +1850,23 @@ function conditionalShiftReminder(date){
 function personalNotesForToday(){
   return state.personalNotes.filter(n=>n.date===todayISO());
 }
+function upcomingLeaveReminders(){
+  const target=addDaysISO(todayISO(),2);
+  const items=[];
+  state.leaves.forEach(leave=>{
+    if(leave.start===target)items.push(`${aiEmployeeName(leave.employeeId)} يبدأ إجازته بعد يومين`);
+    const returnDuty=firstWorkDayAfterLeave(leave.end);
+    const returnDate=returnDuty?.date||addDaysISO(leave.end,1);
+    if(returnDate===target)items.push(`${aiEmployeeName(leave.employeeId)} راجع من الإجازة بعد يومين`);
+  });
+  return items;
+}
 function todaySummaryItems(){
   const items=[];
   const shift=conditionalShiftReminder(todayISO());
   if(shift)items.push(shift.title);
   personalNotesForToday().forEach(n=>items.push(n.text));
+  items.push(...upcomingLeaveReminders());
   return items;
 }
 function renderConditionalReminder(){
