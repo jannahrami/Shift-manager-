@@ -3066,10 +3066,17 @@ async function aiHandleRealtimeTool(event){
   let args={};try{args=JSON.parse(event.arguments||'{}')}catch{return aiRealtimeToolResult(callId,{ok:false,error:'البيانات غير مفهومة'})}
   if(AI_REALTIME_READ_TOOLS.has(event.name))return aiRealtimeToolResult(callId,aiRealtimeRunReadTool(event.name,args));
   if(event.name==='save_leave'&&!aiRealtimeLeaveApprovalPending?.approved){
-    aiRealtimeLeaveApprovalPending={args,approved:false};
-    return aiRealtimeToolResult(callId,{ok:false,needs_confirmation:true,error:'اعرض الاسم وتاريخ البداية والنهاية واطلب تأكيدًا واحدًا فقط. بعد موافقة رامي ستنفذ الصفحة الحفظ مباشرة'})
+    const employee=aiRealtimeEmployee(args);if(!employee)return aiRealtimeToolResult(callId,{ok:false,error:'لم أجد الموظف المحدد'});
+    const start=String(args.start||''),end=String(args.end||'');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end)||end<start)return aiRealtimeToolResult(callId,{ok:false,error:'تواريخ الإجازة غير صحيحة'});
+    const check=checkLeaveCapacity(employee.id,start,end);
+    if(check.employeeConflict)return aiRealtimeToolResult(callId,{ok:false,error:`لدى ${aiDisplayEmployee(employee)} إجازة متداخلة من ${check.employeeConflict.start} إلى ${check.employeeConflict.end}`});
+    if(check.blocked.length)return aiRealtimeToolResult(callId,{ok:false,error:'لا يمكن الحفظ لأن عدد المجازين سيتجاوز الحد الأعلى وهو 6 في بعض الأيام'});
+    const days=diffDays(end,start)+1,available=Number(employee.leaveBalance)||0;
+    const balanceWarning=days>available?` تنبيه: الرصيد المتاح ${formatDays(available)} يوم فقط وهو أقل من مدة الإجازة ${days} يوم، اذكر هذا التحذير ضمن نفس التأكيد.`:'';
+    aiRealtimeLeaveApprovalPending={args:{employee_id:employee.id,start,end,note:String(args.note||'').trim().slice(0,500),days},approved:false};
+    return aiRealtimeToolResult(callId,{ok:false,needs_confirmation:true,error:`اعرض الاسم وتاريخ البداية والنهاية واطلب تأكيدًا واحدًا فقط.${balanceWarning} بعد موافقة رامي ستنفذ الصفحة الحفظ مباشرة`})
   }
-  if(event.name==='save_leave')aiRealtimeLeaveApprovalPending=null;
   if(event.name==='open_whatsapp'&&!aiRealtimeWhatsAppPending?.approved){
     const employee=aiRealtimeEmployee(args),message=String(args.message||'').trim().slice(0,1500);
     if(!employee)return aiRealtimeToolResult(callId,{ok:false,error:'لم أجد الموظف المحدد'});
@@ -3091,15 +3098,11 @@ async function aiHandleRealtimeTool(event){
     return aiRealtimeToolResult(callId,opened.ok?{ok:true,message:`تم فتح واتساب لـ ${aiDisplayEmployee(employee)} والرسالة جاهزة؛ اضغط إرسال داخل واتساب`}:{ok:false,error:opened.error});
   }
   if(event.name==='save_leave'){
-    const start=String(args.start||''),end=String(args.end||'');
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end)||end<start)return aiRealtimeToolResult(callId,{ok:false,error:'تواريخ الإجازة غير صحيحة'});
-    const check=checkLeaveCapacity(employee.id,start,end);
-    if(check.employeeConflict)return aiRealtimeToolResult(callId,{ok:false,error:`لدى ${aiDisplayEmployee(employee)} إجازة متداخلة من ${check.employeeConflict.start} إلى ${check.employeeConflict.end}`});
-    if(check.blocked.length)return aiRealtimeToolResult(callId,{ok:false,error:'لا يمكن الحفظ لأن عدد المجازين سيتجاوز الحد الأعلى وهو 6 في بعض الأيام'});
-    const days=diffDays(end,start)+1,available=Number(employee.leaveBalance)||0;
-    if(days>available)return aiRealtimeToolResult(callId,{ok:false,error:`مدة الإجازة ${days} يوم والرصيد المتاح ${formatDays(available)} يوم فقط`});
-    employee.leaveBalance=available-days;
-    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start,end,note:String(args.note||'').trim().slice(0,500),balanceDaysCharged:days,source:'realtime'});aiRealtimeLeaveApprovalPending=null;if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل الإجازة'});
+    aiRealtimeLeaveApprovalPending=null;
+    const start=String(args.start||''),end=String(args.end||''),days=Number(args.days)||(diffDays(end,start)+1);
+    employee.leaveBalance=(Number(employee.leaveBalance)||0)-days;
+    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start,end,note:String(args.note||'').trim().slice(0,500),balanceDaysCharged:days,source:'realtime'});
+    if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل الإجازة'});
     return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ إجازة ${aiDisplayEmployee(employee)} من ${start} إلى ${end} وخصم ${days} يوم من الرصيد`});
   }
   if(event.name==='save_late'){
