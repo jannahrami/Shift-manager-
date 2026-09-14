@@ -7,7 +7,7 @@
   <title>Shift Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg:#07101f;
@@ -78,7 +78,6 @@
     .auth-logo{width:62px;height:62px;margin:0 auto 15px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,#40c9ff,#1688c5);color:#042033;font-size:28px;font-weight:950}
     .auth-card h2{margin:0 0 7px}.auth-card p{color:var(--muted);font-size:13px;margin:0 0 20px}
     .auth-card input{width:100%;margin-bottom:11px;text-align:left;direction:ltr}
-    .auth-card select{width:100%;margin-bottom:11px}.remember-row{display:flex;align-items:center;gap:8px;text-align:right;margin:2px 0 13px;font-size:12px;color:var(--muted)}.remember-row input{width:auto;margin:0}.role-badge-top{font-size:10px;font-weight:900;padding:6px 9px;border-radius:999px;background:#e8eefc;color:#315fe7}.guest-mode .admin-only{display:none!important}.guest-mode .employee-role-select,.guest-mode .roster-required,.guest-mode .roster-drop{pointer-events:none!important;opacity:.72}
     .auth-card button{width:100%}.auth-error{min-height:20px;color:var(--red);font-size:12px;margin-top:10px}
     .app.locked{display:none}
     .grid4{
@@ -208,10 +207,6 @@
     .global-search-icon{position:absolute;right:15px;top:13px;color:var(--muted);pointer-events:none}
     .search-results{position:absolute;top:calc(100% + 7px);inset-inline:0;display:none;padding:7px;background:#0d1728;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);max-height:330px;overflow:auto}
     .search-results.show{display:block}.search-result{padding:11px;border-radius:12px;cursor:pointer}.search-result:hover{background:#152840}
-    .access-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:-4px 0 17px}.access-card{border:1px solid var(--line);border-radius:16px;padding:13px 15px;background:#fff;color:#1f2937;text-align:right;cursor:pointer;box-shadow:0 6px 18px rgba(31,44,64,.07);transition:.2s ease;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}.access-card:hover{transform:translateY(-2px);box-shadow:0 10px 23px rgba(31,44,64,.11)}.access-card-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:19px}.access-card strong{display:block;font-size:12px}.access-card small{display:block;font-size:10px;color:#718096;margin-top:4px}.access-card.industrial .access-card-icon{background:linear-gradient(135deg,#315fe7,#2448bd)}.access-card.community .access-card-icon{background:linear-gradient(135deg,#16a085,#087d70)}.access-card.ecc .access-card-icon{background:linear-gradient(135deg,#d97706,#b45309)}.access-members{display:grid;gap:8px}.access-member{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:13px;background:#fff;cursor:pointer}.access-member:hover{background:#f7faff}.access-member-badge{font-size:11px;font-weight:900;color:#526176;background:#eef2f7;border-radius:9px;padding:6px 8px}
-    .access-card.industrial{background:linear-gradient(135deg,#625bea,#3943b8);border-color:#514bd1;color:#fff;box-shadow:0 10px 24px rgba(76,70,190,.25)}.access-card.community{background:linear-gradient(135deg,#20bda4,#087d70);border-color:#129783;color:#fff;box-shadow:0 10px 24px rgba(8,125,112,.23)}.access-card.ecc{background:linear-gradient(135deg,#f0a52f,#c76618);border-color:#d77b20;color:#fff;box-shadow:0 10px 24px rgba(199,102,24,.24)}.access-card.patrols{background:linear-gradient(135deg,#e14d76,#9f2354);border-color:#bd2f60;color:#fff;box-shadow:0 10px 24px rgba(159,35,84,.24)}.access-card small{color:rgba(255,255,255,.86)}.access-card .access-card-icon{background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}.access-card:hover{filter:brightness(1.04);box-shadow:0 14px 29px rgba(31,44,64,.22)}
-    .access-card{font-family:Arial,Tahoma,sans-serif;min-height:84px}.access-card strong{font-family:Arial,Tahoma,sans-serif;font-size:15px;font-weight:800;line-height:1.35;letter-spacing:.05px;text-shadow:0 1px 1px rgba(0,0,0,.12)}.access-card small{font-family:Tahoma,Arial,sans-serif;font-size:12px;font-weight:700;line-height:1.55;margin-top:6px}.access-member .name{font-family:Arial,Tahoma,sans-serif;font-size:15px;font-weight:800;line-height:1.45}.access-member .meta,.access-member-badge{font-family:Tahoma,Arial,sans-serif;font-size:12px;font-weight:700}
-    @media(max-width:700px){.access-cards{grid-template-columns:1fr}.access-card{padding:11px 13px}.access-card-icon{width:36px;height:36px}}
     .notification-list{display:grid;gap:9px}.notification-item{display:flex;gap:11px;align-items:flex-start;padding:13px;border:1px solid var(--line);border-radius:15px;background:#0b1424}.notification-icon{font-size:19px}
     .month-filter{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;margin:14px 0}
     .month-filter input{min-width:0}
@@ -519,10 +514,6 @@
       .dashboard-shift-code{font-size:52px;line-height:.9;font-weight:900;letter-spacing:-2px}
       .dashboard-shift-copy strong{display:block;font-size:21px}.dashboard-shift-copy span{display:block;color:#abb7c9;font-size:12px;margin-top:5px}
       .dashboard-next-shift{position:absolute;left:22px;bottom:20px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.08);color:#cbd5e1;font-size:11px}
-      .marine-alert{position:absolute;left:22px;top:20px;z-index:2;border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:10px 13px;color:#fff;background:rgba(255,255,255,.10);font:inherit;text-align:right;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.13)}
-      .marine-alert strong{display:block;font-size:12px}.marine-alert span{display:block;font-size:10px;margin-top:3px;opacity:.9}.marine-alert.danger{background:rgba(190,24,93,.78)}.marine-alert.warning{background:rgba(217,119,6,.82)}.marine-alert.ok{background:rgba(5,150,105,.72)}
-      .marine-mobile-alert{display:none;width:100%;border:0;border-radius:16px;padding:13px 15px;color:#fff;text-align:right;font:inherit;cursor:pointer}.marine-mobile-alert.danger{background:linear-gradient(135deg,#be185d,#9f1239)}.marine-mobile-alert.warning{background:linear-gradient(135deg,#d97706,#b45309)}.marine-mobile-alert.ok{background:linear-gradient(135deg,#059669,#047857)}
-      .marine-list{display:grid;gap:8px}.marine-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:13px;background:#fff}.marine-row .marine-date{font-size:11px;font-weight:900}.marine-row.expired{border-right:5px solid #be185d}.marine-row.soon{border-right:5px solid #d97706}.marine-row.valid{border-right:5px solid #059669}
       .dashboard-add-card{border:0;border-radius:24px;padding:22px;background:linear-gradient(140deg,#6573fa,#3554d8);color:#fff;text-align:right;box-shadow:0 17px 35px rgba(55,77,190,.23);cursor:pointer;transition:.2s ease}
       .dashboard-add-card:hover{transform:translateY(-3px);box-shadow:0 22px 40px rgba(55,77,190,.29)}
       .dashboard-add-icon{display:grid;place-items:center;width:39px;height:39px;border-radius:13px;background:rgba(255,255,255,.14);font-size:25px;margin-bottom:22px}
@@ -536,29 +527,12 @@
       .fab{right:218px;left:auto}
     }
 
-    @media(max-width:899px){
-      .dashboard-hero{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
-      .dashboard-shift-card{position:relative;overflow:hidden;border-radius:22px;padding:20px;color:#fff}
-      .dashboard-shift-card::after{content:"";position:absolute;width:200px;height:200px;border-radius:50%;left:-50px;top:-90px;pointer-events:none}
-      .dashboard-shift-kicker{font-size:12px;font-weight:850;margin-bottom:12px;position:relative;z-index:1}
-      .dashboard-shift-main{display:flex;align-items:flex-end;gap:12px;position:relative;z-index:1}
-      .dashboard-shift-code{font-size:44px;line-height:.9;font-weight:900;letter-spacing:-1.5px}
-      .dashboard-shift-copy strong{display:block;font-size:18px}
-      .dashboard-shift-copy span{display:block;font-size:12px;margin-top:4px}
-      .dashboard-next-shift{display:inline-block;margin-top:14px;padding:8px 11px;border-radius:11px;background:rgba(255,255,255,.1);font-size:11px;position:relative;z-index:1}
-      .marine-alert{display:none}
-      .marine-mobile-alert{display:block}
-      .dashboard-add-card{border:0;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;color:#fff;text-align:right;cursor:pointer;transition:.2s ease}
-      .dashboard-add-card:hover{transform:translateY(-2px)}
-      .dashboard-add-icon{display:grid;place-items:center;width:34px;height:34px;flex:0 0 auto;border-radius:10px;background:rgba(255,255,255,.16);font-size:19px;margin-bottom:0}
-      .dashboard-add-card strong{display:block;font-size:14px}
-      .dashboard-add-card span{display:block;font-size:11px;margin-top:2px;line-height:1.5;opacity:.9}
-    }
+    @media(max-width:899px){.dashboard-hero{display:none}}
     @media(max-width:899px){.bottom-nav{grid-template-columns:repeat(6,1fr);overflow-x:auto}.navbtn{min-width:58px}}
     .report-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
     .report-summary>div{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card2);text-align:center}
     .report-summary strong{display:block;font-size:22px;margin-bottom:4px}.report-summary span{font-size:11px;color:var(--muted)}
-    .report-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px}
+    .report-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
     .report-choice{border:1px solid #d2dbe6;border-radius:17px;padding:16px;background:#f8fafc;color:#253148;text-align:right;cursor:pointer;display:grid;grid-template-columns:auto 1fr;column-gap:11px;align-items:center;box-shadow:0 6px 16px rgba(31,44,64,.06)}
     .report-choice>span{grid-row:1/3;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#e8eefc;font-size:21px}
     .report-choice strong{font-size:14px}.report-choice small{font-size:10px;color:#718096;margin-top:3px}
@@ -680,144 +654,113 @@
     @media(max-width:600px){.roster-summary{grid-template-columns:1fr 1fr}.roster-employee-options{grid-template-columns:1fr}.monthly-roster-title{font-size:17px}}
 
     /* =========================================================
-       تصميم بطاقات منظّم — بدل طرفية العمليات. بطاقات واضحة الحدود
-       (تحل مشكلة التداخل)، شرائح أيقونات ملونة حسب الفئة، شارات
-       حالة بيضاوية ملوّنة. تغيير بصري بحت؛ لا لمس لأي JS أو بيانات.
+       REDESIGN LAYER — refined identity, applied last so it wins
+       the cascade over the three legacy theme blocks above.
        ========================================================= */
     :root{
-      --bg:#0b0f14;--card:#121a24;--card2:#1a2432;--ink:#0b0f14;
-      --text:#eef2f6;--muted:#8a97a6;--line:#202b38;
-      --primary:#41c7ff;--primary2:#2b9fd4;
-      --green:#4caf82;--yellow:#e0a940;--red:#e2696d;--blue:#6a9bd8;
-      --shadow:0 8px 20px rgba(0,0,0,.22);--shadow-lg:0 16px 34px rgba(0,0,0,.3);
-      --radius:14px;--mono:"JetBrains Mono",ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
+      --bg:#eef1f8;--card:#ffffff;--card2:#f5f7fc;--text:#151a2e;--muted:#69758c;
+      --line:#e2e6f0;--primary:#4f46e5;--primary2:#4338ca;--accent:#0ea5b7;
+      --green:#059669;--yellow:#d97706;--red:#dc2626;--blue:#2563eb;
+      --shadow:0 14px 34px rgba(31,35,68,.09);--radius:20px;
     }
     *{font-family:"Cairo","-apple-system",BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif!important}
-    body{background:var(--bg)!important;color:var(--text);letter-spacing:-.1px}
+    body{
+      background:
+        radial-gradient(circle at 10% 0%,rgba(79,70,229,.10),transparent 30%),
+        radial-gradient(circle at 95% 12%,rgba(14,165,183,.10),transparent 28%),
+        linear-gradient(160deg,#f3f5fb,#eceff8 55%,#eef1f8)!important;
+      color:var(--text);letter-spacing:-.1px;
+    }
     h1,h2,h3,.name,strong,.section-head h2,.title h1,.calendar-title,.schedule-title{font-weight:800!important;letter-spacing:-.2px}
-    .stat .num,.dashboard-shift-code,.marine-row .marine-date,.report-summary strong,.roster-summary strong,.avatar{font-family:var(--mono)!important;font-variant-numeric:tabular-nums}
 
-    /* الشريط العلوي */
-    .topbar{background:var(--ink)!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0 0 18px 18px!important;box-shadow:var(--shadow)!important;position:sticky!important;overflow:hidden}
-    .topbar::after{display:none!important}
-    .app:not(.on-home) .topbar{position:relative!important;top:auto!important}
-    .title h1{color:#fff!important}
-    .title p{color:var(--muted)!important;font-size:11px!important}
-    .brand-mark,.auth-logo{background:var(--card2)!important;border:1px solid var(--line)!important;box-shadow:none!important;color:var(--primary)!important;border-radius:11px!important}
-    .iconbtn{background:var(--card2)!important;color:#dfe7e4!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:10px!important}
-    .iconbtn:hover{border-color:var(--primary)!important;color:var(--primary)!important;transform:none!important}
+    /* Topbar */
+    .topbar{
+      background:linear-gradient(120deg,#12162a 0%,#1c2142 55%,#25275a 100%)!important;
+      border:1px solid rgba(255,255,255,.06)!important;border-radius:0 0 22px 22px!important;
+      box-shadow:0 16px 36px rgba(18,20,40,.28)!important;position:sticky!important;overflow:hidden;
+    }
+    .topbar::after{content:"";position:absolute;inset:auto -40px -80px auto;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(14,165,183,.28),transparent 68%);pointer-events:none}
+    .title h1{color:#fff!important}.title p{color:#a6adcf!important}
+    .brand-mark,.auth-logo{background:linear-gradient(135deg,#6d5bf7,#0ea5b7)!important;box-shadow:0 10px 26px rgba(79,70,229,.35)!important;color:#fff!important}
+    .iconbtn{background:rgba(255,255,255,.08)!important;color:#eef0ff!important;border-color:rgba(255,255,255,.14)!important;box-shadow:none!important}
+    .iconbtn:hover{background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.26)!important;transform:translateY(-1px)}
 
-    /* الإدخالات */
-    .global-search input{background:var(--card)!important;border-color:var(--line)!important;box-shadow:none!important;color:var(--text)!important;border-radius:12px!important}
-    .global-search input:focus,input:focus,select:focus,textarea:focus{border-color:var(--primary)!important;box-shadow:0 0 0 3px rgba(65,199,255,.16)!important}
-    input,select,textarea{background:var(--card)!important;color:var(--text)!important;border-color:var(--line)!important;border-radius:12px!important}
+    /* Search + inputs */
+    .global-search input{background:#fff!important;border-color:var(--line)!important;box-shadow:0 10px 26px rgba(31,35,68,.08)!important}
+    .global-search input:focus,input:focus,select:focus,textarea:focus{border-color:var(--primary)!important;box-shadow:0 0 0 4px rgba(79,70,229,.14)!important}
+    input,select,textarea{background:#fafbff!important;color:var(--text)!important;border-color:var(--line)!important;border-radius:14px!important}
 
-    /* مؤشرات لوحة التحكم — بطاقة لكل مؤشر مع شريحة أيقونة ملوّنة حسب الفئة */
-    .grid4{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:10px!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
-    .stat{display:block!important;background:var(--card)!important;border:1px solid var(--line)!important;border-radius:14px!important;box-shadow:none!important;padding:12px!important;color:var(--text)!important;transition:.15s ease}
-    .stat:hover{border-color:#2a3746!important;transform:none!important}
-    .stat-top{display:flex!important;align-items:center!important;gap:0}
-    .stat-icon{display:flex!important;width:32px!important;height:32px!important;border-radius:10px!important;align-items:center;justify-content:center;font-size:15px!important;background:rgba(65,199,255,.14)!important;color:var(--primary)!important;margin-bottom:8px}
-    .stat:nth-child(2) .stat-icon{background:rgba(76,175,130,.16)!important;color:#7ee0ad!important}
-    .stat:nth-child(3) .stat-icon{background:rgba(106,155,216,.16)!important;color:#a9c6ec!important}
-    .stat:nth-child(4) .stat-icon{background:rgba(224,169,64,.16)!important;color:#f3c877!important}
-    .stat .num{color:#fff!important;font-weight:800!important;font-size:20px!important}
-    .stat .label{color:var(--muted)!important;font-size:10.5px!important;margin-top:2px!important}
-    .stat::after{display:none!important}
+    /* Stat cards — one cohesive brand family instead of four unrelated hues */
+    .stat{border:0!important;color:#fff!important;box-shadow:0 14px 28px rgba(31,35,68,.16)!important;overflow:hidden;transition:.25s ease}
+    .stat:hover{transform:translateY(-4px)!important;box-shadow:0 20px 36px rgba(31,35,68,.22)!important}
+    .stat:nth-child(1){background:linear-gradient(135deg,#6d5bf7,#4338ca)!important}
+    .stat:nth-child(2){background:linear-gradient(135deg,#14b8a6,#0d8f82)!important}
+    .stat:nth-child(3){background:linear-gradient(135deg,#3b8bf5,#2352c7)!important}
+    .stat:nth-child(4){background:linear-gradient(135deg,#f5a94e,#d9791f)!important}
+    .stat .num,.stat .label{color:#fff!important}.stat .label{opacity:.86}
+    .stat .stat-icon,.stat:nth-child(1) .stat-icon,.stat:nth-child(2) .stat-icon,.stat:nth-child(3) .stat-icon,.stat:nth-child(4) .stat-icon{
+      background:rgba(255,255,255,.18)!important;color:#fff!important;border:1px solid rgba(255,255,255,.2)!important
+    }
+    .stat::after{opacity:.16!important;background:radial-gradient(circle,#fff,transparent 68%)!important}
 
-    /* بطاقة الشفت الحالي */
-    .dashboard-shift-card{background:var(--card)!important;border:1px solid var(--line)!important;border-radius:16px!important;box-shadow:var(--shadow)!important;padding:16px!important}
-    .dashboard-shift-card::after{display:none!important}
-    .dashboard-shift-card::before{display:none!important}
-    .dashboard-shift-kicker{color:#7fc4ec!important;font-size:11px!important;font-weight:700!important}
-    .dashboard-shift-code{background:var(--card2)!important;border-radius:10px!important;padding:2px 16px!important;text-shadow:none!important;font-size:30px!important;color:var(--primary)!important}
-    .dashboard-shift-copy span,.dashboard-next-shift{color:var(--muted)!important;font-size:11px!important}
-    .dashboard-add-card{background:var(--card)!important;border:1px solid var(--primary)!important;border-radius:14px!important;box-shadow:none!important;color:var(--primary)!important}
-    .dashboard-add-card:hover{background:rgba(65,199,255,.06)!important;box-shadow:none!important}
-    .dashboard-add-card strong{color:#fff!important}.dashboard-add-card span{color:var(--muted)!important}
-    .dashboard-add-icon{background:rgba(65,199,255,.14)!important;border-radius:10px!important;color:var(--primary)!important}
-
-    /* الأقسام — بطاقات واضحة الحدود */
-    .section{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:16px!important;position:relative;padding:14px!important}
-    .section::before{display:none!important}
+    /* Sections & rows */
+    .section{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:var(--shadow)!important;border-radius:22px!important;position:relative;overflow:hidden}
+    .section::before{content:"";position:absolute;top:0;right:24px;left:24px;height:3px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#6d5bf7,#4f46e5,#0ea5b7)}
     .section-head h2,.name,.note-text,.days-remaining,.calendar-title,.schedule-title{color:var(--text)!important}
-    .section-kicker{color:var(--primary)!important;font-size:11px!important;font-weight:700!important}
-    .section-head button,.primary{background:var(--primary)!important;color:#04212f!important;box-shadow:none!important;border-radius:11px!important;font-weight:800!important;border:0!important;transition:.15s ease}
-    .section-head button:hover,.primary:hover{background:var(--primary2)!important;color:#fff!important}
-    .row,.note-row,.shift-card,.notification-item{background:transparent!important;border:0!important;border-bottom:1px solid var(--line)!important;box-shadow:none!important;border-radius:0!important;padding:11px 2px!important;transition:.15s ease}
-    .row:last-child,.note-row:last-child{border-bottom:0!important}
-    .row:hover,.note-row:hover{background:rgba(65,199,255,.04)!important;transform:none!important}
-    .avatar{background:var(--card2)!important;border:1px solid var(--line)!important;color:var(--primary)!important;box-shadow:none!important;border-radius:11px!important;font-size:11.5px!important}
+    .section-kicker{color:var(--primary)!important}
+    .section-head button,.primary{background:linear-gradient(135deg,var(--primary),var(--primary2))!important;color:#fff!important;box-shadow:0 10px 22px rgba(79,70,229,.26)!important;border-radius:13px!important;transition:.2s ease}
+    .section-head button:hover,.primary:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(79,70,229,.32)!important}
+    .row,.note-row,.shift-card,.notification-item{background:#fff!important;border:1px solid var(--line)!important;box-shadow:0 3px 10px rgba(31,35,68,.04)!important;border-radius:16px!important;transition:.2s ease}
+    .row:hover,.note-row:hover{border-color:#c9cdf4!important;box-shadow:0 8px 20px rgba(79,70,229,.09)!important;transform:translateY(-1px)}
+    .avatar{background:linear-gradient(135deg,#6d5bf7,#0ea5b7)!important;box-shadow:0 8px 18px rgba(79,70,229,.24)!important;border-radius:14px!important}
 
-    /* الشارات — شارة بيضاوية ملوّنة */
-    .badge{border-radius:999px!important;padding:5px 11px!important;border:0!important;font-size:10.5px!important;font-weight:700!important}
-    .badge::before,.badge::after{content:none!important}
-    .b-green{background:rgba(76,175,130,.16)!important;color:#8fd9b4!important}
-    .b-yellow{background:rgba(224,169,64,.16)!important;color:#f3c877!important}
-    .b-blue{background:rgba(106,155,216,.16)!important;color:#a9c6ec!important}
-    .b-red{background:rgba(226,105,109,.16)!important;color:#f0a3a6!important}
-    .b-neutral{background:var(--card2)!important;color:var(--muted)!important}
-    .legend-item,.chip{background:var(--card2)!important;color:var(--muted)!important;border:1px solid var(--line)!important;border-radius:999px!important}
+    /* Badges — clearer, slightly richer */
+    .b-green{background:#e7f8f1!important;color:#047857!important;border-color:#b7ecd8!important}
+    .b-yellow{background:#fef3e2!important;color:#b45309!important;border-color:#fbdaa3!important}
+    .b-blue{background:#eaf1ff!important;color:#1d4ed8!important;border-color:#c3d7ff!important}
+    .b-red{background:#fde9e9!important;color:#b91c1c!important;border-color:#f7c3c3!important}
+    .b-neutral{background:#eef0f6!important;color:#4a5468!important;border-color:#dde1ec!important}
+    .legend-item,.chip{background:#f5f7fc!important;color:var(--muted)!important;border-color:var(--line)!important}
 
-    /* الأزرار */
-    .secondary{background:var(--card2)!important;color:var(--text)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:11px!important}
-    .secondary:hover{border-color:#2a3746!important}
-    .danger{background:rgba(226,105,109,.14)!important;color:#f0a3a6!important;border:1px solid rgba(226,105,109,.3)!important;border-radius:11px!important}
-    .whatsapp-btn{background:#25d366!important;border-color:#1fb858!important;color:#04211d!important}
+    /* Buttons */
+    .secondary{background:#fff!important;color:#2c3450!important;border:1px solid var(--line)!important;box-shadow:0 3px 10px rgba(31,35,68,.04)!important;border-radius:13px!important}
+    .secondary:hover{background:#f5f7fc!important;border-color:#c9cdf4!important}
+    .danger{background:#fdecec!important;color:#b91c1c!important;border-color:#f6c6c6!important}
+    .whatsapp-btn{background:#25d366!important;border-color:#1fb858!important}
 
-    /* التنقل السفلي + الزر العائم — أيقونات ظاهرة، مؤشّر شريحة ملوّنة للنشط */
-    .bottom-nav{background:var(--ink)!important;border-color:var(--line)!important;box-shadow:0 -6px 18px rgba(0,0,0,.24)!important}
-    .navbtn span{display:inline-block!important}
-    .navbtn{color:var(--muted)!important;position:relative}
-    .navbtn.active{background:transparent!important;color:var(--primary)!important;box-shadow:none!important}
-    .navbtn.active::before{content:"";position:absolute;top:1px;left:50%;transform:translateX(-50%);width:20px;height:3px;border-radius:3px;background:var(--primary)}
-    .fab{background:var(--primary)!important;color:#04212f!important;box-shadow:var(--shadow)!important;border-radius:15px!important}
+    /* Nav + FAB */
+    .bottom-nav{background:rgba(18,22,42,.97)!important;border-color:rgba(255,255,255,.08)!important;box-shadow:0 16px 38px rgba(18,20,40,.30)!important}
+    .navbtn{color:#9aa2c2!important}
+    .navbtn.active{background:linear-gradient(135deg,#6d5bf7,#4338ca)!important;color:#fff!important;box-shadow:0 8px 20px rgba(79,70,229,.34)!important}
+    .fab{background:linear-gradient(135deg,#6d5bf7,#0ea5b7)!important;color:#fff!important;box-shadow:0 16px 32px rgba(79,70,229,.34)!important;border-radius:18px!important}
 
-    /* شاشة الدخول */
-    .auth-screen{background:radial-gradient(circle at 75% 0,rgba(65,199,255,.08),transparent 38%),var(--bg)!important}
-    .auth-card{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:var(--shadow-lg)!important;border-radius:20px!important}
+    /* Auth screen */
+    .auth-screen{background:radial-gradient(circle at 75% 0,rgba(79,70,229,.16),transparent 38%),linear-gradient(160deg,#eef1f8,#e6eaf5)!important}
+    .auth-card{background:#fff!important;border-color:var(--line)!important;box-shadow:0 28px 70px rgba(20,24,50,.16)!important;border-radius:26px!important}
     .auth-card h2{color:var(--text)!important}
 
-    /* الجداول والتقويم */
-    .leave-table-wrap,.calendar-scroll,.monthly-roster-wrap{background:var(--card)!important;border:1px solid var(--line)!important;border-radius:14px!important}
-    .leave-table th,.calendar-weekday,.monthly-roster-table th{background:var(--card2)!important;color:var(--muted)!important}
-    .leave-table td,.calendar-day,.monthly-roster-table td{color:var(--text)!important;background:transparent!important}
-    .leave-table tr.status-yellow{background:linear-gradient(90deg,rgba(224,169,64,.12),transparent 60%)!important}
-    .leave-table tr.status-blue{background:linear-gradient(90deg,rgba(106,155,216,.12),transparent 60%)!important}
-    .leave-table tr.status-green{background:linear-gradient(90deg,rgba(76,175,130,.14),transparent 60%)!important}
+    /* Tables & calendar */
+    .leave-table-wrap,.calendar-scroll,.monthly-roster-wrap{background:#fff!important;border-color:var(--line)!important}
+    .leave-table th,.calendar-weekday,.monthly-roster-table th{background:#f5f7fc!important;color:var(--muted)!important}
+    .leave-table td,.calendar-day,.monthly-roster-table td{color:var(--text)!important}
     .calendar-day.today{box-shadow:inset 0 0 0 2px var(--primary)!important}
 
-    /* منتقي نوع التقرير وبطاقات المؤشرات */
-    .report-choice{background:var(--card)!important;border:1px solid var(--line)!important;color:var(--text)!important;box-shadow:none!important;border-radius:14px!important}
-    .report-choice>span{background:var(--card2)!important}
-    .report-choice small{color:var(--muted)!important}
-    .report-choice.active{background:rgba(65,199,255,.08)!important;border-color:var(--primary)!important;color:var(--primary)!important;box-shadow:none!important}
-    .report-choice.active>span{background:rgba(65,199,255,.16)!important}
-    .report-choice.active small{color:#7fc4ec!important}
-    .insight-chart-card,.charts .card{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:14px!important;color:var(--text)!important}
-    .insight-copy h3,.charts .card h2{color:var(--text)!important}
-    .insight-copy p,.charts .card p{color:var(--muted)!important}
-    .insight-donut,.donut{background:var(--card2)!important}
-    .insight-compare strong{font-family:var(--mono)!important;color:#fff!important}
-    .liquidation-person{background:var(--card2)!important;border:1px solid var(--line)!important;border-radius:11px!important}
-    .liquidation-excess{color:var(--yellow)!important;font-family:var(--mono)!important}
-
-    /* سطح المكتب */
+    /* Desktop sidebar nav — cohesive tint variants of the same brand family */
     @media(min-width:900px){
-      body{background:var(--bg)!important}
-      .bottom-nav{background:var(--card)!important;border-color:var(--line)!important;box-shadow:var(--shadow)!important}
-      .navbtn{background:transparent!important;border:1px solid transparent!important;color:var(--muted)!important}
-      .navbtn span{display:inline-block!important}
-      .navbtn:hover{background:var(--card2)!important;color:var(--text)!important}
-      .navbtn.active,.navbtn.active:hover{background:rgba(65,199,255,.1)!important;color:var(--primary)!important;border-color:rgba(65,199,255,.3)!important}
-      .navbtn.active::before{display:none}
-      .dashboard-shift-card{border-radius:18px!important}
-      .dashboard-add-card{border-radius:18px!important}
-      .grid4{display:grid!important;grid-template-columns:repeat(4,1fr)!important}
-      .grid4 .stat:nth-child(1),.grid4 .stat:nth-child(2),.grid4 .stat:nth-child(3),.grid4 .stat:nth-child(4){background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important}
-      .grid4 .stat .num{color:#fff!important}.grid4 .stat .label{opacity:1!important;color:var(--muted)!important}
-      .grid4 .stat:hover{transform:none!important;filter:none!important;box-shadow:none!important}
-      .section{border-radius:16px!important}
+      body{background:linear-gradient(160deg,#eef1f8,#e6eaf5)!important}
+      .bottom-nav{background:#fff!important;border-color:var(--line)!important;box-shadow:0 12px 30px rgba(31,35,68,.10)!important}
+      .navbtn{background:#f5f7fc!important;border:1px solid var(--line)!important;color:#5a6480!important}
+      .navbtn span{background:#fff!important;box-shadow:0 3px 9px rgba(31,35,68,.08)!important}
+      .navbtn:hover{background:#eceffa!important;color:var(--text)!important}
+      .navbtn.active,.navbtn.active:hover{background:linear-gradient(135deg,#6d5bf7,#4338ca)!important;color:#fff!important;border-color:transparent!important}
+      .navbtn.active span{background:rgba(255,255,255,.2)!important}
+      .dashboard-shift-card{background:linear-gradient(125deg,#12162a,#232b52 65%,#0d7a86)!important;border-radius:22px!important}
+      .dashboard-add-card{background:linear-gradient(145deg,#6d5bf7,#4338ca)!important;border-radius:22px!important}
+      .grid4 .stat:nth-child(1){background:linear-gradient(135deg,#6d5bf7,#4338ca)!important}
+      .grid4 .stat:nth-child(2){background:linear-gradient(135deg,#14b8a6,#0d8f82)!important}
+      .grid4 .stat:nth-child(3){background:linear-gradient(135deg,#3b8bf5,#2352c7)!important}
+      .grid4 .stat:nth-child(4){background:linear-gradient(135deg,#f5a94e,#d9791f)!important}
+      .section{border-radius:20px!important}
     }
     /* Smart assistant */
     .ai-fab{position:fixed;bottom:88px;left:calc(50% - 140px);transform:translateX(-50%);width:54px;height:54px;border:0;border-radius:18px;background:linear-gradient(135deg,#6d5bf7,#0ea5b7);color:#fff;font-size:23px;box-shadow:0 16px 32px rgba(79,70,229,.34);cursor:pointer;z-index:36}
@@ -840,19 +783,14 @@
   <div class="auth-card">
     <div class="auth-logo">S</div>
     <h2>Shift Manager</h2>
-    <p>اختر نوع الدخول ثم أدخل بيانات الحساب.</p>
-    <select id="loginRole" onchange="updateLoginRoleUI()">
-      <option value="admin">Admin — إدارة كاملة</option>
-      <option value="guest">Guest — عرض فقط</option>
-    </select>
+    <p>سجّل الدخول بحساب المشرف للوصول إلى البيانات ومزامنتها بأمان.</p>
     <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" autocomplete="username">
     <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
-    <label class="remember-row" id="rememberLoginRow"><input type="checkbox" id="rememberLogin"> حفظ دخول Admin على هذا الجهاز</label>
     <button class="primary" id="loginBtn" onclick="login()">دخول ومزامنة</button>
     <div class="auth-error" id="authError"></div>
   </div>
 </div>
-<div class="app locked on-home" id="appShell">
+<div class="app locked" id="appShell">
   <div class="topbar">
     <div class="brand">
       <div class="brand-mark">S</div>
@@ -862,7 +800,6 @@
       </div>
     </div>
     <div class="cloud-tools">
-      <span class="role-badge-top" id="currentRoleBadge">Admin</span>
       <span class="cloud-status" id="cloudStatus" title="حالة المزامنة"></span>
       <div class="notify-wrap"><button class="iconbtn" id="notifyBtn" title="التنبيهات" onclick="openNotifications()">🔔</button><span class="notify-count" id="notifyCount">0</span></div>
       <button class="iconbtn" id="backupBtn" title="نسخة احتياطية">⤴︎</button>
@@ -884,7 +821,6 @@
     <input id="globalSearchInput" placeholder="بحث شامل: اسم الموظف أو الرقم الوظيفي" autocomplete="off" oninput="renderGlobalSearch()" onfocus="renderGlobalSearch()">
     <div class="search-results" id="globalSearchResults"></div>
   </div>
-  <div class="access-cards" id="accessCards"></div>
 
   <main>
     <section id="homeView" class="view active">
@@ -896,7 +832,6 @@
             <div class="dashboard-shift-copy"><strong id="dashboardShiftName">جاري الحساب</strong><span id="dashboardShiftPeriod"></span></div>
           </div>
           <div class="dashboard-next-shift" id="dashboardNextShift">الشفت القادم</div>
-          <button class="marine-alert ok" id="marineAlert" onclick="openMarineAlerts()"><strong>Marine ID Access</strong><span>جاري فحص البطاقات...</span></button>
         </div>
         <button class="dashboard-add-card" onclick="openLeaveModal()">
           <span class="dashboard-add-icon">＋</span>
@@ -904,7 +839,6 @@
           <span>مع فحص العدد والتعارض تلقائيًا قبل الحفظ</span>
         </button>
       </div>
-      <button class="marine-mobile-alert ok" id="marineMobileAlert" onclick="openMarineAlerts()">Marine ID Access — جاري فحص البطاقات...</button>
       <div class="grid4">
         <div class="stat" style="--stat-glow:rgba(65,199,255,.15)"><div class="stat-top"><div class="stat-icon">👥</div><div class="num" id="totalCount">0</div></div><div class="label">إجمالي الموظفين</div></div>
         <div class="stat" style="--stat-glow:rgba(45,212,163,.16)"><div class="stat-top"><div class="stat-icon">✓</div><div class="num" id="workingCount">0</div></div><div class="label">على رأس العمل</div></div>
@@ -977,7 +911,6 @@
         <div class="section-head"><h2>إضافة ملاحظة</h2></div>
         <div class="form">
           <select id="recordType">
-            <option value="Note">Note</option>
             <option value="Late">Late</option>
             <option value="Excuse">Excuse</option>
             <option value="M time">M time</option>
@@ -1028,9 +961,9 @@
         </div>
         <div class="month-filter" style="margin-top:10px">
           <label class="small-note">الإجازات خلال الفترة من</label>
-          <input type="text" id="leaveRangeStart" placeholder="اختر تاريخ البداية" readonly onclick="openShiftDatePicker('leaveRangeStart')" aria-label="بداية فترة البحث">
+          <input type="date" id="leaveRangeStart" aria-label="بداية فترة البحث">
           <label class="small-note">إلى</label>
-          <input type="text" id="leaveRangeEnd" placeholder="اختر تاريخ النهاية" readonly onclick="openShiftDatePicker('leaveRangeEnd')" aria-label="نهاية فترة البحث">
+          <input type="date" id="leaveRangeEnd" aria-label="نهاية فترة البحث">
           <button class="primary" onclick="applyLeaveRange()">عرض الموظفين</button>
           <button class="secondary" onclick="clearLeaveRange()">مسح الفترة</button>
         </div>
@@ -1044,7 +977,6 @@
         <button class="report-choice active" data-report="balances" onclick="selectReportType('balances',this)"><span>💳</span><strong>أرصدة الموظفين</strong><small>رصيد جميع الموظفين</small></button>
         <button class="report-choice" data-report="monthly" onclick="selectReportType('monthly',this)"><span>🗓️</span><strong>إجازات الشهر</strong><small>تقرير شهري كامل</small></button>
         <button class="report-choice" data-report="annual" onclick="selectReportType('annual',this)"><span>👤</span><strong>التقرير السنوي</strong><small>تقرير موظف محدد</small></button>
-        <button class="report-choice" data-report="fullEmployee" onclick="selectReportType('fullEmployee',this)"><span>📋</span><strong>تقرير موظف كامل</strong><small>الملاحظات والإجازات والإنجازات</small></button>
         <button class="report-choice" data-report="achievements" onclick="selectReportType('achievements',this)"><span>🏆</span><strong>تقرير الإنجازات</strong><small>جميع الموظفين المنجزين</small></button>
       </div>
 
@@ -1084,21 +1016,6 @@
           </div>
         </div>
         <div id="annualReportBox"></div>
-      </div>
-
-      <div class="section report-panel" id="fullEmployeeReportPanel">
-        <div class="form" style="margin-bottom:20px">
-          <h3>التقرير الكامل للموظف</h3>
-          <div class="small-note" style="margin-bottom:10px">اختر الفترة المطلوبة لعرض ملاحظات وإجازات وإنجازات الموظف خلالها.</div>
-          <div class="month-filter">
-            <select id="fullEmployeeReportEmployee" aria-label="اختر الموظف"></select>
-            <input type="date" id="fullEmployeeReportStart" aria-label="من تاريخ">
-            <input type="date" id="fullEmployeeReportEnd" aria-label="إلى تاريخ">
-            <button class="primary" onclick="renderFullEmployeeReport()">عرض التقرير الكامل</button>
-            <button class="secondary" onclick="printReport('fullEmployeeReportBox','التقرير الكامل للموظف')">🖨 طباعة / PDF</button>
-          </div>
-        </div>
-        <div id="fullEmployeeReportBox"></div>
       </div>
 
       <div class="section report-panel" id="achievementsReportPanel">
@@ -1229,8 +1146,6 @@
       <input id="empId" placeholder="الرقم الوظيفي">
       <input type="tel" inputmode="tel" id="empPhone" placeholder="رقم الجوال (مثال: 05XXXXXXXX)">
       <input type="number" min="0" step="1" id="empLeaveBalance" placeholder="رصيد الإجازة المتبقي بالأيام">
-      <label class="small-note">تاريخ انتهاء Marine ID Access</label>
-      <input type="date" id="empMarineIdExpiry">
       <select id="empDutyRole">
         <option value="">اختر مهمة الموظف</option><option value="chief">Shift Chief</option><option value="assistant">Assistant Shift Chief</option><option value="community">Community Supervisor</option><option value="clerk">Shift Clerk</option><option value="scc">SCC</option><option value="visitor">Ind. Visitor</option><option value="commVisitor">Comm. Visitor</option><option value="leader">ليدر</option><option value="officer">فرد</option><option value="patrol">دورية</option><option value="flex">فرد + دورية</option>
       </select>
@@ -1273,7 +1188,7 @@
       <button class="secondary" onclick="changeDatePickerMonth(1)">التالي</button>
     </div>
     <div class="date-picker-legend">
-      <span class="shift-morning">M · صباح</span><span class="shift-afternoon">A · ظهر</span><span class="shift-night">N · ليل</span><span class="shift-off">OFF · أوف</span>
+      <span class="shift-morning">M · صباح</span><span class="shift-afternoon">A · مساء</span><span class="shift-night">N · ليل</span><span class="shift-off">OFF · إجازة</span>
     </div>
     <div class="shift-date-weekdays" id="shiftDateWeekdays"></div>
     <div class="shift-date-grid" id="shiftDateGrid"></div>
@@ -1348,40 +1263,12 @@
   </div>
 </div>
 
-<div class="modal" id="marineAlertsModal">
-  <div class="sheet">
-    <div class="section-head"><div><span class="section-kicker">تنبيه قبل 30 يومًا</span><h3>Marine ID Access</h3></div><button class="secondary" onclick="closeModal('marineAlertsModal')">إغلاق</button></div>
-    <div class="status-legend" style="margin-bottom:12px"><span class="legend-item"><span class="legend-dot" style="background:#be185d"></span>منتهية</span><span class="legend-item"><span class="legend-dot" style="background:#d97706"></span>تنتهي خلال شهر</span><span class="legend-item"><span class="legend-dot" style="background:#059669"></span>سارية</span></div>
-    <div class="marine-list" id="marineAlertsList"></div>
-  </div>
-</div>
-
-<div class="modal" id="accessGroupModal">
-  <div class="sheet">
-    <div class="section-head"><div><span class="section-kicker">Access List</span><h3 id="accessGroupTitle">Access</h3></div><button class="secondary" onclick="closeModal('accessGroupModal')">إغلاق</button></div>
-    <div class="access-members" id="accessGroupMembers"></div>
-  </div>
-</div>
-
 <script>
 const KEY='shiftManagerDataV3_GroupA_Leaves';
-const OLD_SESSION_KEY='shiftManagerSupabaseSession';
-const SESSION_KEY='shiftManagerAuthSessionV2';
-const ADMIN_EMAIL='jannahrami@yahoo.com';
-const GUEST_USERNAME='guest';
-const GUEST_EMAIL='guest@shiftmanager.app';
+const SESSION_KEY='shiftManagerSupabaseSession';
 const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
 const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
 const SOON_DAYS=3;
-const MARINE_ID_EXPIRY_BY_BADGE={
-  '101703':'2024-03-07','101631':'2026-11-02','101632':'2027-06-11','101650':'2027-01-28','101690':'2026-12-17','101697':'2027-01-28','101701':'2027-07-29','101718':'2026-05-18','101725':'2027-06-11','101738':'2027-01-28','101749':'2027-06-11','101771':'2027-01-28','101988':'2027-01-28','102286':'2027-07-29','102862':'2027-07-29','103389':'2027-01-28','103619':'2027-07-29','103661':'2027-01-28','103871':'2025-05-18','104495':'2027-01-28','104722':'2027-06-11'
-};
-const ACCESS_GROUPS=[
-  {id:'industrial',title:'Information Office Industrial',icon:'🏭',badges:['101634','102286','103661'],names:{'101634':'AHMED MOHAMMED SELAHBI','102286':'NIZAR ALI HODHODI','103661':'MOHAMMED OAYED MUTAIRI'}},
-  {id:'community',title:'Information Office Community',icon:'🏘️',badges:['102305','102286','103661','103409'],names:{'102305':'HASSAN ALI SAADI','102286':'NIZAR ALI HODHODI','103661':'MOHAMMED OAYED MUTAIRI','103409':'MOHAMMED YOUSEF MOHAMMED'}},
-  {id:'ecc',title:'ECC Room Access',icon:'🖥️',badges:['101725','104121','101690','101694','103619'],names:{'101725':'ADEL A BELADI','104121':'HASSAN AZIZALLAH TASH','101690':'YOUSEF BARKI BARKAH FARSI','101694':'RAYAN NASSAR DHAHRI','103619':'ABDULLAH SALEH GHAMDI'}},
-  {id:'patrols',title:'PRC Patrols',icon:'🚓',countLabel:'12 رقم تاج للدوريات',tagPrefix:'',badges:['PRC-338','PRC-335','PRC-334','PRC-337','PRC-270','PRC-332','PRC-313','PRC-314','PRC-312','PRC-333','PRC-315','PRC-336'],names:{'PRC-338':'Shift Chief (01)','PRC-335':'Shift Chief Assistant (02)','PRC-334':'Community Group Leader','PRC-337':'Patrol-05','PRC-270':'Patrol-06','PRC-332':'Patrol-07','PRC-313':'Patrol-08','PRC-314':'Patrol-09','PRC-312':'Patrol-010','PRC-333':'Patrol-011','PRC-315':'Patrol-012','PRC-336':'Patrol-013'}}
-];
 function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[]}}
 let state=emptyState();
 
@@ -1406,10 +1293,7 @@ let editingMonthlyRosterSelection=new Set();
 let pendingAutoRoster=null;
 let shiftDatePickerTarget='leaveStart';
 let shiftDatePickerMonth=todayISO().slice(0,7);
-let storedAuth=null;try{storedAuth=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null')}catch{}
-let session=storedAuth?.session||null;
-let currentRole=storedAuth?.role||'guest';
-let rememberSession=Boolean(localStorage.getItem(SESSION_KEY));
+let session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
 let syncTimer=null;
 let cloudReady=false;
 
@@ -1445,68 +1329,12 @@ function ensureAnnualLeaveCredit(){
   state.leaveBalanceAccrualYear=currentYear;
   return true;
 }
-function hydrateMarineIdDates(){let changed=false;state.employees.forEach(e=>{const date=MARINE_ID_EXPIRY_BY_BADGE[String(e.empId||'')];if(date&&!e.marineIdExpiry){e.marineIdExpiry=date;changed=true}});return changed}
-function marineExpiryFor(employee){return employee?.marineIdExpiry||MARINE_ID_EXPIRY_BY_BADGE[String(employee?.empId||'')]||''}
-function marineStatus(employee){
-  const expiry=marineExpiryFor(employee);if(!expiry)return {kind:'missing',days:null,label:'غير مسجل'};
-  const days=diffDays(expiry,todayISO());
-  if(days<0)return {kind:'expired',days,label:`منتهية من ${Math.abs(days)} يوم`};
-  if(days<=30)return {kind:'soon',days,label:days===0?'تنتهي اليوم':`تنتهي بعد ${days} يوم`};
-  return {kind:'valid',days,label:'سارية'};
-}
-function marineEmployees(){return state.employees.filter(e=>marineExpiryFor(e)).map(employee=>({employee,status:marineStatus(employee)})).sort((a,b)=>marineExpiryFor(a.employee).localeCompare(marineExpiryFor(b.employee)))}
-function renderMarineAlert(){
-  const rows=marineEmployees(),expired=rows.filter(x=>x.status.kind==='expired').length,soon=rows.filter(x=>x.status.kind==='soon').length;
-  const cls=expired?'danger':soon?'warning':'ok',text=expired?`${expired} منتهية${soon?` · ${soon} تنتهي خلال شهر`:''}`:soon?`${soon} تنتهي خلال شهر`:'جميع البطاقات سارية';
-  const desktop=document.getElementById('marineAlert'),mobile=document.getElementById('marineMobileAlert');
-  if(desktop){desktop.className=`marine-alert ${cls}`;desktop.innerHTML=`<strong>Marine ID Access</strong><span>${text}</span>`}
-  if(mobile){mobile.className=`marine-mobile-alert ${cls}`;mobile.textContent=`Marine ID Access — ${text}`}
-}
-function openMarineAlerts(){
-  const rows=marineEmployees(),box=document.getElementById('marineAlertsList');
-  box.innerHTML=rows.length?rows.map(({employee,status})=>`<div class="marine-row ${status.kind}" onclick="closeModal('marineAlertsModal');openEmployeeProfile('${employee.id}')" style="cursor:pointer"><div><div class="name">${esc(employee.nameAr||employee.name)}</div><div class="meta">Badge #${esc(employee.empId)} · ${esc(status.label)}</div></div><div class="marine-date">${fmtDate(marineExpiryFor(employee))}</div></div>`).join(''):'<div class="empty">لا توجد بيانات Marine ID مسجلة</div>';
-  document.getElementById('marineAlertsModal').classList.add('show');
-}
-function accessEmployeeByBadge(badge){return state.employees.find(e=>String(e.empId||'')===String(badge))}
-function employeeAccessGroups(employee){return ACCESS_GROUPS.filter(group=>group.badges.includes(String(employee?.empId||'')))}
-function renderAccessCards(){
-  const box=document.getElementById('accessCards');if(!box)return;
-  box.innerHTML=ACCESS_GROUPS.map(group=>`<button class="access-card ${group.id}" onclick="openAccessGroup('${group.id}')"><span class="access-card-icon">${group.icon}</span><span><strong>${esc(group.title)}</strong><small>${esc(group.countLabel||`${group.badges.length} موظفين مصرح لهم`)}</small></span></button>`).join('');
-}
-function openAccessGroup(groupId){
-  const group=ACCESS_GROUPS.find(g=>g.id===groupId),box=document.getElementById('accessGroupMembers');if(!group||!box)return;
-  document.getElementById('accessGroupTitle').textContent=group.title;
-  box.innerHTML=group.badges.map(badge=>{const employee=accessEmployeeByBadge(badge),name=employee?(employee.nameAr||employee.name):group.names[badge],meta=group.id==='patrols'?'رقم التاج':(employee&&employee.nameAr?employee.name:'Access authorized');return `<div class="access-member" ${employee?`onclick="closeModal('accessGroupModal');openEmployeeProfile('${employee.id}')"`:''}><div><div class="name">${esc(name||'-')}</div><div class="meta">${esc(meta)}</div></div><span class="access-member-badge">${group.tagPrefix??'#'}${esc(badge)}</span></div>`}).join('');
-  document.getElementById('accessGroupModal').classList.add('show');
-}
 
 function setCloudStatus(mode,title){
   const el=document.getElementById('cloudStatus');
   el.className='cloud-status'+(mode?' '+mode:''); el.title=title||'حالة المزامنة';
 }
-function isAdmin(){return currentRole==='admin'&&String(session?.user?.email||'').toLowerCase()===ADMIN_EMAIL}
-function updateLoginRoleUI(){
-  const admin=document.getElementById('loginRole')?.value==='admin',row=document.getElementById('rememberLoginRow'),identity=document.getElementById('loginEmail');
-  if(row)row.style.display=admin?'flex':'none';
-  if(identity){identity.type=admin?'email':'text';identity.placeholder=admin?'البريد الإلكتروني':'اسم المستخدم';identity.value=admin?'':GUEST_USERNAME;identity.readOnly=!admin;identity.dir='ltr'}
-  if(!admin){const remember=document.getElementById('rememberLogin');if(remember)remember.checked=false}
-  document.getElementById('loginPassword')?.focus();
-}
-function persistAuth(){
-  const payload=JSON.stringify({session,role:currentRole});localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY);
-  (rememberSession&&isAdmin()?localStorage:sessionStorage).setItem(SESSION_KEY,payload);
-}
-function applyRoleUI(){
-  document.querySelectorAll('.admin-only').forEach(el=>{el.classList.remove('admin-only');el.removeAttribute('aria-hidden')});
-  document.querySelectorAll('.employee-role-select,.roster-required').forEach(el=>{el.disabled=false;el.removeAttribute('title')});
-  document.body.classList.toggle('guest-mode',!isAdmin());const badge=document.getElementById('currentRoleBadge');if(badge)badge.textContent=isAdmin()?'Admin':'Guest · عرض فقط';
-  if(isAdmin())return;
-  const blocked=/^(openEmployeeModal|openLeaveModal|openShiftModal|openPersonalNoteModal|saveEmployeeRecord|saveEmployeeAchievement|editEmployeeAchievement|deleteEmployeeAchievement|deleteEmployeeRecord|editLeaveBalance|editEmployeeDutyRole|updateEmployeeDutyRole|saveMonthlyRosterPeriod|cancelMonthlyRoster|previewAutoMonthlyRoster|confirmAutoMonthlyRoster|openMonthlyRosterModal|saveMonthlyRosterAssignment|clearMonthlyRosterAssignment|saveEmployee|saveLeave|saveShift|savePersonalNote|deletePersonalNote|deleteEmployee|deleteLeave|deleteShift)/;
-  document.querySelectorAll('[onclick]').forEach(el=>{const code=el.getAttribute('onclick')||'';if(blocked.test(code)){el.classList.add('admin-only');el.setAttribute('aria-hidden','true')}});
-  document.querySelectorAll('.employee-role-select,.roster-required').forEach(el=>{el.disabled=true;el.title='وضع Guest للعرض فقط'});
-  document.getElementById('backupBtn')?.classList.add('admin-only');document.querySelector('.ai-fab')?.classList.add('admin-only');
-}
-function unlockApp(){document.getElementById('authScreen')?.classList.add('hidden');document.getElementById('appShell')?.classList.remove('locked');applyRoleUI()}
+function unlockApp(){document.getElementById('authScreen')?.classList.add('hidden');document.getElementById('appShell')?.classList.remove('locked')}
 function lockApp(message=''){
   document.getElementById('appShell')?.classList.add('locked');document.getElementById('authScreen')?.classList.remove('hidden');
   const error=document.getElementById('authError');if(error&&message)error.textContent=message;
@@ -1517,20 +1345,15 @@ async function supabaseFetch(path,options={}){
   return fetch(SUPABASE_URL+path,{...options,headers});
 }
 async function login(){
-  const identity=document.getElementById('loginEmail').value.trim();
+  const email=document.getElementById('loginEmail').value.trim();
   const password=document.getElementById('loginPassword').value;
-  const requestedRole=document.getElementById('loginRole').value;
-  const email=requestedRole==='guest'?(identity.toLowerCase()===GUEST_USERNAME?GUEST_EMAIL:''):identity;
   const error=document.getElementById('authError'),btn=document.getElementById('loginBtn');
-  if(!email||!password){error.textContent=requestedRole==='guest'?'أدخل اسم المستخدم guest وكلمة المرور':'أدخل البريد وكلمة المرور';return}
+  if(!email||!password){error.textContent='أدخل البريد وكلمة المرور';return}
   btn.disabled=true;btn.textContent='جاري الدخول...';error.textContent='';
   try{
     const res=await supabaseFetch('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
     const data=await res.json(); if(!res.ok) throw new Error(data.error_description||data.msg||'تعذر تسجيل الدخول');
-    const accountEmail=String(data?.user?.email||email).toLowerCase();
-    if(requestedRole==='admin'&&accountEmail!==ADMIN_EMAIL)throw new Error('هذا الحساب غير مصرح له بالدخول كـ Admin');
-    if(requestedRole==='guest'&&accountEmail!==GUEST_EMAIL)throw new Error('بيانات دخول Guest غير صحيحة');
-    session=data;currentRole=requestedRole==='guest'?'guest':(accountEmail===ADMIN_EMAIL?'admin':'guest');rememberSession=isAdmin()&&document.getElementById('rememberLogin').checked;persistAuth();
+    session=data;localStorage.setItem(SESSION_KEY,JSON.stringify(session));
     document.getElementById('loginPassword').value=''; await loadCloudState();
   }catch(e){error.textContent=e.message}
   finally{btn.disabled=false;btn.textContent='دخول ومزامنة'}
@@ -1539,7 +1362,7 @@ async function refreshSession(){
   if(!session?.refresh_token)return false;
   try{
     const res=await supabaseFetch('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});
-    if(!res.ok)return false;session=await res.json();if(currentRole==='admin'&&!isAdmin())return false;persistAuth();return true;
+    if(!res.ok)return false;session=await res.json();localStorage.setItem(SESSION_KEY,JSON.stringify(session));return true;
   }catch{return false}
 }
 async function loadCloudState(){
@@ -1563,17 +1386,15 @@ async function loadCloudState(){
     state.employees.forEach(e=>{if(!['chief','assistant','community','clerk','scc','visitor','commVisitor','leader','officer','patrol','flex'].includes(e.dutyRole))e.dutyRole=''})
     state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
     if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
-    const marineIdsChanged=isAdmin()?hydrateMarineIdDates():false;
-    const rosterLocationsChanged=isAdmin()?pruneOldMonthlyRosterLocations():false;
-    const annualCreditChanged=isAdmin()?ensureAnnualLeaveCredit():false;
+    const rosterLocationsChanged=pruneOldMonthlyRosterLocations();
+    const annualCreditChanged=ensureAnnualLeaveCredit();
     loadRuntimeRosterConfig();
     localStorage.setItem(KEY,JSON.stringify(state));
-    if(marineIdsChanged||rosterLocationsChanged||annualCreditChanged)await uploadCloudState();
+    if(rosterLocationsChanged||annualCreditChanged)await uploadCloudState();
     cloudReady=true;setCloudStatus('online','تمت المزامنة');unlockApp();renderAll();
   }catch(e){cloudReady=false;setCloudStatus('offline','تعذرت المزامنة');lockApp(e.message||'تعذر تحميل البيانات')}
 }
 async function uploadCloudState(){
-  if(!isAdmin())throw new Error('حساب Guest للعرض فقط');
   const res=await supabaseFetch('/rest/v1/shift_manager_state?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'main',data:state,updated_at:new Date().toISOString()})});
   if(!res.ok)throw new Error('تعذر حفظ البيانات السحابية');
 }
@@ -1584,12 +1405,11 @@ async function syncCloud(){
   catch{setCloudStatus('offline','حُفظ محليًا وتعذرت المزامنة')}
 }
 function save(){
-  if(!isAdmin()){alert('حساب Guest للعرض فقط ولا يمكنه تعديل البيانات');return false}
   localStorage.setItem(KEY,JSON.stringify(state));renderAll();
   clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450);
 }
 function logout(){
-  session=null;currentRole='guest';rememberSession=false;cloudReady=false;localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY);localStorage.removeItem(KEY);document.body.classList.remove('guest-mode');setCloudStatus('offline','تم تسجيل الخروج');lockApp();
+  session=null;cloudReady=false;localStorage.removeItem(SESSION_KEY);localStorage.removeItem(KEY);setCloudStatus('offline','تم تسجيل الخروج');lockApp();
 }
 
 function fmtDate(s){ if(!s)return ''; return new Date(s+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{day:'2-digit',month:'2-digit',year:'numeric'}); }
@@ -1776,7 +1596,7 @@ function groupShiftForDate(date){
 }
 function shiftPickerLabel(shift){
   if(shift.code==='M')return 'صباح';
-  if(shift.code==='A')return 'ظهر';
+  if(shift.code==='A')return 'مساء';
   if(shift.code==='N')return 'ليل';
   return 'أوف';
 }
@@ -1784,8 +1604,7 @@ function openShiftDatePicker(targetId){
   shiftDatePickerTarget=targetId;
   const selected=document.getElementById(targetId)?.value;
   shiftDatePickerMonth=(selected&&/^\d{4}-\d{2}-\d{2}$/.test(selected)?selected:todayISO()).slice(0,7);
-  const labels={leaveStart:'اختيار بداية الإجازة',leaveEnd:'اختيار نهاية الإجازة',leaveRangeStart:'اختيار بداية فترة البحث',leaveRangeEnd:'اختيار نهاية فترة البحث'};
-  document.getElementById('datePickerTargetLabel').textContent=labels[targetId]||'اختيار التاريخ';
+  document.getElementById('datePickerTargetLabel').textContent=targetId==='leaveStart'?'اختيار بداية الإجازة':'اختيار نهاية الإجازة';
   renderShiftDatePicker();document.getElementById('shiftDatePickerModal').classList.add('show');
 }
 function changeDatePickerMonth(step){
@@ -1797,8 +1616,9 @@ function goDatePickerToday(){shiftDatePickerMonth=todayISO().slice(0,7);renderSh
 function chooseShiftDate(date){
   const input=document.getElementById(shiftDatePickerTarget);if(!input)return;
   input.value=date;
-  const pairedEnd=shiftDatePickerTarget==='leaveStart'?'leaveEnd':shiftDatePickerTarget==='leaveRangeStart'?'leaveRangeEnd':'';
-  if(pairedEnd){const end=document.getElementById(pairedEnd);if(end?.value&&end.value<date)end.value=''}
+  if(shiftDatePickerTarget==='leaveStart'){
+    const end=document.getElementById('leaveEnd');if(end.value&&end.value<date)end.value='';
+  }
   closeModal('shiftDatePickerModal');
 }
 function renderShiftDatePicker(){
@@ -1827,13 +1647,6 @@ function shiftPeriodEnd(date,code){
     const next=addDaysISO(date,i);if(groupShiftForDate(next).code!==code)break;end=next;
   }
   return end;
-}
-function shiftPeriodStart(date,code){
-  let start=date;
-  for(let i=1;i<=28;i++){
-    const previous=addDaysISO(date,-i);if(groupShiftForDate(previous).code!==code)break;start=previous;
-  }
-  return start;
 }
 function nextWorkingShift(date,currentCode){
   for(let i=1;i<=35;i++){
@@ -1917,15 +1730,6 @@ function sendLeaveWhatsApp(employeeId,leaveId,type){
   const message=type==='start'?leaveStartMessage(employee,leave):leaveReturnMessage(employee,leave);
   const url=`https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   const opened=window.open(url,'_blank');if(!opened)window.location.href=url;
-}
-
-function aiOpenWhatsApp(employee,message){
-  const phone=normalizeSaudiPhone(employee?.phone),text=String(message||'').trim().slice(0,1500);
-  if(!phone)return {ok:false,error:`لا يوجد رقم جوال صحيح للموظف ${aiDisplayEmployee(employee)}. أضف الرقم من بيانات الموظف أولًا.`};
-  if(!text)return {ok:false,error:'نص رسالة واتساب فارغ.'};
-  const url=`https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-  const opened=window.open(url,'_blank');if(!opened)window.location.href=url;
-  return {ok:true,phone:localPhone(phone),message:text};
 }
 
 function renderAlerts(){
@@ -2090,8 +1894,6 @@ function renderEmployeeProfile(){
           ${e.nameAr?`<div class="meta">${esc(e.name)}</div>`:''}
           <div class="meta">Badge #${esc(e.empId)} · GC ${esc(e.gc||'-')}</div>
           <div class="meta">الجوال: ${esc(localPhone(e.phone)||'غير مسجل')}</div>
-          <div class="meta">Marine ID: ${marineExpiryFor(e)?`${fmtDate(marineExpiryFor(e))} · ${esc(marineStatus(e).label)}`:'غير مسجل'}</div>
-          <div class="meta">Access: ${employeeAccessGroups(e).length?employeeAccessGroups(e).map(g=>esc(g.title)).join(' · '):'لا توجد صلاحية مسجلة'}</div>
           <div class="meta">${esc(e.position||e.shift||'-')}</div>
           <div class="meta" style="margin-top:6px">رصيد الإجازة المتبقي: <strong>${formatDays(e.leaveBalance)}</strong> يوم <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editLeaveBalance('${e.id}')">تعديل الرصيد</button></div>
           <div class="meta" style="margin-top:7px">المهمة: <span class="badge role-badge">${employeeDutyRoleLabel(e.dutyRole)}</span> <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editEmployeeDutyRole('${e.id}')">تعديل المهمة</button></div>
@@ -2253,7 +2055,6 @@ function selectReportType(type,button){
   if(type==='balances')renderBalancesReport();
   if(type==='monthly')renderMonthlyReport();
   if(type==='annual'&&document.getElementById('annualReportEmployee').value)renderAnnualEmployeeReport();
-  if(type==='fullEmployee'&&document.getElementById('fullEmployeeReportEmployee').value)renderFullEmployeeReport();
   if(type==='achievements')renderAchievementsReport();
 }
 function balanceReportEmployees(){
@@ -2315,29 +2116,6 @@ function exportAnnualEmployeeReport(){
   if(!employeeId||!year){alert('اختر الموظف والسنة');return}
   const employee=state.employees.find(e=>e.id===employeeId),rows=annualReportRows(employeeId,year);if(!rows.length){alert('لا توجد إجازات في السنة المحددة');return}
   downloadCsv(`Employee_Leave_Report_${employee.empId}_${year}.csv`,['م','اسم الموظف','رقم الباج','من','إلى','أيام ضمن السنة','الملاحظة','الرصيد الحالي'],rows.map((x,i)=>[i+1,employee.name,employee.empId,x.leave.start,x.leave.end,x.days,x.leave.note||'',employee.leaveBalance]));
-}
-function renderFullEmployeeReport(){
-  const employeeId=document.getElementById('fullEmployeeReportEmployee')?.value;
-  const start=document.getElementById('fullEmployeeReportStart')?.value,end=document.getElementById('fullEmployeeReportEnd')?.value;
-  const employee=state.employees.find(e=>e.id===employeeId),box=document.getElementById('fullEmployeeReportBox');
-  if(!box)return;if(!employee){box.innerHTML='<div class="empty">اختر الموظف أولًا</div>';return}
-  if(!start||!end){alert('حدد تاريخ البداية والنهاية');return}
-  if(end<start){alert('تاريخ النهاية يجب أن يكون بعد تاريخ البداية');return}
-  const records=state.records.filter(r=>r.employeeId===employeeId&&r.date>=start&&r.date<=end).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const leaves=state.leaves.filter(l=>l.employeeId===employeeId&&l.start<=end&&l.end>=start).sort((a,b)=>(b.start||'').localeCompare(a.start||''));
-  const achievements=state.achievements.filter(a=>a.employeeId===employeeId&&a.date>=start&&a.date<=end).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const emptyRow=(cols,text)=>`<tr><td colspan="${cols}" style="text-align:center;color:#64748b">${esc(text)}</td></tr>`;
-  box.innerHTML=`<div class="report-document" dir="rtl">
-    <div class="section-head"><div><h2>التقرير الكامل للموظف</h2><div class="small-note">الفترة من ${fmtDate(start)} إلى ${fmtDate(end)} · تاريخ الاستخراج: ${fmtDate(todayISO())}</div></div></div>
-    <div class="report-summary"><div><strong>${esc(employee.nameAr||employee.name||'-')}</strong><span>اسم الموظف</span></div><div><strong>${esc(employee.empId||'-')}</strong><span>الرقم الوظيفي</span></div><div><strong>${records.length}</strong><span>الملاحظات</span></div><div><strong>${leaves.length}</strong><span>الإجازات</span></div><div><strong>${achievements.length}</strong><span>الإنجازات</span></div></div>
-    <div class="small-note" style="margin:10px 0 18px">Marine ID Access: ${marineExpiryFor(employee)?`${fmtDate(marineExpiryFor(employee))} — ${esc(marineStatus(employee).label)}`:'غير مسجل'}<br>Access: ${employeeAccessGroups(employee).length?employeeAccessGroups(employee).map(g=>esc(g.title)).join(' · '):'لا توجد صلاحية مسجلة'}</div>
-    <h3 style="margin-top:20px">الملاحظات المسجلة</h3>
-    <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التفاصيل</th></tr></thead><tbody>${records.length?records.map((r,i)=>`<tr><td>${i+1}</td><td>${fmtDate(r.date)}</td><td>${esc(r.type==='Late'?'تأخير':r.type==='Note'?'ملاحظة':r.type||'-')}</td><td>${esc(r.note||'-')}</td></tr>`).join(''):emptyRow(4,'لا توجد ملاحظات مسجلة')}</tbody></table></div>
-    <h3 style="margin-top:20px">الإجازات</h3>
-    <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>من</th><th>إلى</th><th>عدد الأيام</th><th>الملاحظة</th></tr></thead><tbody>${leaves.length?leaves.map((l,i)=>`<tr><td>${i+1}</td><td>${fmtDate(l.start)}</td><td>${fmtDate(l.end)}</td><td>${diffDays(l.end,l.start)+1}</td><td>${esc(l.note||'-')}</td></tr>`).join(''):emptyRow(5,'لا توجد إجازات مسجلة')}</tbody></table></div>
-    <h3 style="margin-top:20px">الإنجازات</h3>
-    <div class="leave-table-wrap"><table class="leave-table report-table"><thead><tr><th>#</th><th>التاريخ</th><th>نوع الإنجاز</th><th>التفاصيل</th></tr></thead><tbody>${achievements.length?achievements.map((a,i)=>`<tr><td>${i+1}</td><td>${fmtDate(a.date)}</td><td>${esc(a.type||'-')}</td><td>${esc(a.note||'-')}</td></tr>`).join(''):emptyRow(4,'لا توجد إنجازات مسجلة')}</tbody></table></div>
-  </div>`;
 }
 function achievementReportRows(employeeId=''){
   return state.achievements.map(achievement=>({achievement,employee:state.employees.find(e=>e.id===achievement.employeeId)}))
@@ -2458,10 +2236,6 @@ function refreshSelects(){
   document.getElementById('leaveEmployee').innerHTML=opts;
   document.getElementById('shiftEmployee').innerHTML=opts;
   const annual=document.getElementById('annualReportEmployee');if(annual){const current=annual.value;annual.innerHTML=opts;if(current)annual.value=current}
-  const fullEmployee=document.getElementById('fullEmployeeReportEmployee');if(fullEmployee){const current=fullEmployee.value;fullEmployee.innerHTML=opts;if(current)fullEmployee.value=current}
-  const fullStart=document.getElementById('fullEmployeeReportStart'),fullEnd=document.getElementById('fullEmployeeReportEnd'),year=new Date().getFullYear();
-  if(fullStart&&!fullStart.value)fullStart.value=`${year}-01-01`;
-  if(fullEnd&&!fullEnd.value)fullEnd.value=`${year}-12-31`;
 }
 
 function openEmployeeAnnualReport(id){
@@ -2642,13 +2416,12 @@ function printMonthlyRoster(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderAccessCards();renderStats(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
+  renderStats(); renderLeaveBalanceInsights(); renderDashboardShift(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();
 }
 
 function showView(id,btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  document.getElementById('appShell')?.classList.toggle('on-home',id==='homeView');
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
   document.querySelector('.fab')?.classList.toggle('hidden',!['homeView','employeesView'].includes(id));
   if(id==='reportsView'){
@@ -2660,7 +2433,7 @@ function showView(id,btn){
 function openEmployeeModal(id=''){
   editingEmployeeId=id||null;const e=editingEmployeeId?state.employees.find(x=>x.id===editingEmployeeId):null;
   document.getElementById('employeeModalTitle').textContent=e?'تعديل بيانات الموظف':'إضافة موظف';document.getElementById('employeeSaveBtn').textContent=e?'حفظ التعديلات':'حفظ';
-  document.getElementById('empName').value=e?.name||'';document.getElementById('empNameAr').value=e?.nameAr||ROSTER_ARABIC_NAMES[String(e?.empId||'')]||'';document.getElementById('empId').value=e?.empId||'';document.getElementById('empPhone').value=localPhone(e?.phone);document.getElementById('empLeaveBalance').value=e?formatDays(e.leaveBalance):'';document.getElementById('empMarineIdExpiry').value=e?marineExpiryFor(e):'';document.getElementById('empDutyRole').value=e?.dutyRole||'';document.getElementById('empShift').value=e?.shift||'Morning';document.getElementById('empLocation').value=e?.location||'';document.getElementById('empNote').value=e?.note||'';
+  document.getElementById('empName').value=e?.name||'';document.getElementById('empNameAr').value=e?.nameAr||ROSTER_ARABIC_NAMES[String(e?.empId||'')]||'';document.getElementById('empId').value=e?.empId||'';document.getElementById('empPhone').value=localPhone(e?.phone);document.getElementById('empLeaveBalance').value=e?formatDays(e.leaveBalance):'';document.getElementById('empDutyRole').value=e?.dutyRole||'';document.getElementById('empShift').value=e?.shift||'Morning';document.getElementById('empLocation').value=e?.location||'';document.getElementById('empNote').value=e?.note||'';
   document.getElementById('employeeModal').classList.add('show');
 }
 function closeEmployeeModal(){editingEmployeeId=null;closeModal('employeeModal')}
@@ -2710,9 +2483,9 @@ function saveEmployee(){
   const leaveBalance=Number(document.getElementById('empLeaveBalance').value||0);
   if(!Number.isFinite(leaveBalance)||leaveBalance<0){alert('أدخل رصيد إجازة صحيحًا');return}
   const duplicate=state.employees.find(e=>e.empId===empId&&e.id!==editingEmployeeId);if(duplicate){alert('الرقم الوظيفي مستخدم لموظف آخر');return}
-  const values={name,nameAr,empId,phone,marineIdExpiry:document.getElementById('empMarineIdExpiry').value,shift:document.getElementById('empShift').value,dutyRole:document.getElementById('empDutyRole').value,location:document.getElementById('empLocation').value.trim(),note:document.getElementById('empNote').value.trim(),leaveBalance};
+  const values={name,nameAr,empId,phone,shift:document.getElementById('empShift').value,dutyRole:document.getElementById('empDutyRole').value,location:document.getElementById('empLocation').value.trim(),note:document.getElementById('empNote').value.trim(),leaveBalance};
   if(editingEmployeeId){const e=state.employees.find(x=>x.id===editingEmployeeId);if(!e)return;Object.assign(e,values)}else state.employees.push({id:crypto.randomUUID(),gc:'',position:'',...values});
-  ['empName','empNameAr','empId','empPhone','empLocation','empNote','empLeaveBalance','empMarineIdExpiry','empDutyRole'].forEach(id=>document.getElementById(id).value='');
+  ['empName','empNameAr','empId','empPhone','empLocation','empNote','empLeaveBalance','empDutyRole'].forEach(id=>document.getElementById(id).value='');
   editingEmployeeId=null;closeModal('employeeModal');save();
 }
 function datesBetween(start,end){
@@ -2733,13 +2506,6 @@ function checkLeaveCapacity(employeeId,start,end,excludeId=null){
   });
   return {employeeConflict,blocked,full};
 }
-function leaveChargedDays(leave){
-  if(!leave)return 0;
-  const stored=Number(leave.balanceDaysCharged);
-  if(Number.isFinite(stored)&&stored>0)return stored;
-  if(/^\d{4}-\d{2}-\d{2}$/.test(leave.start||'')&&/^\d{4}-\d{2}-\d{2}$/.test(leave.end||'')&&leave.end>=leave.start)return diffDays(leave.end,leave.start)+1;
-  return 0;
-}
 function saveLeave(){
   const employeeId=document.getElementById('leaveEmployee').value;
   const start=document.getElementById('leaveStart').value;
@@ -2755,7 +2521,7 @@ function saveLeave(){
   }else if(check.full.length&&!confirm(`تنبيه: سيصل عدد المجازين إلى الحد الأعلى 6 موظفين خلال ${check.full.length} يوم. هل تريد المتابعة والإضافة؟`))return;
   const newDays=diffDays(end,start)+1;
   const oldLeave=editingLeaveId?state.leaves.find(l=>l.id===editingLeaveId):null;
-  const oldCharged=leaveChargedDays(oldLeave);
+  const oldCharged=Number(oldLeave?.balanceDaysCharged||0);
   const oldEmployee=oldLeave?state.employees.find(e=>e.id===oldLeave.employeeId):null;
   const employee=state.employees.find(e=>e.id===employeeId);
   const available=(Number(employee?.leaveBalance)||0)+(oldLeave?.employeeId===employeeId?oldCharged:0);
@@ -2809,15 +2575,13 @@ function deleteEmployee(id){
 function deleteLeave(id){
   if(!confirm('حذف الإجازة؟'))return;
   const leave=state.leaves.find(x=>x.id===id);
-  const charged=leaveChargedDays(leave);if(leave&&charged){const e=state.employees.find(x=>x.id===leave.employeeId);if(e)e.leaveBalance=(Number(e.leaveBalance)||0)+charged}
+  if(leave?.balanceDaysCharged){const e=state.employees.find(x=>x.id===leave.employeeId);if(e)e.leaveBalance=(Number(e.leaveBalance)||0)+Number(leave.balanceDaysCharged)}
   state.leaves=state.leaves.filter(x=>x.id!==id);save();
 }
 function deleteShift(id){ if(confirm('حذف التوزيع؟')){state.shifts=state.shifts.filter(x=>x.id!==id);save()} }
 
 /* مساعد الشفت: استعلامات محلية آمنة + تأكيد قبل الكتابة */
 let aiPendingAction=null;
-let aiConversationHistory=[];
-let aiLastEmployeeId=null;
 let aiRecognition=null;
 let aiIsListening=false;
 let aiVoiceEnabled=localStorage.getItem('shiftManagerAIVoice')!=='off';
@@ -2832,9 +2596,6 @@ let aiRealtimeConnecting=false;
 let aiRealtimeConnected=false;
 let aiRealtimeTranscript='';
 let aiRealtimeLastUserText='';
-let aiRealtimeLeaveApprovalPending=null;
-let aiRealtimeWhatsAppPending=null;
-let aiRealtimeWaitingRetry=false;
 const aiRealtimeHandledCalls=new Set();
 function aiNormalize(value=''){
   return String(value).toLowerCase().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u065F]/g,'').replace(/[^\u0600-\u06ff\w\s-]/g,' ').replace(/\s+/g,' ').trim();
@@ -2905,125 +2666,40 @@ function toggleAIVoice(){
   if(aiRealtimeAudio)aiRealtimeAudio.muted=!aiVoiceEnabled;
   if(!aiVoiceEnabled)aiStopSpeech();
 }
-function aiAnnualIndicatorsSnapshot(year=Number(todayISO().slice(0,4))){
-  year=Number(year)||Number(todayISO().slice(0,4));
-  const today=todayISO(),yearStart=`${year}-01-01`,yearEnd=`${year}-12-31`,total=state.employees.length;
-  const entered=state.leaves.filter(l=>l.start<=yearEnd&&l.end>=yearStart);
-  const taken=entered.filter(l=>l.start<=today);
-  const needsClearance=state.employees.filter(e=>(Number(e.leaveBalance)||0)>9).sort((a,b)=>Number(b.leaveBalance)-Number(a.leaveBalance));
-  const clearanceDays=needsClearance.reduce((sum,e)=>sum+Math.max(0,(Number(e.leaveBalance)||0)-9),0);
-  return {
-    year,totalEmployees:total,enteredLeaves:entered.length,takenLeaves:taken.length,
-    completionPercent:entered.length?Math.round(taken.length/entered.length*100):0,
-    employeesNeedingClearance:needsClearance.length,clearanceDays:formatDays(clearanceDays),
-    highestBalances:needsClearance.map(e=>({employeeId:e.id,name:aiDisplayEmployee(e),badge:e.empId||'',balance:formatDays(e.leaveBalance),daysToClear:formatDays((Number(e.leaveBalance)||0)-9)}))
-  };
-}
-function aiDashboardSnapshot(year=Number(todayISO().slice(0,4))){
-  const today=todayISO();
-  const onLeave=state.employees.filter(e=>employeeStatus(e).text==='إجازة').length;
-  let alertsNext3Days=0;
-  state.leaves.forEach(l=>{const ds=diffDays(l.start,today),de=diffDays(l.end,today);if((ds>=0&&ds<=SOON_DAYS)||(de>=0&&de<=SOON_DAYS))alertsNext3Days++});
-  alertsNext3Days+=state.personalNotes.filter(n=>{const d=diffDays(n.date,today);return d>=0&&d<=SOON_DAYS}).length;
-  const current=groupShiftForDate(today);
-  return {
-    today,totalEmployees:state.employees.length,onDuty:state.employees.length-onLeave,onLeave,
-    alertsNext3Days,currentGroupShift:{code:current.code,name:current.name,arabic:current.code==='OFF'?'راحة':current.arabic},
-    annualIndicators:aiAnnualIndicatorsSnapshot(year)
-  };
-}
 function aiRealtimeInstructions(){
-  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي. استخدم أسماء الموظفين والتواريخ والأرقام من بيانات الشفت فقط ولا تخترع أي معلومة أو رقم. إذا نقصتك معلومة اسأل سؤالًا واحدًا بسيطًا. يمكنك الإجابة عن الإجازات القديمة والحالية والقادمة، أرقام الجوال، الملاحظات، الإنجازات والدوام من البيانات مباشرة. أرقام إجمالي الموظفين وعلى رأس العمل وفي إجازة والتنبيهات ومؤشرات السنة موجودة جاهزة في «المؤشرات الموثقة حاليًا» أدناه؛ اقرأها مباشرة وأعطِ النتيجة من أول سؤال بدون أن تقول بأشيك أو لحظة. جدول دوام Group A موجود في groupShiftPeriods داخل «بيانات الشفت الحالية»؛ عند سؤال «دوامي» أو «دوامنا» أو «شفتنا» ابحث مباشرة عن الفترة التي تشمل التاريخ وأعطِ code وarabic، ولا تقل إن الجدول غير موجود ما دام التاريخ داخل الفترات. monthlySchedules خاص بتوزيع الموظفين على المواقع والبوابات وليس شفت Group A اليومي. عند السؤال عن ملاحظات أو تأخيرات موظف، ابحث في records عن employeeId الخاص به؛ النوع Note يعني ملاحظة وLate يعني تأخير. وعند السؤال عن إنجازاته استخدم achievements. الملاحظات الشخصية الخاصة برامي موجودة في personalNotes. تسجيل الملاحظات والتأخير والتذكيرات لا يحتاج تكرار تأكيد؛ نفّذها مباشرة بعد اكتمال الاسم والتاريخ والتفصيل. الإجازة فقط تحتاج تأكيدًا واحدًا: كرر الاسم والتاريخ مرة واحدة، وبعد أي موافقة طبيعية مثل نعم أو تمام أو أوكي أو أبشر أو اعتمد نفّذ الحفظ ولا تطلب تأكيدًا ثانيًا. افحص تداخل الإجازة والرصيد قبل الحفظ. إذا طلب رامي إرسال واتساب لموظف، استخدم أداة open_whatsapp مع الموظف ونص الرسالة، واعرض الاسم والرقم والنص واطلب تأكيدًا واحدًا؛ بعد الموافقة ستفتح الصفحة واتساب بالنص الجاهز، ولا تقل إن الرسالة أُرسلت لأن رامي هو من يضغط إرسال داخل واتساب. لا تقل «تم الحفظ» إلا إذا أعادت الأداة ok:true. تاريخ اليوم ${todayISO()}.
-المؤشرات الموثقة حاليًا:
-${JSON.stringify(aiDashboardSnapshot())}
+  return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي. استخدم أسماء الموظفين والتواريخ من بيانات الشفت أدناه فقط ولا تخترع بيانات. إذا نقصتك معلومة اسأل سؤالًا واحدًا بسيطًا. يمكنك الإجابة عن الإجازات والعودة والمتاحين من البيانات مباشرة. عند السؤال عن ملاحظات أو تأخيرات موظف، ابحث في records عن employeeId الخاص به؛ النوع Note يعني ملاحظة وLate يعني تأخير. وعند السؤال عن إنجازاته استخدم achievements. الملاحظات الشخصية الخاصة برامي موجودة في personalNotes. قبل تسجيل إجازة أو تأخير أو ملاحظة، كرر الاسم والتواريخ والتفصيل واسأل رامي شفهيًا هل يعتمد الحفظ. عند طلب إجازة افحص الإجازات الحالية أولًا ونبّه عن أي تداخل. لا تستدعِ أداة الحفظ إلا بعد أن يقول نعم أو اعتمد أو يؤكد بوضوح. بعد نجاح الأداة أخبره باختصار أن الحفظ تم. تاريخ اليوم ${todayISO()}.
 بيانات الشفت الحالية:
 ${JSON.stringify(aiContextForAgent())}`;
 }
 function aiRealtimeTools(){return [
-  {type:'function',name:'save_leave',description:'حفظ إجازة موظف بعد فحص التداخل والرصيد وبعد تأكيد واحد فقط من رامي',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},start:{type:'string',description:'YYYY-MM-DD'},end:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','start','end']}},
-  {type:'function',name:'save_late',description:'حفظ تأخير موظف مباشرة عند اكتمال البيانات',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},minutes:{type:'integer'}},required:['employee_id','date','minutes']}},
-  {type:'function',name:'save_employee_note',description:'حفظ ملاحظة موظف مباشرة عند اكتمال البيانات',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','date','note']}},
-  {type:'function',name:'save_personal_note',description:'حفظ تذكير رامي مباشرة عند اكتمال التاريخ والنص',parameters:{type:'object',properties:{date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['date','note']}},
-  {type:'function',name:'open_whatsapp',description:'تجهيز رسالة واتساب لموظف وفتحها بعد تأكيد واحد من رامي',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},message:{type:'string'}},required:['message']}}
+  {type:'function',name:'save_leave',description:'حفظ إجازة موظف بعد التحقق من التداخل وموافقة رامي الصريحة فقط',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},start:{type:'string',description:'YYYY-MM-DD'},end:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','start','end']}},
+  {type:'function',name:'save_late',description:'حفظ تأخير موظف بعد موافقة رامي الصريحة فقط',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},minutes:{type:'integer'}},required:['employee_id','date','minutes']}},
+  {type:'function',name:'save_employee_note',description:'حفظ ملاحظة على موظف بعد موافقة رامي الصريحة فقط',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['employee_id','date','note']}},
+  {type:'function',name:'save_personal_note',description:'حفظ تذكير شخصي لرامي بعد موافقته الصريحة فقط',parameters:{type:'object',properties:{date:{type:'string',description:'YYYY-MM-DD'},note:{type:'string'}},required:['date','note']}}
 ]}
 function aiRealtimeSend(event){if(aiRealtimeDc?.readyState==='open')aiRealtimeDc.send(JSON.stringify(event))}
 function aiRealtimeUpdateContext(){aiRealtimeSend({type:'session.update',session:{type:'realtime',instructions:aiRealtimeInstructions(),tools:aiRealtimeTools(),tool_choice:'auto'}})}
 function aiRealtimeToolResult(callId,result){
   aiRealtimeSend({type:'conversation.item.create',item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}});
-  if(result?.ok&&result?.message){
-    aiRealtimeSend({type:'response.create',response:{instructions:`انطق نتيجة التنفيذ التالية فورًا فقط كما هي، بدون تمهيد أو وعد بالرجوع أو إعادة فحص: ${result.message}`}});
-  }else{
-    aiRealtimeSend({type:'response.create'});
-  }
+  aiRealtimeSend({type:'response.create'});
 }
 function aiRealtimeEmployee(args){
   let employee=state.employees.find(e=>e.id===args.employee_id);
   if(employee)return employee;
   const found=aiFindEmployee(args.employee_name||'');return found.status==='one'?found.employee:null;
 }
-function aiBalanceThreshold(raw){
-  const q=aiNormalize(raw);if(!q.includes('رصيد')||!q.includes('فوق'))return null;
-  const words={صفر:0,واحد:1,اثنين:2,ثلاثه:3,اربعه:4,خمسه:5,سته:6,سبعه:7,ثمانيه:8,تسعه:9,عشره:10,عشرين:20,ثلاثين:30};
-  const numeric=q.match(/فوق\s+(\d+(?:\.\d+)?)/);if(numeric)return Number(numeric[1]);
-  for(const [word,value] of Object.entries(words))if(q.includes(`فوق ${word}`))return value;
-  return null;
-}
-function aiVerifiedReadReply(raw){
-  const q=aiNormalize(raw),year=aiRequestedYear(raw),snapshot=aiDashboardSnapshot(year);
-  const threshold=aiBalanceThreshold(raw);
-  if(threshold!==null){
-    const rows=state.employees.filter(e=>(Number(e.leaveBalance)||0)>threshold).sort((a,b)=>Number(b.leaveBalance)-Number(a.leaveBalance));
-    return `عدد الموظفين اللي رصيدهم فوق ${formatDays(threshold)} أيام: ${rows.length} موظف.`;
-  }
-  if(q.includes('مؤشر السنه')||q.includes('مؤشرات السنه')||q.includes('تقرير السنه')||q.includes('مؤشر الاجازات')||q.includes('تقرير المؤشرات')){
-    const a=snapshot.annualIndicators;return `مؤشرات سنة ${a.year}: الإجازات المدخلة ${a.enteredLeaves}، والمأخوذة ${a.takenLeaves}، ونسبة الإنجاز ${a.completionPercent} بالمئة، ويحتاجون تصفية ${a.employeesNeedingClearance} موظف.`;
-  }
-  if(q.includes('على راس العمل')||q.includes('المتاحين اليوم')||q.includes('المتاحون اليوم'))return `على رأس العمل اليوم ${snapshot.onDuty} موظف.`;
-  if(q.includes('في اجازه الان')||q.includes('في اجازه حاليا'))return `في إجازة الآن ${snapshot.onLeave} موظفين.`;
-  if(q.includes('تنبيه')&&(q.includes('3')||q.includes('ثلاث')))return `التنبيهات خلال ثلاثة أيام: ${snapshot.alertsNext3Days}.`;
-  if(q.includes('اجمالي الموظفين')||q.includes('عدد الموظفين')||q.includes('كم اجمالي الموظفين')||/كم\s+موظف\s+(?:عندنا|معانا|في القروب|في المجموع)/.test(q))return `إجمالي الموظفين ${snapshot.totalEmployees} موظف.`;
-  if(/(دوامي|دوامنا|شفتنا|دوام الشفت|دوام قروب|group a)/.test(q)){
-    let date=aiRequestedShiftDate(raw);if(!date){if(q.includes('بعد بكره'))date=aiOffsetDate(2);else if(q.includes('بكره')||q.includes('غدا'))date=aiOffsetDate(1);else if(q.includes('اليوم'))date=todayISO()}
-    if(date){const shift=groupShiftForDate(date),label=shift.code==='OFF'?'راحة':shift.arabic;return `دوام Group A يوم ${fmtDate(date)}: ${shift.code}، ${label}.`}
-  }
-  return '';
-}
-function aiRealtimeAnswerVerified(reply){
-  aiRealtimeSend({type:'response.create',response:{instructions:`انطق الجواب التالي فقط كما هو، بدون مقدمة أو إضافة أو اعتذار: ${reply}`}});
-}
-async function aiPersistAssistantMutation(snapshot){
-  localStorage.setItem(KEY,JSON.stringify(state));renderAll();clearTimeout(syncTimer);
-  try{setCloudStatus('','جاري الحفظ');await uploadCloudState();setCloudStatus('online','تم الحفظ والمزامنة');return true}
-  catch(error){state=snapshot;localStorage.setItem(KEY,JSON.stringify(state));renderAll();setCloudStatus('offline','تعذر الحفظ');return false}
-}
-async function aiHandleRealtimeTool(event){
+function aiHandleRealtimeTool(event){
   const callId=event.call_id;if(!callId||aiRealtimeHandledCalls.has(callId))return;aiRealtimeHandledCalls.add(callId);
+  const confirmation=aiNormalize(aiRealtimeLastUserText);
+  if(!/(^|\s)(نعم|ايوه|ايوا|اعتمد|اكد|احفظ)(\s|$)/.test(confirmation))return aiRealtimeToolResult(callId,{ok:false,error:'اطلب من رامي تأكيد الحفظ بوضوح أولًا'});
   let args={};try{args=JSON.parse(event.arguments||'{}')}catch{return aiRealtimeToolResult(callId,{ok:false,error:'البيانات غير مفهومة'})}
-  if(event.name==='save_leave'&&!aiRealtimeLeaveApprovalPending?.approved){
-    aiRealtimeLeaveApprovalPending={args,approved:false};
-    return aiRealtimeToolResult(callId,{ok:false,needs_confirmation:true,error:'اعرض الاسم وتاريخ البداية والنهاية واطلب تأكيدًا واحدًا فقط. بعد موافقة رامي ستنفذ الصفحة الحفظ مباشرة'})
-  }
-  if(event.name==='save_leave')aiRealtimeLeaveApprovalPending=null;
-  if(event.name==='open_whatsapp'&&!aiRealtimeWhatsAppPending?.approved){
-    const employee=aiRealtimeEmployee(args),message=String(args.message||'').trim().slice(0,1500);
-    if(!employee)return aiRealtimeToolResult(callId,{ok:false,error:'لم أجد الموظف المحدد'});
-    const phone=localPhone(employee.phone);if(!normalizeSaudiPhone(employee.phone))return aiRealtimeToolResult(callId,{ok:false,error:`لا يوجد رقم جوال مسجل لـ ${aiDisplayEmployee(employee)}`});
-    if(!message)return aiRealtimeToolResult(callId,{ok:false,error:'احتاج نص رسالة واتساب'});
-    aiRealtimeWhatsAppPending={args:{employee_id:employee.id,employee_name:aiDisplayEmployee(employee),message},approved:false};
-    return aiRealtimeToolResult(callId,{ok:false,needs_confirmation:true,error:`اعرض للتأكيد مرة واحدة: ${aiDisplayEmployee(employee)}، الرقم ${phone}، ونص الرسالة: ${message}`});
-  }
-  if(event.name==='open_whatsapp')aiRealtimeWhatsAppPending=null;
-  const date=aiSafeDate(args.date),now=new Date().toISOString(),snapshot=JSON.parse(JSON.stringify(state));
+  const date=aiSafeDate(args.date),now=new Date().toISOString();
   if(event.name==='save_personal_note'){
     const note=String(args.note||'').trim().slice(0,500);if(!note)return aiRealtimeToolResult(callId,{ok:false,error:'الملاحظة فارغة'});
-    state.personalNotes.push({id:(crypto.randomUUID?crypto.randomUUID():('note-'+Date.now())),date,text:note,createdAt:now,source:'realtime'});if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل التذكير'});aiRealtimeUpdateContext();
+    state.personalNotes.push({id:(crypto.randomUUID?crypto.randomUUID():('note-'+Date.now())),date,text:note,createdAt:now,source:'realtime'});save();aiRealtimeUpdateContext();
     return aiRealtimeToolResult(callId,{ok:true,message:'تم حفظ التذكير'});
   }
   const employee=aiRealtimeEmployee(args);if(!employee)return aiRealtimeToolResult(callId,{ok:false,error:'لم أجد الموظف المحدد'});
-  if(event.name==='open_whatsapp'){
-    const opened=aiOpenWhatsApp(employee,args.message);
-    return aiRealtimeToolResult(callId,opened.ok?{ok:true,message:`تم فتح واتساب لـ ${aiDisplayEmployee(employee)} والرسالة جاهزة؛ اضغط إرسال داخل واتساب`}:{ok:false,error:opened.error});
-  }
   if(event.name==='save_leave'){
     const start=String(args.start||''),end=String(args.end||'');
     if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end)||end<start)return aiRealtimeToolResult(callId,{ok:false,error:'تواريخ الإجازة غير صحيحة'});
@@ -3033,57 +2709,35 @@ async function aiHandleRealtimeTool(event){
     const days=diffDays(end,start)+1,available=Number(employee.leaveBalance)||0;
     if(days>available)return aiRealtimeToolResult(callId,{ok:false,error:`مدة الإجازة ${days} يوم والرصيد المتاح ${formatDays(available)} يوم فقط`});
     employee.leaveBalance=available-days;
-    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start,end,note:String(args.note||'').trim().slice(0,500),balanceDaysCharged:days,source:'realtime'});aiRealtimeLeaveApprovalPending=null;if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل الإجازة'});aiRealtimeUpdateContext();
+    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start,end,note:String(args.note||'').trim().slice(0,500),balanceDaysCharged:days,source:'realtime'});save();aiRealtimeUpdateContext();
     return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ إجازة ${aiDisplayEmployee(employee)} من ${start} إلى ${end} وخصم ${days} يوم من الرصيد`});
   }
   if(event.name==='save_late'){
     const minutes=Math.max(1,Math.min(1440,Number(args.minutes)||0));if(!minutes)return aiRealtimeToolResult(callId,{ok:false,error:'مدة التأخير غير صحيحة'});
-    state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Late',date,note:`تأخير ${minutes} دقيقة`,createdAt:now,source:'realtime'});if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل التأخير'});aiRealtimeUpdateContext();
+    state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Late',date,note:`تأخير ${minutes} دقيقة`,createdAt:now,source:'realtime'});save();aiRealtimeUpdateContext();
     return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ تأخير ${aiDisplayEmployee(employee)} لمدة ${minutes} دقيقة`});
   }
   if(event.name==='save_employee_note'){
     const note=String(args.note||'').trim().slice(0,500);if(!note)return aiRealtimeToolResult(callId,{ok:false,error:'الملاحظة فارغة'});
-    state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Note',date,note,createdAt:now,source:'realtime'});if(!await aiPersistAssistantMutation(snapshot))return aiRealtimeToolResult(callId,{ok:false,error:'تعذر الحفظ في النظام؛ لم يتم تسجيل الملاحظة'});aiRealtimeUpdateContext();
+    state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:employee.id,type:'Note',date,note,createdAt:now,source:'realtime'});save();aiRealtimeUpdateContext();
     return aiRealtimeToolResult(callId,{ok:true,message:`تم حفظ الملاحظة في سجل ${aiDisplayEmployee(employee)}`});
   }
   aiRealtimeToolResult(callId,{ok:false,error:'الأداة غير معروفة'});
 }
 function aiHandleRealtimeEvent(event){
-  if(event.type==='conversation.item.input_audio_transcription.completed'&&event.transcript?.trim()){
-    aiRealtimeLastUserText=event.transcript.trim();const q=aiNormalize(aiRealtimeLastUserText);
-    aiRealtimeWaitingRetry=false;
-    aiAddMessage(aiRealtimeLastUserText,'user','',false);
-    if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){
-      aiRealtimeLeaveApprovalPending=null;
-      aiRealtimeAnswerVerified('تم إلغاء الإجازة، وما تغيّر شيء.');return;
-    }
-    if(aiRealtimeLeaveApprovalPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد'))){
-      const pending=aiRealtimeLeaveApprovalPending;pending.approved=true;
-      aiHandleRealtimeTool({call_id:'approved-leave-'+Date.now(),name:'save_leave',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved leave',error));return;
-    }
-    if(aiRealtimeWhatsAppPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){aiRealtimeWhatsAppPending=null;aiRealtimeAnswerVerified('تم إلغاء رسالة واتساب.');return}
-    if(aiRealtimeWhatsAppPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد'))){const pending=aiRealtimeWhatsAppPending;pending.approved=true;aiHandleRealtimeTool({call_id:'approved-whatsapp-'+Date.now(),name:'open_whatsapp',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved WhatsApp',error));return}
-    const verifiedReply=aiVerifiedReadReply(aiRealtimeLastUserText);
-    if(verifiedReply)aiRealtimeAnswerVerified(verifiedReply);else aiRealtimeSend({type:'response.create'});
-  }
-  if(event.type==='conversation.item.input_audio_transcription.failed')aiRealtimeSend({type:'response.create'});
+  if(event.type==='conversation.item.input_audio_transcription.completed'&&event.transcript?.trim()){aiRealtimeLastUserText=event.transcript.trim();aiAddMessage(aiRealtimeLastUserText,'user','',false)}
   if(event.type==='response.output_audio_transcript.delta')aiRealtimeTranscript+=(event.delta||'');
   if(event.type==='response.output_audio_transcript.done'){
     const text=(event.transcript||aiRealtimeTranscript).trim();aiRealtimeTranscript='';if(text)aiAddMessage(text,'bot','',false);
-    const waiting=/(خليني|لحظة|ثواني|بأشيك|باشيك|أشيك|بشوف|أشوف|براجع|أراجع|بأتأكد|أتأكد|أتحقق|بأجهز|بجهز|أجهز|راح\s+أجهز).{0,80}(وأرد|وارجع|وأرجع|عليك|لك|الرد|النتيجة|من البيانات|من التداخل|من الرصيد|بناء\s+على)/i;
-    if(text&&waiting.test(text)&&!aiRealtimeWaitingRetry){
-      aiRealtimeWaitingRetry=true;
-      aiRealtimeSend({type:'response.create',response:{instructions:'أكمل الآن ولا تنتظر سؤالًا آخر. افحص بيانات السياق وأعطِ رامي النتيجة النهائية مباشرة. ممنوع قول لحظة أو بأشيك أو سأرد عليك.'}});
-    }
   }
-  if(event.type==='response.function_call_arguments.done')aiHandleRealtimeTool(event).catch(error=>console.error('Realtime tool',error));
+  if(event.type==='response.function_call_arguments.done')aiHandleRealtimeTool(event);
   if(event.type==='error'){console.error('OpenAI realtime',event);aiAddMessage('صار خلل بسيط في الاتصال الصوتي. اقفل المايك وشغّله مرة ثانية.','error','',false)}
 }
 function aiStopRealtime(showMessage=true){
   const wasActive=aiRealtimeConnected||aiRealtimeConnecting;aiRealtimeConnected=false;aiRealtimeConnecting=false;aiIsListening=false;
   try{aiRealtimeDc?.close()}catch{}try{aiRealtimePc?.close()}catch{}aiRealtimeStream?.getTracks().forEach(t=>t.stop());
   if(aiRealtimeAudio){aiRealtimeAudio.pause();aiRealtimeAudio.srcObject=null}
-  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeLeaveApprovalPending=null;aiRealtimeWhatsAppPending=null;aiRealtimeWaitingRetry=false;aiRealtimeHandledCalls.clear();
+  aiRealtimeDc=null;aiRealtimePc=null;aiRealtimeStream=null;aiRealtimeAudio=null;aiRealtimeTranscript='';aiRealtimeLastUserText='';aiRealtimeHandledCalls.clear();
   document.getElementById('aiMicBtn')?.classList.remove('listening');const input=document.getElementById('aiInput');if(input)input.placeholder='مثال: سجل عند أحمد تأخير اليوم 20 دقيقة';
   if(showMessage&&wasActive)aiAddMessage('تم إنهاء المحادثة الصوتية.','bot','',false);
 }
@@ -3128,100 +2782,6 @@ function aiDelayDuration(text){
   return {minutes:isHours?amount*60:amount,label:isHours?hourLabel:`${amount} دقيقة`};
 }
 function aiList(items,emptyText){return items.length?items.map((x,i)=>`${i+1}. ${x}`).join('\n'):emptyText}
-function aiRequestedMonth(raw){
-  const q=aiNormalize(raw),names={يناير:1,جانوري:1,فبراير:2,فبرابر:2,مارس:3,ابريل:4,مايو:5,يونيو:6,يونيه:6,يوليو:7,يوليه:7,اغسطس:8,سبتمبر:9,اكتوبر:10,نوفمبر:11,ديسمبر:12};
-  let month=null;
-  for(const [name,value] of Object.entries(names))if(q.includes(name)){month=value;break}
-  if(month===null){const m=q.match(/(?:شهر|اجازات?)\s+(\d{1,2})(?:\s|$)/);if(m&&Number(m[1])>=1&&Number(m[1])<=12)month=Number(m[1])}
-  if(month===null)return null;
-  const yearMatch=q.match(/\b(20\d{2})\b/),year=yearMatch?Number(yearMatch[1]):Number(todayISO().slice(0,4));
-  const start=`${year}-${String(month).padStart(2,'0')}-01`,end=new Date(Date.UTC(year,month,0)).toISOString().slice(0,10);
-  return {month,year,start,end};
-}
-function aiHandleMonthLeaveQuery(raw){
-  const q=aiNormalize(raw),requested=aiRequestedMonth(raw);
-  if(!requested||!(q.includes('اجازه')||q.includes('اجازات')))return false;
-  const monthNames=['','يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  const rows=state.leaves.filter(l=>l.start<=requested.end&&l.end>=requested.start).sort((a,b)=>a.start.localeCompare(b.start)).map(l=>`${aiEmployeeName(l.employeeId)} — من ${fmtDate(l.start)} إلى ${fmtDate(l.end)}`);
-  aiAddMessage(aiList(rows,`ما فيه إجازات مسجّلة في ${monthNames[requested.month]} ${requested.year}.`)+(rows.length?`\n\nالإجمالي: ${rows.length}`:''));
-  return true;
-}
-function aiRequestedShiftDate(raw){
-  const q=aiNormalize(raw),monthInfo=aiRequestedMonth(raw);if(!monthInfo)return null;
-  const wordDays={واحد:1,اول:1,اثنين:2,ثنين:2,ثلاثه:3,ثلاث:3,اربعه:4,اربع:4,خمسه:5,خمس:5,سته:6,ست:6,سبعه:7,سبع:7,ثمانيه:8,ثمان:8,تسعه:9,تسع:9,عشره:10,عشر:10};
-  const match=q.match(/(?:يوم|تاريخ)\s+(\d{1,2})/);let day=match?Number(match[1]):null;
-  if(day===null)for(const [word,value] of Object.entries(wordDays))if(new RegExp(`(?:يوم|تاريخ)\\s+${word}(?:\\s|$)`).test(q)){day=value;break}
-  if(day===null){const loose=q.match(/\b(\d{1,2})\b/);if(loose&&Number(loose[1])!==monthInfo.month)day=Number(loose[1])}
-  if(!day||day>new Date(monthInfo.year,monthInfo.month,0).getDate())return null;
-  return `${monthInfo.year}-${String(monthInfo.month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-}
-function aiHandleGroupShiftQuery(raw){
-  const q=aiNormalize(raw);if(!/(دوامي|دوامنا|شفتنا|دوام الشفت|دوام قروب|group a)/.test(q))return false;
-  let date=aiRequestedShiftDate(raw);
-  if(!date){if(q.includes('بعد بكره'))date=aiOffsetDate(2);else if(q.includes('بكره')||q.includes('غدا'))date=aiOffsetDate(1);else if(q.includes('اليوم'))date=todayISO()}
-  if(!date)return false;
-  const shift=groupShiftForDate(date),label=shift.code==='OFF'?'راحة':shift.arabic;
-  aiAddMessage(`دوام Group A يوم ${fmtDate(date)}: ${shift.code} · ${label}.`);return true;
-}
-function aiRequestedYear(raw){
-  const q=aiNormalize(raw),match=q.match(/\b(20\d{2})\b/);return match?Number(match[1]):Number(todayISO().slice(0,4));
-}
-function aiHandleDashboardQuery(raw){
-  const q=aiNormalize(raw),snapshot=aiDashboardSnapshot(aiRequestedYear(raw));
-  if(q.includes('مؤشر السنه')||q.includes('مؤشرات السنه')||q.includes('تقرير السنه')||q.includes('مؤشر الاجازات')||q.includes('تقرير المؤشرات')){
-    const a=snapshot.annualIndicators,clearance=a.highestBalances.length?`\nأعلى الأرصدة المطلوب تصفيتها:\n${a.highestBalances.map((e,i)=>`${i+1}. ${e.name}: ${e.balance} يوم، المطلوب ${e.daysToClear} يوم`).join('\n')}`:'\nجميع الأرصدة ضمن حد الترحيل.';
-    aiAddMessage(`مؤشرات سنة ${a.year}:\nالإجازات المدخلة: ${a.enteredLeaves}\nالإجازات المأخوذة: ${a.takenLeaves}\nنسبة الإنجاز: ${a.completionPercent}%\nيحتاجون تصفية: ${a.employeesNeedingClearance} موظف\nإجمالي أيام التصفية: ${a.clearanceDays}${clearance}`);return true;
-  }
-  if(q.includes('على راس العمل')||q.includes('المتاحين اليوم')||q.includes('المتاحون اليوم')){
-    aiAddMessage(`على رأس العمل اليوم: ${snapshot.onDuty} من أصل ${snapshot.totalEmployees}. وفي إجازة الآن: ${snapshot.onLeave}.`);return true;
-  }
-  if(q.includes('في اجازه الان')||q.includes('في اجازه حاليا')){
-    aiAddMessage(`في إجازة الآن: ${snapshot.onLeave} موظفين.`);return true;
-  }
-  if(q.includes('تنبيه')&&q.includes('3')){
-    aiAddMessage(`التنبيهات خلال 3 أيام: ${snapshot.alertsNext3Days}.`);return true;
-  }
-  if(q.includes('اجمالي الموظفين')||q.includes('عدد الموظفين')||/كم\s+(?:عدد\s+)?الموظفين/.test(q)||/كم\s+موظف\s+(?:عندنا|معانا|في القروب|في المجموع)/.test(q)){
-    aiAddMessage(`إجمالي الموظفين المسجّلين: ${snapshot.totalEmployees} موظف.`);return true;
-  }
-  return false;
-}
-function aiEmployeeFromConversation(raw){
-  const found=aiFindEmployee(raw);
-  if(found.status==='one'){aiLastEmployeeId=found.employee.id;return found.employee}
-  if(found.status==='many')return null;
-  const q=aiNormalize(raw),hasReference=/(^|\s)(له|حقه|رقمه|جواله|اجازته|رصيده|شفته|دوامه|ملاحظاته|انجازاته)(\s|$)/.test(q);
-  return hasReference?state.employees.find(e=>e.id===aiLastEmployeeId)||null:null;
-}
-function aiHandleEmployeeLookup(raw){
-  const q=aiNormalize(raw),employee=aiEmployeeFromConversation(raw);
-  if(!employee)return false;
-  if(q.includes('جوال')||q.includes('رقم جوال')||q.includes('رقمه')){
-    const phone=localPhone(employee.phone);
-    aiAddMessage(phone?`رقم جوال ${aiDisplayEmployee(employee)}: ${phone}`:`ما فيه رقم جوال مسجّل لـ ${aiDisplayEmployee(employee)} في البيانات.`);
-    return true;
-  }
-  const leaves=state.leaves.filter(l=>l.employeeId===employee.id).sort((a,b)=>b.start.localeCompare(a.start));
-  if(q.includes('اجازه')||q.includes('اجازته')){
-    let selected=null,label='';
-    if(q.includes('اخر')||q.includes('سابق')||q.includes('قديم')){
-      selected=leaves.filter(l=>l.end<todayISO()).sort((a,b)=>b.end.localeCompare(a.end))[0];label='آخر إجازة سابقة';
-      if(!selected){aiAddMessage(`لا توجد إجازة سابقة مسجّلة لـ ${aiDisplayEmployee(employee)}.`);return true}
-    }else{
-      selected=leaves.find(l=>l.start<=todayISO()&&l.end>=todayISO())||leaves.filter(l=>l.start>todayISO()).sort((a,b)=>a.start.localeCompare(b.start))[0]||leaves[0];
-      label=selected?(selected.start<=todayISO()&&selected.end>=todayISO()?'إجازته الحالية':selected.start>todayISO()?'إجازته القادمة':'آخر إجازة مسجّلة'):'';
-      if(!selected){aiAddMessage(`لا توجد إجازات مسجّلة لـ ${aiDisplayEmployee(employee)}.`);return true}
-    }
-    aiAddMessage(`${label} لـ ${aiDisplayEmployee(employee)} من ${fmtDate(selected.start)} إلى ${fmtDate(selected.end)}.`);
-    return true;
-  }
-  if(q.includes('رصيد')){aiAddMessage(`رصيد إجازة ${aiDisplayEmployee(employee)}: ${formatDays(employee.leaveBalance)} يوم.`);return true}
-  if(q.includes('معلومات')||q.includes('بيانات')){
-    const phone=localPhone(employee.phone)||'غير مسجّل';
-    aiAddMessage(`${aiDisplayEmployee(employee)} (#${employee.empId||'-'})، الجوال: ${phone}، رصيد الإجازة: ${formatDays(employee.leaveBalance)} يوم، الشفت: ${employee.shift||'غير محدد'}.`);return true;
-  }
-  return false;
-}
 function aiAskEmployeeChoice(items,action){
   aiPendingAction={kind:'chooseEmployee',action,employeeIds:items.map(e=>e.id)};
   const buttons=items.map(e=>`<button class="yes" onclick="aiChooseEmployee('${e.id}')">${esc(aiDisplayEmployee(e))}</button>`).join('');
@@ -3230,14 +2790,6 @@ function aiAskEmployeeChoice(items,action){
 function aiChooseEmployee(employeeId){
   if(aiPendingAction?.kind!=='chooseEmployee')return;
   const action={...aiPendingAction.action,employeeId},employee=state.employees.find(e=>e.id===employeeId);aiPendingAction=action;
-  if(action.kind==='leave'){
-    const days=diffDays(action.end,action.start)+1;action.days=days;
-    return aiAddMessage(`تقصد ${aiDisplayEmployee(employee)}؟\nإجازة من ${fmtDate(action.start)} إلى ${fmtDate(action.end)} (${days} يوم)\nهل أعتمد الحفظ؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
-  }
-  if(action.kind==='whatsapp'){
-    const phone=localPhone(employee.phone)||'غير مسجّل';
-    return aiAddMessage(`رسالة واتساب إلى ${aiDisplayEmployee(employee)} (${phone}):\n${action.message}\n\nأفتحها في واتساب؟`,'bot','<button class="yes" onclick="aiConfirmAction()">فتح واتساب</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
-  }
   aiAddMessage(`تقصد ${aiDisplayEmployee(employee)}؟\n${action.type==='Late'?action.note:'ملاحظة: '+action.note} · ${aiDateLabel(action.date)}\nهل أعتمد التسجيل؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');
 }
 function aiHandleQuery(raw){
@@ -3296,33 +2848,24 @@ function aiHandleQuery(raw){
   aiAddMessage('ما فهمت طلبك كامل يا رامي 😅\nممكن تقوله بطريقة ثانية؟ مثل: «مين في إجازة اليوم؟» أو «سجّل على فلان تأخير ربع ساعة».','bot');
 }
 function aiContextForAgent(){
-  const groupShiftPeriods=[];let start='2025-01-01',end='2028-12-31';
-  while(start<=end){const info=groupShiftForDate(start),periodEnd=shiftPeriodEnd(start,info.code);groupShiftPeriods.push({start,end:periodEnd>end?end:periodEnd,code:info.code,arabic:info.arabic});start=addDaysISO(periodEnd,1)}
   return {
     today:todayISO(),
-    dashboardIndicators:aiDashboardSnapshot(),
-    annualLeaveIndicators:aiAnnualIndicatorsSnapshot(),
-    employees:state.employees.map(e=>({id:e.id,name:e.name||'',nameAr:e.nameAr||'',empId:e.empId||'',phone:e.phone||'',marineIdExpiry:marineExpiryFor(e),gc:e.gc||'',position:e.position||'',shift:e.shift||'',location:e.location||'',dutyRole:e.dutyRole||'',leaveBalance:Number(e.leaveBalance)||0,note:e.note||''})),
+    employees:state.employees.map(e=>({id:e.id,name:e.name||'',nameAr:e.nameAr||'',empId:e.empId||'',position:e.position||'',shift:e.shift||'',location:e.location||'',leaveBalance:Number(e.leaveBalance)||0,note:e.note||''})),
     leaves:state.leaves.map(l=>({employeeId:l.employeeId,start:l.start,end:l.end,note:l.note||'',balanceDaysCharged:Number(l.balanceDaysCharged)||0})),
     shifts:state.shifts.map(s=>({employeeId:s.employeeId,post:s.post||'',shift:s.shift||''})),
     records:state.records.map(r=>({employeeId:r.employeeId,type:r.type||'',date:r.date||'',note:r.note||''})),
     achievements:state.achievements.map(a=>({employeeId:a.employeeId,type:a.type||'',date:a.date||'',note:a.note||''})),
-    personalNotes:state.personalNotes.map(n=>({date:n.date||'',text:n.text||'',createdAt:n.createdAt||''})),
-    monthlySchedules:state.monthlySchedules||{},
-    monthlySchedulePeriods:state.monthlySchedulePeriods||{},
-    accessGroups:ACCESS_GROUPS.map(g=>({title:g.title,badges:g.badges})),
-    groupShiftPeriods,
-    leaveBalanceHistory:Array.isArray(state.leaveBalanceHistory)?state.leaveBalanceHistory:[]
+    personalNotes:state.personalNotes.map(n=>({date:n.date||'',text:n.text||'',createdAt:n.createdAt||''}))
   };
 }
 async function aiAskGroq(message){
   if(!session?.access_token)throw new Error('NO_SESSION');
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),40000);
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
   try{
     const res=await fetch(SUPABASE_URL+'/functions/v1/shift-assistant-',{
       method:'POST',signal:controller.signal,
       headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
-      body:JSON.stringify({message,context:aiContextForAgent(),history:aiConversationHistory.slice(-12)})
+      body:JSON.stringify({message,context:aiContextForAgent()})
     });
     const data=await res.json().catch(()=>({}));
     if(!res.ok)throw new Error(data.error||'AI_FAILED');
@@ -3338,27 +2881,6 @@ function aiResolveAgentEmployee(action){
 function aiPrepareAgentAction(action){
   if(!action||typeof action!=='object')return false;
   const date=aiSafeDate(action.date),note=String(action.note||'').trim().slice(0,500)||'ملاحظة';
-  if(action.type==='send_whatsapp'){
-    const found=aiResolveAgentEmployee(action),message=String(action.message||action.note||'').trim().slice(0,1500);
-    if(found.status==='many')return aiAskEmployeeChoice(found.items,{kind:'whatsapp',message}),true;
-    if(found.status!=='one'){aiAddMessage('احتاج اسم الموظف الصحيح عشان أجهّز رسالة واتساب.');return true}
-    const phone=localPhone(found.employee.phone);if(!normalizeSaudiPhone(found.employee.phone)){aiAddMessage(`ما فيه رقم جوال صحيح مسجّل لـ ${aiDisplayEmployee(found.employee)}.`,'error');return true}
-    if(!message){aiAddMessage('أبشر، ايش تبغاني أكتب في الرسالة؟');return true}
-    aiPendingAction={kind:'whatsapp',employeeId:found.employee.id,message};
-    aiAddMessage(`رسالة واتساب إلى ${aiDisplayEmployee(found.employee)} (${phone}):\n${message}\n\nأفتحها في واتساب؟`,'bot','<button class="yes" onclick="aiConfirmAction()">فتح واتساب</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');return true;
-  }
-  if(action.type==='save_leave'){
-    const found=aiResolveAgentEmployee(action),start=String(action.start||''),end=String(action.end||'');
-    if(found.status==='many')return aiAskEmployeeChoice(found.items,{kind:'leave',start,end,note:note==='ملاحظة'?'':note}),true;
-    if(found.status!=='one'){aiAddMessage('احتاج اسم الموظف الصحيح قبل ما أجهّز الإجازة.');return true}
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end)||end<start){aiAddMessage('احتاج تاريخ بداية ونهاية صحيحين للإجازة.');return true}
-    const check=checkLeaveCapacity(found.employee.id,start,end),days=diffDays(end,start)+1,available=Number(found.employee.leaveBalance)||0;
-    if(check.employeeConflict){aiAddMessage(`${aiDisplayEmployee(found.employee)} عنده إجازة متداخلة من ${fmtDate(check.employeeConflict.start)} إلى ${fmtDate(check.employeeConflict.end)}.`);return true}
-    if(check.blocked.length){aiAddMessage(`ما أقدر أضيفها: عدد المجازين سيتجاوز 6 خلال ${check.blocked.length} يوم.`);return true}
-    if(days>available){aiAddMessage(`مدة الإجازة ${days} يوم، ورصيد ${aiDisplayEmployee(found.employee)} المتاح ${formatDays(available)} يوم فقط.`);return true}
-    aiPendingAction={kind:'leave',employeeId:found.employee.id,start,end,note:note==='ملاحظة'?'':note,days};
-    aiAddMessage(`بأسجّل إجازة ${aiDisplayEmployee(found.employee)} من ${fmtDate(start)} إلى ${fmtDate(end)} (${days} يوم).\nأعتمد الحفظ؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');return true;
-  }
   if(action.type==='personal_note'){
     aiPendingAction={kind:'personalNote',date,note};
     aiAddMessage(`أبشر، بأسجّل لك تذكير ${aiDateLabel(date)}:\n${note}\nأعتمد الحفظ؟`,'bot','<button class="yes" onclick="aiConfirmAction()">تأكيد وحفظ</button><button class="no" onclick="aiCancelAction()">إلغاء</button>');return true;
@@ -3374,64 +2896,36 @@ async function sendAIMessage(){
   const input=document.getElementById('aiInput'),text=input.value.trim();if(!text)return;
   if(aiRealtimeConnected&&aiRealtimeDc?.readyState==='open'){
     aiRealtimeLastUserText=text;aiAddMessage(text,'user','',false);input.value='';
-    const q=aiNormalize(text);
-    if(aiRealtimeLeaveApprovalPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){aiRealtimeLeaveApprovalPending=null;aiRealtimeAnswerVerified('تم إلغاء الإجازة، وما تغيّر شيء.');return}
-    if(aiRealtimeLeaveApprovalPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد'))){const pending=aiRealtimeLeaveApprovalPending;pending.approved=true;aiHandleRealtimeTool({call_id:'approved-leave-'+Date.now(),name:'save_leave',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved leave',error));return}
-    if(aiRealtimeWhatsAppPending&&(q==='لا'||q.includes('الغ')||q.includes('مو موافق'))){aiRealtimeWhatsAppPending=null;aiRealtimeAnswerVerified('تم إلغاء رسالة واتساب.');return}
-    if(aiRealtimeWhatsAppPending&&(q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('ابشر')||q.includes('اعتمد')||q.includes('اكد')||q.includes('افتح'))){const pending=aiRealtimeWhatsAppPending;pending.approved=true;aiHandleRealtimeTool({call_id:'approved-whatsapp-'+Date.now(),name:'open_whatsapp',arguments:JSON.stringify(pending.args)}).catch(error=>console.error('Realtime approved WhatsApp',error));return}
-    const verifiedReply=aiVerifiedReadReply(text);if(verifiedReply){aiRealtimeAnswerVerified(verifiedReply);return}
     aiRealtimeSend({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}});aiRealtimeSend({type:'response.create'});return;
   }
   aiAddMessage(text,'user');input.value='';
   const q=aiNormalize(text);
-  if(aiPendingAction&&(q==='تاكيد'||q.includes('اكد')||q.includes('اعتمد')||q==='نعم'||q==='ايوه'||q.includes('موافق')||q.includes('تمام')||q.includes('اوكي')||q.includes('افتح')))return aiConfirmAction();
+  if(aiPendingAction&&(q==='تاكيد'||q.includes('اكد')||q.includes('اعتمد')||q==='نعم'||q==='ايوه'))return aiConfirmAction();
   if(aiPendingAction&&(q.includes('الغ')||q==='لا'))return aiCancelAction();
   if(aiPendingAction?.kind==='chooseEmployee'){
     const found=aiFindEmployee(text);
     if(found.status==='one'&&aiPendingAction.employeeIds.includes(found.employee.id))return aiChooseEmployee(found.employee.id);
     return aiAddMessage('تمام، بس اختر الاسم من القائمة أو قل لي الاسم كامل عشان أعتمد الشخص الصحيح.','bot');
   }
-  if(aiHandleDashboardQuery(text))return;
-  if(aiHandleMonthLeaveQuery(text))return;
-  if(aiHandleGroupShiftQuery(text))return;
-  if(aiHandleEmployeeLookup(text))return;
   const btn=document.getElementById('aiSendBtn');if(btn){btn.disabled=true;btn.textContent='...'}
   try{
     const result=await aiAskGroq(text);
-    const reply=String(result.reply||'تم').trim()||'تم';
-    aiConversationHistory.push({role:'user',content:text},{role:'assistant',content:reply});
-    if(aiConversationHistory.length>24)aiConversationHistory=aiConversationHistory.slice(-24);
-    if(!aiPrepareAgentAction(result.action))aiAddMessage(reply);
+    if(!aiPrepareAgentAction(result.action))aiAddMessage(String(result.reply||'تم').trim()||'تم');
   }catch(error){
-    console.warn('Groq assistant fallback',error);
-    aiAddMessage('تعذر الوصول للمساعد الذكي حاليًا (شبكة بطيئة أو ضغط على الخدمة)، هذا رد مبدئي بالبحث المباشر:','error');
-    aiHandleQuery(text);
+    console.warn('Groq assistant fallback',error);aiHandleQuery(text);
   }finally{if(btn){btn.disabled=false;btn.textContent='إرسال'}}
 }
-async function aiConfirmAction(){
+function aiConfirmAction(){
   if(!aiPendingAction)return aiAddMessage('كل شيء تمام، ما عندي عملية معلّقة تحتاج تأكيد.','bot');
-  const action=aiPendingAction,snapshot=JSON.parse(JSON.stringify(state));
+  const action=aiPendingAction;
   if(action.kind==='personalNote'){
     state.personalNotes.push({id:(crypto.randomUUID?crypto.randomUUID():('note-'+Date.now())),date:action.date,text:action.note,createdAt:new Date().toISOString(),source:'assistant'});
-    aiPendingAction=null;if(!await aiPersistAssistantMutation(snapshot))return aiAddMessage('ما تم الحفظ في النظام. جرّب مرة ثانية.','error');return aiAddMessage('تم حفظ التذكير ومزامنته ✅');
+    aiPendingAction=null;save();return aiAddMessage('تم حفظ التذكير ومزامنته ✅');
   }
   if(action.kind==='chooseEmployee')return aiAddMessage('قبل الحفظ، اختر لي الموظف المقصود من فضلك.','bot');
   const employee=state.employees.find(e=>e.id===action.employeeId);if(!employee){aiPendingAction=null;return aiAddMessage('يبدو أن بيانات الموظف تغيّرت. حدّث الصفحة وجرّب مرة ثانية لو سمحت.','bot')}
-  if(action.kind==='whatsapp'){
-    aiPendingAction=null;const opened=aiOpenWhatsApp(employee,action.message);
-    return aiAddMessage(opened.ok?`فتحت واتساب لـ ${aiDisplayEmployee(employee)} والرسالة جاهزة؛ اضغط إرسال داخل واتساب.`:opened.error,opened.ok?'bot':'error');
-  }
-  if(action.kind==='leave'){
-    const check=checkLeaveCapacity(employee.id,action.start,action.end),days=diffDays(action.end,action.start)+1,available=Number(employee.leaveBalance)||0;
-    if(check.employeeConflict){aiPendingAction=null;return aiAddMessage('ما تم الحفظ لأن الموظف عنده إجازة متداخلة.','error')}
-    if(check.blocked.length){aiPendingAction=null;return aiAddMessage('ما تم الحفظ لأن عدد المجازين سيتجاوز الحد الأعلى.','error')}
-    if(days>available){aiPendingAction=null;return aiAddMessage('ما تم الحفظ لأن رصيد الإجازة غير كافٍ.','error')}
-    employee.leaveBalance=available-days;
-    state.leaves.push({id:(crypto.randomUUID?crypto.randomUUID():('leave-'+Date.now())),employeeId:employee.id,start:action.start,end:action.end,note:action.note||'',balanceDaysCharged:days,source:'assistant'});
-    aiPendingAction=null;if(!await aiPersistAssistantMutation(snapshot))return aiAddMessage('ما تم حفظ الإجازة في النظام، وما تغيّر الرصيد. جرّب مرة ثانية.','error');return aiAddMessage(`تم حفظ إجازة ${aiDisplayEmployee(employee)} داخل النظام وخصم ${days} يوم من الرصيد ✅`);
-  }
   if(action.kind==='record')state.records.push({id:(crypto.randomUUID?crypto.randomUUID():('rec-'+Date.now())),employeeId:action.employeeId,type:action.type,date:action.date,note:action.note,createdAt:new Date().toISOString(),source:'assistant'});
-  aiPendingAction=null;if(!await aiPersistAssistantMutation(snapshot))return aiAddMessage('ما تم الحفظ في النظام. جرّب مرة ثانية.','error');aiAddMessage(`تم الحفظ والمزامنة في سجل ${aiDisplayEmployee(employee)} ✅`);
+  aiPendingAction=null;save();aiAddMessage(`تم الحفظ والمزامنة في سجل ${aiDisplayEmployee(employee)} ✅`);
 }
 function aiCancelAction(){aiPendingAction=null;aiAddMessage('تم إلغاء الأمر، وما تغيّر شيء.')}
 
@@ -3446,7 +2940,6 @@ document.getElementById('backupBtn').addEventListener('click',()=>{
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 });
 lockApp();
-localStorage.removeItem(OLD_SESSION_KEY);updateLoginRoleUI();
 if(document.getElementById('recordDate')) document.getElementById('recordDate').value=todayISO();
 if(session){
   refreshSession().then(ok=>ok?loadCloudState():logout()).catch(()=>logout());
