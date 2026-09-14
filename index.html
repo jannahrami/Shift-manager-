@@ -3142,7 +3142,7 @@ function aiHandleRealtimeEvent(event){
     aiRealtimeResponseActive=false;
     if(aiRealtimeResponsePending){const pending=aiRealtimeResponsePending;aiRealtimeResponsePending=null;aiRealtimeSend(pending)}
   }
-  if(event.type==='error'){console.error('OpenAI realtime',event);aiAddMessage('صار خلل بسيط في الاتصال الصوتي. اقفل المايك وشغّله مرة ثانية.','error','',false)}
+  if(event.type==='error'){console.error('OpenAI realtime',event);const e=event.error||{};const debugMsg=`[DEBUG] code:${e.code||'—'} | type:${e.type||'—'} | param:${e.param||'—'} | event_id:${e.event_id||'—'} | msg:${e.message||'—'}`;aiAddMessage('صار خلل بسيط في الاتصال الصوتي. اقفل المايك وشغّله مرة ثانية.\n'+debugMsg,'error','',false)}
 }
 function aiStopRealtime(showMessage=true){
   const wasActive=aiRealtimeConnected||aiRealtimeConnecting;aiRealtimeConnected=false;aiRealtimeConnecting=false;aiIsListening=false;
