@@ -2918,14 +2918,33 @@ async function aiSpeak(text){
   }catch(error){console.warn('Abdullah voice unavailable',error)}
 }
 function updateAIVoiceButton(){const btn=document.getElementById('aiVoiceToggle');if(btn){btn.textContent=aiVoiceEnabled?'🔊':'🔇';btn.classList.toggle('off',!aiVoiceEnabled)}}
+function weeklyLeaveSummary(){
+  const from=addDaysISO(todayISO(),1),to=addDaysISO(todayISO(),7);
+  let starting=0,returning=0;
+  state.leaves.forEach(leave=>{
+    if(leave.start>=from&&leave.start<=to)starting++;
+    const returnDuty=firstWorkDayAfterLeave(leave.end);
+    const returnDate=returnDuty?.date||addDaysISO(leave.end,1);
+    if(returnDate>=from&&returnDate<=to)returning++;
+  });
+  return {starting,returning};
+}
+function aiWeeklySummaryText(){
+  const {starting,returning}=weeklyLeaveSummary();
+  if(!starting&&!returning)return 'هذا الأسبوع ما فيه إجازات مجدولة تبدأ أو ترجع.';
+  const parts=[];
+  if(starting)parts.push(`${starting} إجازات تبدأ`);
+  if(returning)parts.push(`${returning} يرجعون`);
+  return `هذا الأسبوع عندك ${parts.join(' و')}.`;
+}
 function aiDailyGreetingText(){
   const hour=new Date().getHours();
   const prefix=hour<12?'صباح الخير رامي':'مساء الخير رامي';
   const items=todaySummaryItems();
-  if(!items.length)return `${prefix}. ما عندك تذكيرات مجدولة اليوم.`;
-  if(items.length===1)return `${prefix}. عندك اليوم ${items[0]}.`;
-  const countWord=items.length===2?'تذكيرين':`${items.length} تذكيرات`;
-  return `${prefix}. عندك اليوم ${countWord}: ${items.join('، و')}.`;
+  const daily=!items.length?`${prefix}. ما عندك تذكيرات مجدولة اليوم.`
+    :items.length===1?`${prefix}. عندك اليوم ${items[0]}.`
+    :`${prefix}. عندك اليوم ${items.length===2?'تذكيرين':items.length+' تذكيرات'}: ${items.join('، و')}.`;
+  return `${daily} ${aiWeeklySummaryText()}`;
 }
 async function runDailyGreeting(){
   await aiSpeak(aiDailyGreetingText());
