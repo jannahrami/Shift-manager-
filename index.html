@@ -3,105 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Shift Manager — دفتر العمليات</title>
+<title>Shift Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ============================================================
-   نظام التصميم — "دفتر العمليات" (Operations Log)
-   مبني على طبيعة الشغل: مناوبات أمن صناعي/بحري، مو SaaS عام.
-   ============================================================ */
 :root{
-  --ink:#15191d; --ink-2:#1d2329;
-  --sand:#ede7d9; --sand-2:#f5f1e6; --paper:#fffdf8;
-  --amber:#c77d22; --amber-ink:#5c3812;
-  --green:#4c7a54; --green-ink:#22381f;
-  --red:#a33d2e; --red-ink:#4a1912;
-  --blue:#3e5c6b; --blue-ink:#1a2b32;
-  --line:#dcd4bf; --text:#22201a; --muted:#71695a;
-  --radius:6px; --font:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;
+  --bg:#f7f8fa; --surface:#ffffff; --surface-2:#f4f5f7;
+  --blue:#2f6fed; --blue-tint:#eaf1ff;
+  --green:#1c9a6c; --green-tint:#e7f8f0;
+  --red:#e0463d; --red-tint:#fdecec;
+  --text:#15181d; --text-2:#5c6470; --text-3:#9aa1ab;
+  --line:#e7e9ec;
+  --radius:12px; --radius-sm:8px;
+  --shadow:0 1px 2px rgba(20,24,32,.04), 0 8px 20px rgba(20,24,32,.06);
+  --font:'IBM Plex Sans Arabic','Inter',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--sand);color:var(--text);font-weight:400;line-height:1.6;min-height:100vh}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-weight:400;line-height:1.55;min-height:100vh;padding-bottom:78px;-webkit-font-smoothing:antialiased}
 
-/* شريط علوي ثابت — لوحة القيادة، مو Topbar SaaS */
-.command-bar{background:var(--ink);color:#f2efe6;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;border-bottom:3px solid var(--amber)}
-.command-bar .brand{font-weight:600;font-size:16px;letter-spacing:.3px}
-.command-bar .brand small{display:block;font-weight:400;font-size:11px;color:#a8a196;margin-top:2px}
-.command-bar .who{font-size:12px;color:#c9c3b5;display:flex;align-items:center;gap:10px}
-.command-bar button{background:transparent;border:1px solid #3a4149;color:#e8e4d9;font:inherit;font-size:12px;padding:6px 12px;border-radius:var(--radius);cursor:pointer}
-.command-bar button:hover{border-color:var(--amber);color:var(--amber)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
+.topbar .brand{font-size:15px;font-weight:600}
+.topbar .brand small{display:block;font-weight:400;font-size:11px;color:var(--text-3);margin-top:1px}
+.topbar .avatar{width:30px;height:30px;border-radius:50%;background:var(--blue-tint);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
 
-.layout{display:flex;max-width:1100px;margin:0 auto;min-height:calc(100vh - 62px)}
-.layout>main{flex:1;padding:20px;min-width:0}
+main{max-width:640px;margin:0 auto;padding:16px}
 
-/* الشريط الجانبي — حالة الشفت ثابتة، مو بطاقة تنزل مع التمرير */
-.status-rail{width:230px;flex:0 0 auto;background:var(--ink);color:#eee9dc;padding:20px 16px;position:sticky;top:62px;align-self:flex-start;height:calc(100vh - 62px);border-left:3px solid var(--amber)}
-.status-rail .eyebrow{font-size:10px;color:#8a8375;margin-bottom:4px}
-.status-rail h2{font-size:20px;font-weight:600;margin-bottom:14px}
-.status-rail .stat{padding:10px 0;border-top:1px solid #2a3038}
-.status-rail .stat .n{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
-.status-rail .stat .l{font-size:11px;color:#9a927f}
-.status-rail nav{margin-top:24px;display:flex;flex-direction:column;gap:2px}
-.status-rail nav button{background:none;border:0;color:#c9c3b5;font:inherit;font-size:13px;text-align:right;padding:9px 10px;border-radius:var(--radius);cursor:pointer}
-.status-rail nav button.active{background:var(--amber);color:#241505;font-weight:600}
-.status-rail nav button:not(.active):hover{background:#20262d;color:#f2efe6}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:14px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.card-head h3{font-size:14px;font-weight:600}
+.eyebrow{font-size:11px;color:var(--text-3);display:block;margin-bottom:2px}
 
-/* أقسام — تبويب ملوّن على الحافة بدل بطاقة موحّدة الشكل */
-.dossier{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:16px;overflow:hidden}
-.dossier-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.dossier-head h3{font-size:15px;font-weight:600}
-.dossier-head .eyebrow{font-size:10px;color:var(--muted);display:block;margin-bottom:2px}
-.dossier.amber{border-right:4px solid var(--amber)}
-.dossier.green{border-right:4px solid var(--green)}
-.dossier.blue{border-right:4px solid var(--blue)}
-.dossier.red{border-right:4px solid var(--red)}
-.dossier-body{padding:16px 18px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);text-align:center}
+.stat-grid>div{padding:2px 4px}
+.stat-grid>div+div{border-right:1px solid var(--line)}
+.stat-grid .n{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat-grid .l{font-size:11px;color:var(--text-2);margin-top:2px}
 
 .row-list{display:flex;flex-direction:column}
-.row-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid #ece5d3}
+.row-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
 .row-item:last-child{border-bottom:0}
-.row-item .name{font-size:13px;font-weight:600}
-.row-item .meta{font-size:11px;color:var(--muted);margin-top:2px}
-.tag{display:inline-block;font-size:10px;font-weight:600;padding:3px 8px;border-radius:3px}
-.tag.on{background:#e3ede4;color:var(--green-ink)}
-.tag.off{background:#f2e3de;color:var(--amber-ink)}
+.row-item .av{width:30px;height:30px;border-radius:50%;background:var(--surface-2);color:var(--text-2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:0 0 auto}
+.row-item .info{flex:1;min-width:0}
+.row-item .name{font-size:13px;font-weight:500}
+.row-item .meta{font-size:11px;color:var(--text-3);margin-top:1px}
 
-.btn{font:inherit;font-size:12px;font-weight:600;padding:8px 14px;border-radius:var(--radius);border:1px solid var(--ink);background:var(--ink);color:#f2efe6;cursor:pointer}
-.btn:hover{background:var(--ink-2)}
-.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
-.btn.ghost:hover{border-color:var(--ink)}
+.pill{font-size:11px;font-weight:500;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill.on{background:var(--green-tint);color:var(--green)}
+.pill.off{background:var(--blue-tint);color:var(--blue)}
 
-input,select{font:inherit;font-size:13px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;width:100%}
-input:focus,select:focus{outline:2px solid var(--amber);outline-offset:1px}
+.btn{font:inherit;font-size:13px;font-weight:500;padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;box-shadow:var(--shadow)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn:active{transform:scale(.98)}
+.btn.block{width:100%}
+
+input,select{font:inherit;font-size:13px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);width:100%}
+input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
 .field{margin-bottom:10px}
-.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
-.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.field label{display:block;font-size:11px;color:var(--text-2);margin-bottom:5px}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
 
-.empty{padding:28px 10px;text-align:center;color:var(--muted);font-size:12px}
+.empty{padding:26px 10px;text-align:center;color:var(--text-3);font-size:12px}
+.hint{font-size:12px;margin-top:8px;min-height:16px}
+.hint.err{color:var(--red)}
+.hint.ok{color:var(--green)}
 
-/* شاشة الدخول */
-.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);padding:20px}
-.gate-card{background:var(--paper);border-radius:var(--radius);padding:32px 28px;width:100%;max-width:360px;border-top:4px solid var(--amber)}
-.gate-card h1{font-size:19px;font-weight:600;margin-bottom:3px}
-.gate-card .eyebrow{font-size:11px;color:var(--muted);margin-bottom:20px;display:block}
-.gate-msg{font-size:12px;color:var(--red-ink);margin-top:8px;min-height:16px}
 .hidden{display:none!important}
 
-@media(max-width:760px){
-  .layout{flex-direction:column}
-  .status-rail{width:100%;position:relative;top:0;height:auto;border-left:0;border-bottom:3px solid var(--amber)}
-  .status-rail nav{flex-direction:row;overflow-x:auto;gap:6px}
-  .status-rail nav button{white-space:nowrap}
-}
+.bottom-nav{position:fixed;bottom:0;right:0;left:0;background:var(--surface);border-top:1px solid var(--line);display:flex;overflow-x:auto;z-index:40;box-shadow:0 -1px 2px rgba(20,24,32,.03)}
+.navbtn{flex:0 0 auto;min-width:64px;background:none;border:0;color:var(--text-3);font:inherit;font-size:10px;padding:9px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.navbtn i{font-size:18px;font-style:normal}
+.navbtn.active{color:var(--blue)}
+.navbtn.soon{opacity:.4}
+
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px}
+.gate-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:30px 26px;width:100%;max-width:340px}
+.gate-card h1{font-size:17px;font-weight:600;margin-bottom:3px}
+.gate-card .eyebrow{margin-bottom:22px}
 </style>
 </head>
 <body>
 
 <div id="gate" class="gate">
   <div class="gate-card">
-    <span class="eyebrow">SHIFT MANAGER — دفتر العمليات</span>
+    <span class="eyebrow">SHIFT MANAGER</span>
     <h1>تسجيل الدخول</h1>
     <div class="field" style="margin-top:18px">
       <label>البريد الإلكتروني</label>
@@ -111,77 +96,66 @@ input:focus,select:focus{outline:2px solid var(--amber);outline-offset:1px}
       <label>كلمة المرور</label>
       <input id="loginPassword" type="password" autocomplete="current-password">
     </div>
-    <button class="btn" style="width:100%;margin-top:6px" onclick="login()">دخول</button>
-    <div class="gate-msg" id="gateMsg"></div>
+    <button class="btn primary block" onclick="login()">دخول</button>
+    <div class="hint err" id="gateMsg"></div>
   </div>
 </div>
 
 <div id="app" class="hidden">
-  <div class="command-bar">
-    <div class="brand">Shift Manager<small>دفتر العمليات · Group A</small></div>
-    <div class="who">
-      <span id="whoLabel">—</span>
-      <button onclick="logout()">خروج</button>
+  <div class="topbar">
+    <div class="brand">Shift Manager<small>لوحة إدارة الشفت · Group A</small></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="whoLabel" style="font-size:12px;color:var(--text-2)"></span>
+      <div class="avatar">S</div>
     </div>
   </div>
-  <div class="layout">
-    <aside class="status-rail">
-      <span class="eyebrow">حالة اليوم</span>
-      <h2 id="todayLabel">—</h2>
-      <div class="stat"><div class="n" id="statOnDuty">—</div><div class="l">على رأس العمل</div></div>
-      <div class="stat"><div class="n" id="statOnLeave">—</div><div class="l">في إجازة الآن</div></div>
-      <div class="stat"><div class="n" id="statTotal">—</div><div class="l">إجمالي الموظفين</div></div>
-      <nav>
-        <button class="active" data-view="employees" onclick="showView('employees')">الموظفون</button>
-        <button data-view="leaves" onclick="showView('leaves')">الإجازات</button>
-      </nav>
-    </aside>
-    <main>
 
-      <section id="view-employees">
-        <div class="dossier amber">
-          <div class="dossier-head">
-            <div><span class="eyebrow">القوة العاملة</span><h3>الموظفون</h3></div>
-          </div>
-          <div class="dossier-body">
-            <div class="row-list" id="employeesList"><div class="empty">جاري التحميل…</div></div>
-          </div>
+  <main>
+    <section id="view-home">
+      <div class="card">
+        <div class="stat-grid">
+          <div><div class="n" id="statOnDuty">—</div><div class="l">على رأس العمل</div></div>
+          <div><div class="n" id="statOnLeave">—</div><div class="l">في إجازة</div></div>
+          <div><div class="n" id="statTotal">—</div><div class="l">الإجمالي</div></div>
         </div>
-      </section>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><span class="eyebrow">القوة العاملة</span><h3>الموظفون</h3></div></div>
+        <div class="row-list" id="employeesList"><div class="empty">جاري التحميل…</div></div>
+      </div>
+    </section>
 
-      <section id="view-leaves" class="hidden">
-        <div class="dossier green">
-          <div class="dossier-head">
-            <div><span class="eyebrow">تسجيل جديد</span><h3>إضافة إجازة</h3></div>
-          </div>
-          <div class="dossier-body">
-            <div class="form-row">
-              <div class="field"><label>الموظف</label><select id="leaveEmployee"></select></div>
-              <div class="field"><label>من تاريخ</label><input id="leaveStart" type="date"></div>
-              <div class="field"><label>إلى تاريخ</label><input id="leaveEnd" type="date"></div>
-            </div>
-            <button class="btn" onclick="addLeave()">حفظ الإجازة</button>
-            <div class="gate-msg" id="leaveMsg"></div>
-          </div>
+    <section id="view-leaves" class="hidden">
+      <div class="card">
+        <div class="card-head"><div><span class="eyebrow">تسجيل جديد</span><h3>إضافة إجازة</h3></div></div>
+        <div class="form-row">
+          <div class="field" style="margin-bottom:0"><label>الموظف</label><select id="leaveEmployee"></select></div>
+          <div class="field" style="margin-bottom:0"><label>من تاريخ</label><input id="leaveStart" type="date"></div>
+          <div class="field" style="margin-bottom:0"><label>إلى تاريخ</label><input id="leaveEnd" type="date"></div>
         </div>
-        <div class="dossier blue">
-          <div class="dossier-head">
-            <div><span class="eyebrow">السجل</span><h3>الإجازات الحالية والقادمة</h3></div>
-          </div>
-          <div class="dossier-body">
-            <div class="row-list" id="leavesList"><div class="empty">جاري التحميل…</div></div>
-          </div>
-        </div>
-      </section>
+        <button class="btn primary" onclick="addLeave()">حفظ الإجازة</button>
+        <div class="hint" id="leaveMsg"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><span class="eyebrow">السجل</span><h3>الإجازات الحالية والقادمة</h3></div></div>
+        <div class="row-list" id="leavesList"><div class="empty">جاري التحميل…</div></div>
+      </div>
+    </section>
+  </main>
 
-    </main>
-  </div>
+  <nav class="bottom-nav">
+    <button class="navbtn soon" data-view="insights" disabled><i>📊</i>المؤشرات</button>
+    <button class="navbtn active" data-view="home" onclick="showView('home')"><i>🏠</i>الرئيسية</button>
+    <button class="navbtn" data-view="leaves" onclick="showView('leaves')"><i>🗓️</i>الإجازات</button>
+    <button class="navbtn soon" data-view="calendar" disabled><i>▦</i>التقويم</button>
+    <button class="navbtn soon" data-view="shift" disabled><i>🛡️</i>الشفت</button>
+    <button class="navbtn soon" data-view="reports" disabled><i>📈</i>التقارير</button>
+    <button class="navbtn soon" data-view="updates" disabled><i>📌</i>تحديثات</button>
+    <button class="navbtn soon" data-view="forms" disabled><i>📎</i>نماذج</button>
+  </nav>
 </div>
 
 <script>
-/* ============================================================
-   الإعدادات — نفس مشروع Supabase والجدول المستخدم بالنسخة الحالية
-   ============================================================ */
 const SUPABASE_URL = 'https://gfpzjydgcmwwrxrvmreq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
 const ADMIN_EMAIL = 'jannahrami@yahoo.com';
@@ -189,9 +163,6 @@ const ADMIN_EMAIL = 'jannahrami@yahoo.com';
 let session = null;
 let state = { employees: [], leaves: [] };
 
-/* ============================================================
-   طبقة البيانات — نفس جدول shift_manager_state، نفس بنية الحقول
-   ============================================================ */
 async function supabaseFetch(path, options = {}) {
   const headers = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json', ...(options.headers || {}) };
   if (session?.access_token) headers.Authorization = 'Bearer ' + session.access_token;
@@ -220,12 +191,6 @@ async function login() {
   }
 }
 
-function logout() {
-  session = null;
-  document.getElementById('app').classList.add('hidden');
-  document.getElementById('gate').classList.remove('hidden');
-}
-
 async function loadState() {
   const res = await supabaseFetch('/rest/v1/shift_manager_state?id=eq.main&select=data', { method: 'GET' });
   if (!res.ok) return;
@@ -237,9 +202,6 @@ async function loadState() {
   renderAll();
 }
 
-/* ============================================================
-   العرض
-   ============================================================ */
 function todayISO() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -249,14 +211,16 @@ function fmtDate(s) {
   return new Date(s + 'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 function displayName(e) { return e?.nameAr || e?.name || 'غير معروف'; }
+function initials(n) { return (n || '؟').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join(''); }
 function isOnLeave(employeeId) {
   const t = todayISO();
   return state.leaves.some(l => l.employeeId === employeeId && l.start <= t && l.end >= t);
 }
+function escapeHtml(s = '') {
+  return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+}
 
-function renderStatusRail() {
-  const t = todayISO();
-  document.getElementById('todayLabel').textContent = fmtDate(t);
+function renderStats() {
   const onLeave = state.employees.filter(e => isOnLeave(e.id)).length;
   document.getElementById('statTotal').textContent = state.employees.length;
   document.getElementById('statOnLeave').textContent = onLeave;
@@ -269,8 +233,9 @@ function renderEmployees() {
   box.innerHTML = state.employees.map(e => {
     const onLeave = isOnLeave(e.id);
     return `<div class="row-item">
-      <div><div class="name">${escapeHtml(displayName(e))}</div><div class="meta">#${escapeHtml(e.empId || '')}</div></div>
-      <span class="tag ${onLeave ? 'off' : 'on'}">${onLeave ? 'إجازة' : 'دوام'}</span>
+      <div class="av">${escapeHtml(initials(displayName(e)))}</div>
+      <div class="info"><div class="name">${escapeHtml(displayName(e))}</div><div class="meta">#${escapeHtml(e.empId || '')}</div></div>
+      <span class="pill ${onLeave ? 'off' : 'on'}">${onLeave ? 'إجازة' : 'دوام'}</span>
     </div>`;
   }).join('');
 }
@@ -288,43 +253,35 @@ function renderLeaves() {
   box.innerHTML = upcoming.map(l => {
     const emp = state.employees.find(e => e.id === l.employeeId);
     return `<div class="row-item">
-      <div><div class="name">${escapeHtml(emp ? displayName(emp) : 'موظف محذوف')}</div><div class="meta">${fmtDate(l.start)} — ${fmtDate(l.end)}</div></div>
+      <div class="av">${escapeHtml(initials(emp ? displayName(emp) : '؟'))}</div>
+      <div class="info"><div class="name">${escapeHtml(emp ? displayName(emp) : 'موظف محذوف')}</div><div class="meta">${fmtDate(l.start)} — ${fmtDate(l.end)}</div></div>
     </div>`;
   }).join('');
 }
 
 function renderAll() {
-  renderStatusRail();
+  renderStats();
   renderEmployees();
   renderLeaveEmployeeSelect();
   renderLeaves();
 }
 
-function escapeHtml(s = '') {
-  return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-}
-
-/* ============================================================
-   التنقل
-   ============================================================ */
 function showView(name) {
-  document.querySelectorAll('.status-rail nav button').forEach(b => b.classList.toggle('active', b.dataset.view === name));
-  document.getElementById('view-employees').classList.toggle('hidden', name !== 'employees');
+  document.querySelectorAll('.bottom-nav .navbtn').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+  document.getElementById('view-home').classList.toggle('hidden', name !== 'home');
   document.getElementById('view-leaves').classList.toggle('hidden', name !== 'leaves');
 }
 
-/* ============================================================
-   إضافة إجازة (تحقق أولًا، تنفيذ مباشر بعده — نفس مبدأ النسخة الحالية)
-   ============================================================ */
 async function addLeave() {
   const employeeId = document.getElementById('leaveEmployee').value;
   const start = document.getElementById('leaveStart').value;
   const end = document.getElementById('leaveEnd').value;
   const msg = document.getElementById('leaveMsg');
-  if (!employeeId || !start || !end) { msg.textContent = 'عبّي كل الحقول'; return; }
-  if (end < start) { msg.textContent = 'تاريخ النهاية قبل البداية'; return; }
+  msg.className = 'hint';
+  if (!employeeId || !start || !end) { msg.textContent = 'عبّي كل الحقول'; msg.classList.add('err'); return; }
+  if (end < start) { msg.textContent = 'تاريخ النهاية قبل البداية'; msg.classList.add('err'); return; }
   const conflict = state.leaves.find(l => l.employeeId === employeeId && l.start <= end && l.end >= start);
-  if (conflict) { msg.textContent = 'يوجد تداخل مع إجازة مسجّلة لنفس الموظف'; return; }
+  if (conflict) { msg.textContent = 'يوجد تداخل مع إجازة مسجّلة لنفس الموظف'; msg.classList.add('err'); return; }
 
   state.leaves.push({ id: crypto.randomUUID(), employeeId, start, end, source: 'v2' });
   msg.textContent = 'جاري الحفظ…';
@@ -333,8 +290,8 @@ async function addLeave() {
     headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
     body: JSON.stringify({ id: 'main', data: state, updated_at: new Date().toISOString() })
   });
-  if (res.ok) { msg.textContent = 'تم الحفظ ✓'; renderAll(); }
-  else { msg.textContent = 'تعذر الحفظ'; state.leaves.pop(); }
+  if (res.ok) { msg.textContent = 'تم الحفظ'; msg.classList.add('ok'); renderAll(); }
+  else { msg.textContent = 'تعذر الحفظ'; msg.classList.add('err'); state.leaves.pop(); }
 }
 </script>
 </body>
