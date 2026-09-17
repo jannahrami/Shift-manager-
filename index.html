@@ -857,6 +857,7 @@
     <button class="navbtn" data-view="shiftView" onclick="showView('shiftView',this)"><span>🛡️</span>الشفت</button>
     <button class="navbtn" data-view="reportsView" onclick="showView('reportsView',this)"><span>📊</span>التقارير</button>
     <button class="navbtn" data-view="updateView" onclick="showView('updateView',this)"><span>📌</span>تحديثات</button>
+    <button class="navbtn" data-view="formsView" onclick="showView('formsView',this)"><span>📎</span>نماذج</button>
   </nav>
 
   <div class="global-search">
@@ -1097,6 +1098,14 @@
       <div class="section">
         <div class="section-head"><div><span class="section-kicker">تعليمات وتغييرات العمل</span><h2>التحديثات</h2></div><button class="primary" onclick="openUpdateModal()">+ إضافة تحديث</button></div>
         <div class="note-list" id="updatesList"></div>
+      </div>
+    </section>
+
+    <section id="formsView" class="view">
+      <div class="section">
+        <div class="section-head"><div><span class="section-kicker">نماذج وملفات جاهزة</span><h2>النماذج</h2></div><button class="primary" onclick="document.getElementById('formUploadInput').click()">+ رفع نموذج</button></div>
+        <input type="file" id="formUploadInput" style="display:none" onchange="uploadFormFile(this.files[0])">
+        <div class="note-list" id="formsList"></div>
       </div>
     </section>
 
@@ -1383,13 +1392,14 @@ const ACCESS_GROUPS=[
   {id:'ecc',title:'ECC Room Access',icon:'🖥️',badges:['101725','104121','101690','101694','103619'],names:{'101725':'ADEL A BELADI','104121':'HASSAN AZIZALLAH TASH','101690':'YOUSEF BARKI BARKAH FARSI','101694':'RAYAN NASSAR DHAHRI','103619':'ABDULLAH SALEH GHAMDI'}},
   {id:'patrols',title:'PRC Patrols',icon:'🚓',countLabel:'12 رقم تاج للدوريات',tagPrefix:'',badges:['PRC-338','PRC-335','PRC-334','PRC-337','PRC-270','PRC-332','PRC-313','PRC-314','PRC-312','PRC-333','PRC-315','PRC-336'],names:{'PRC-338':'Shift Chief (01)','PRC-335':'Shift Chief Assistant (02)','PRC-334':'Community Group Leader','PRC-337':'Patrol-05','PRC-270':'Patrol-06','PRC-332':'Patrol-07','PRC-313':'Patrol-08','PRC-314':'Patrol-09','PRC-312':'Patrol-010','PRC-333':'Patrol-011','PRC-315':'Patrol-012','PRC-336':'Patrol-013'}}
 ];
-function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],updates:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[]}}
+function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],updates:[],forms:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[]}}
 let state=emptyState();
 
 if(!Array.isArray(state.records)) state.records=[];
 if(!Array.isArray(state.achievements)) state.achievements=[];
 if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
 if(!Array.isArray(state.updates)) state.updates=[];
+if(!Array.isArray(state.forms)) state.forms=[];
 if(!state.monthlySchedules||typeof state.monthlySchedules!=='object'||Array.isArray(state.monthlySchedules))state.monthlySchedules={};
 if(!state.monthlyScheduleRequirements||typeof state.monthlyScheduleRequirements!=='object'||Array.isArray(state.monthlyScheduleRequirements))state.monthlyScheduleRequirements={};
 if(!state.monthlySchedulePeriods||typeof state.monthlySchedulePeriods!=='object'||Array.isArray(state.monthlySchedulePeriods))state.monthlySchedulePeriods={};
@@ -1560,6 +1570,7 @@ async function loadCloudState(){
     if(!Array.isArray(state.achievements))state.achievements=[];
     if(!Array.isArray(state.personalNotes))state.personalNotes=[];
     if(!Array.isArray(state.updates))state.updates=[];
+    if(!Array.isArray(state.forms))state.forms=[];
     if(!state.monthlySchedules||typeof state.monthlySchedules!=='object'||Array.isArray(state.monthlySchedules))state.monthlySchedules={};
     if(!state.monthlyScheduleRequirements||typeof state.monthlyScheduleRequirements!=='object'||Array.isArray(state.monthlyScheduleRequirements))state.monthlyScheduleRequirements={};
     if(!state.monthlySchedulePeriods||typeof state.monthlySchedulePeriods!=='object'||Array.isArray(state.monthlySchedulePeriods))state.monthlySchedulePeriods={};
@@ -2692,7 +2703,7 @@ function printMonthlyRoster(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderAccessCards();renderStats(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderUpdates(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
+  renderAccessCards();renderStats(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderUpdates(); renderForms(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
 }
 
 function showView(id,btn){
@@ -2874,6 +2885,59 @@ function renderUpdates(){
       <div class="note-date"><span>◷</span><span>${fmtDate(String(u.createdAt).slice(0,10))}</span></div>
     </div>
     <button class="secondary danger" onclick="deleteUpdateEntry('${u.id}')">حذف</button>
+  </div>`).join('');
+}
+const FORMS_BUCKET='Forms';
+function formPublicUrl(path){return `${SUPABASE_URL}/storage/v1/object/public/${FORMS_BUCKET}/${encodeURIComponent(path)}`}
+function formSizeLabel(bytes){
+  const n=Number(bytes)||0;
+  if(n<1024)return n+' B';
+  if(n<1024*1024)return (n/1024).toFixed(1)+' KB';
+  return (n/1024/1024).toFixed(1)+' MB';
+}
+async function uploadFormFile(file){
+  if(!file)return;
+  if(!isAdmin()){alert('حساب Guest للعرض فقط ولا يمكنه رفع النماذج');document.getElementById('formUploadInput').value='';return}
+  const path=(crypto.randomUUID?crypto.randomUUID():String(Date.now()))+'-'+file.name;
+  try{
+    const res=await fetch(`${SUPABASE_URL}/storage/v1/object/${FORMS_BUCKET}/${encodeURIComponent(path)}`,{
+      method:'POST',
+      headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':file.type||'application/octet-stream'},
+      body:file
+    });
+    if(!res.ok)throw new Error('فشل رفع الملف إلى التخزين');
+    state.forms.push({id:(crypto.randomUUID?crypto.randomUUID():('form-'+Date.now())),name:file.name,path,mimetype:file.type,size:file.size,uploadedAt:new Date().toISOString()});
+    save();
+  }catch(error){console.error('[DEBUG] uploadFormFile failed:',error?.message||error);alert('تعذر رفع النموذج، تأكد من الاتصال وحاول مرة ثانية')}
+  document.getElementById('formUploadInput').value='';
+}
+async function deleteFormFile(id){
+  const item=state.forms.find(f=>f.id===id);if(!item)return;
+  if(!confirm(`حذف النموذج "${item.name}"؟`))return;
+  try{
+    const res=await fetch(`${SUPABASE_URL}/storage/v1/object/${FORMS_BUCKET}`,{
+      method:'DELETE',
+      headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify({prefixes:[item.path]})
+    });
+    if(!res.ok)throw new Error('فشل حذف الملف من التخزين');
+  }catch(error){console.error('[DEBUG] deleteFormFile failed:',error?.message||error)}
+  state.forms=state.forms.filter(f=>f.id!==id);save();
+}
+function renderForms(){
+  const box=document.getElementById('formsList');
+  if(!box)return;
+  const forms=[...state.forms].sort((a,b)=>String(b.uploadedAt).localeCompare(String(a.uploadedAt)));
+  if(!forms.length){box.innerHTML='<div class="empty">لا توجد نماذج مرفوعة</div>';return}
+  box.innerHTML=forms.map(f=>`<div class="note-row">
+    <div class="note-copy">
+      <div class="note-text">${esc(f.name)}</div>
+      <div class="note-date"><span>◷</span><span>${fmtDate(String(f.uploadedAt).slice(0,10))}</span><span>· ${formSizeLabel(f.size)}</span></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a class="secondary" href="${formPublicUrl(f.path)}" target="_blank" rel="noopener">فتح</a>
+      <button class="secondary danger" onclick="deleteFormFile('${f.id}')">حذف</button>
+    </div>
   </div>`).join('');
 }
 function deleteEmployee(id){
