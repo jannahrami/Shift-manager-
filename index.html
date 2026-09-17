@@ -856,6 +856,7 @@
     <button class="navbtn" data-view="calendarView" onclick="showView('calendarView',this)"><span>▦</span>التقويم</button>
     <button class="navbtn" data-view="shiftView" onclick="showView('shiftView',this)"><span>🛡️</span>الشفت</button>
     <button class="navbtn" data-view="reportsView" onclick="showView('reportsView',this)"><span>📊</span>التقارير</button>
+    <button class="navbtn" data-view="updateView" onclick="showView('updateView',this)"><span>📌</span>تحديثات</button>
   </nav>
 
   <div class="global-search">
@@ -1092,6 +1093,13 @@
       </div>
     </section>
 
+    <section id="updateView" class="view">
+      <div class="section">
+        <div class="section-head"><div><span class="section-kicker">تعليمات وتغييرات العمل</span><h2>التحديثات</h2></div><button class="primary" onclick="openUpdateModal()">+ إضافة تحديث</button></div>
+        <div class="note-list" id="updatesList"></div>
+      </div>
+    </section>
+
     <section id="shiftView" class="view">
       <div class="section" id="monthlyRosterSection">
         <div class="monthly-roster-toolbar">
@@ -1305,6 +1313,19 @@
   </div>
 </div>
 
+<div class="modal" id="updateModal">
+  <div class="sheet">
+    <h3>إضافة تحديث</h3>
+    <div class="form">
+      <textarea id="updateText" placeholder="مثال: تغيّر مسار الدورية الليلية، أو تعليمات جديدة بخصوص بوابة الدخول"></textarea>
+      <div class="form-actions">
+        <button class="primary" onclick="saveUpdateEntry()">حفظ</button>
+        <button class="secondary" onclick="closeModal('updateModal')">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="personalNoteModal">
   <div class="sheet">
     <h3>إضافة ملاحظة وتنبيه</h3>
@@ -1362,12 +1383,13 @@ const ACCESS_GROUPS=[
   {id:'ecc',title:'ECC Room Access',icon:'🖥️',badges:['101725','104121','101690','101694','103619'],names:{'101725':'ADEL A BELADI','104121':'HASSAN AZIZALLAH TASH','101690':'YOUSEF BARKI BARKAH FARSI','101694':'RAYAN NASSAR DHAHRI','103619':'ABDULLAH SALEH GHAMDI'}},
   {id:'patrols',title:'PRC Patrols',icon:'🚓',countLabel:'12 رقم تاج للدوريات',tagPrefix:'',badges:['PRC-338','PRC-335','PRC-334','PRC-337','PRC-270','PRC-332','PRC-313','PRC-314','PRC-312','PRC-333','PRC-315','PRC-336'],names:{'PRC-338':'Shift Chief (01)','PRC-335':'Shift Chief Assistant (02)','PRC-334':'Community Group Leader','PRC-337':'Patrol-05','PRC-270':'Patrol-06','PRC-332':'Patrol-07','PRC-313':'Patrol-08','PRC-314':'Patrol-09','PRC-312':'Patrol-010','PRC-333':'Patrol-011','PRC-315':'Patrol-012','PRC-336':'Patrol-013'}}
 ];
-function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[]}}
+function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],updates:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[]}}
 let state=emptyState();
 
 if(!Array.isArray(state.records)) state.records=[];
 if(!Array.isArray(state.achievements)) state.achievements=[];
 if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
+if(!Array.isArray(state.updates)) state.updates=[];
 if(!state.monthlySchedules||typeof state.monthlySchedules!=='object'||Array.isArray(state.monthlySchedules))state.monthlySchedules={};
 if(!state.monthlyScheduleRequirements||typeof state.monthlyScheduleRequirements!=='object'||Array.isArray(state.monthlyScheduleRequirements))state.monthlyScheduleRequirements={};
 if(!state.monthlySchedulePeriods||typeof state.monthlySchedulePeriods!=='object'||Array.isArray(state.monthlySchedulePeriods))state.monthlySchedulePeriods={};
@@ -1537,6 +1559,7 @@ async function loadCloudState(){
     if(!Array.isArray(state.records))state.records=[];
     if(!Array.isArray(state.achievements))state.achievements=[];
     if(!Array.isArray(state.personalNotes))state.personalNotes=[];
+    if(!Array.isArray(state.updates))state.updates=[];
     if(!state.monthlySchedules||typeof state.monthlySchedules!=='object'||Array.isArray(state.monthlySchedules))state.monthlySchedules={};
     if(!state.monthlyScheduleRequirements||typeof state.monthlyScheduleRequirements!=='object'||Array.isArray(state.monthlyScheduleRequirements))state.monthlyScheduleRequirements={};
     if(!state.monthlySchedulePeriods||typeof state.monthlySchedulePeriods!=='object'||Array.isArray(state.monthlySchedulePeriods))state.monthlySchedulePeriods={};
@@ -2669,7 +2692,7 @@ function printMonthlyRoster(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderAccessCards();renderStats(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
+  renderAccessCards();renderStats(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderUpdates(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
 }
 
 function showView(id,btn){
@@ -2824,6 +2847,34 @@ function deletePersonalNote(id){
   if(confirm('حذف هذه الملاحظة؟')){
     state.personalNotes=state.personalNotes.filter(n=>n.id!==id);save();
   }
+}
+function openUpdateModal(){
+  document.getElementById('updateText').value='';
+  document.getElementById('updateModal').classList.add('show');
+}
+function saveUpdateEntry(){
+  const text=document.getElementById('updateText').value.trim();
+  if(!text){alert('أدخل نص التحديث');return}
+  state.updates.push({id:(crypto.randomUUID?crypto.randomUUID():('update-'+Date.now())),text,createdAt:new Date().toISOString()});
+  closeModal('updateModal');save();
+}
+function deleteUpdateEntry(id){
+  if(confirm('حذف هذا التحديث؟')){
+    state.updates=state.updates.filter(u=>u.id!==id);save();
+  }
+}
+function renderUpdates(){
+  const box=document.getElementById('updatesList');
+  if(!box)return;
+  const updates=[...state.updates].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+  if(!updates.length){box.innerHTML='<div class="empty">لا توجد تحديثات مسجّلة</div>';return}
+  box.innerHTML=updates.map(u=>`<div class="note-row">
+    <div class="note-copy">
+      <div class="note-text">${esc(u.text)}</div>
+      <div class="note-date"><span>◷</span><span>${fmtDate(String(u.createdAt).slice(0,10))}</span></div>
+    </div>
+    <button class="secondary danger" onclick="deleteUpdateEntry('${u.id}')">حذف</button>
+  </div>`).join('');
 }
 function deleteEmployee(id){
   if(!confirm('حذف الموظف وكل الإجازات والتوزيعات المرتبطة به؟'))return;
