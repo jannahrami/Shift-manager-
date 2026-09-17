@@ -721,15 +721,15 @@
     .iconbtn:hover{background:rgba(255,255,255,.14)!important;border-color:rgba(255,255,255,.22)!important;transform:translateY(-1px)}
 
     /* الإدخالات */
-    .global-search input{background:#fff!important;border-color:var(--line)!important;box-shadow:none!important}
+    .global-search input{background:var(--card)!important;border-color:var(--line)!important;box-shadow:none!important}
     .global-search input:focus,input:focus,select:focus,textarea:focus{border-color:var(--primary)!important;box-shadow:0 0 0 3px rgba(15,139,140,.14)!important}
-    input,select,textarea{background:#fff!important;color:var(--text)!important;border-color:var(--line)!important;border-radius:13px!important}
+    input,select,textarea{background:var(--card)!important;color:var(--text)!important;border-color:var(--line)!important;border-radius:13px!important}
 
     /* بطاقات المؤشرات — تسطيح كامل، بدون تلوين عشوائي بالكامل لكل بطاقة؛
        الحالة تُقرأ من لون أيقونة صغيرة لا من صبغ البطاقة كلها */
-    .stat{background:#fff!important;border:1px solid var(--line)!important;box-shadow:none!important;color:var(--text)!important;overflow:hidden;transition:.2s ease}
+    .stat{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important;color:var(--text)!important;overflow:hidden;transition:.2s ease}
     .stat:hover{border-color:#c7d0da!important;transform:none!important}
-    .stat:nth-child(1),.stat:nth-child(2),.stat:nth-child(3),.stat:nth-child(4){background:#fff!important}
+    .stat:nth-child(1),.stat:nth-child(2),.stat:nth-child(3),.stat:nth-child(4){background:var(--card)!important}
     .stat .num,.stat .label{color:var(--text)!important}.stat .label{opacity:1;color:var(--muted)!important}
     .stat::after{display:none!important}
     .stat-icon,.stat:nth-child(1) .stat-icon,.stat:nth-child(2) .stat-icon,.stat:nth-child(3) .stat-icon,.stat:nth-child(4) .stat-icon{
@@ -765,7 +765,7 @@
     #homeView .section{border-top:4px solid #2fb872!important;background:linear-gradient(180deg,rgba(47,184,114,.14) 0%,var(--card) 70%)!important}
     .section-head button,.primary{background:var(--primary)!important;color:#fff!important;box-shadow:none!important;border-radius:12px!important;transition:.2s ease}
     .section-head button:hover,.primary:hover{background:var(--primary2)!important}
-    .row,.note-row,.shift-card,.notification-item{background:#fff!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:14px!important;transition:.2s ease}
+    .row,.note-row,.shift-card,.notification-item{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:14px!important;transition:.2s ease}
     .row:hover,.note-row:hover{border-color:#c7d0da!important;transform:none!important}
     .avatar{background:linear-gradient(135deg,var(--ink),var(--primary2))!important;box-shadow:none!important;border-radius:12px!important}
 
@@ -778,7 +778,7 @@
     .legend-item,.chip{background:var(--card2)!important;color:var(--muted)!important;border-color:var(--line)!important}
 
     /* الأزرار */
-    .secondary{background:#fff!important;color:var(--text)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:12px!important}
+    .secondary{background:var(--card)!important;color:var(--text)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:12px!important}
     .secondary:hover{background:var(--card2)!important}
     .danger{background:#f8ebec!important;color:#8b3236!important;border-color:#e9c9cb!important}
     .whatsapp-btn{background:#25d366!important;border-color:#1fb858!important}
@@ -791,11 +791,11 @@
 
     /* شاشة الدخول */
     .auth-screen{background:radial-gradient(circle at 75% 0,rgba(15,139,140,.10),transparent 38%),var(--bg)!important}
-    .auth-card{background:#fff!important;border-color:var(--line)!important;box-shadow:var(--shadow-lg)!important;border-radius:24px!important}
+    .auth-card{background:var(--card)!important;border-color:var(--line)!important;box-shadow:var(--shadow-lg)!important;border-radius:24px!important}
     .auth-card h2{color:var(--text)!important}
 
     /* الجداول والتقويم */
-    .leave-table-wrap,.calendar-scroll,.monthly-roster-wrap{background:#fff!important;border-color:var(--line)!important}
+    .leave-table-wrap,.calendar-scroll,.monthly-roster-wrap{background:var(--card)!important;border-color:var(--line)!important}
     .leave-table th,.calendar-weekday,.monthly-roster-table th{background:var(--card2)!important;color:var(--muted)!important}
     .leave-table td,.calendar-day,.monthly-roster-table td{color:var(--text)!important}
     .calendar-day.today{box-shadow:inset 0 0 0 2px var(--primary)!important}
@@ -803,13 +803,13 @@
     /* سطح المكتب — نفس النظام، بدون تلوين مختلف لكل زر تنقل */
     @media(min-width:900px){
       body{background:radial-gradient(circle at 15% 0%,rgba(239,159,39,.07),transparent 32%),radial-gradient(circle at 100% 100%,rgba(93,202,165,.06),transparent 30%),var(--bg)!important}
-      .bottom-nav{background:#fff!important;border-color:var(--line)!important;box-shadow:var(--shadow)!important}
+      .bottom-nav{background:var(--card)!important;border-color:var(--line)!important;box-shadow:var(--shadow)!important}
       .navbtn{background:var(--card2)!important;border:1px solid var(--line)!important;color:var(--muted)!important}
-      .navbtn span{background:#fff!important;box-shadow:none!important;color:inherit!important}
+      .navbtn span{background:var(--card)!important;box-shadow:none!important;color:inherit!important}
       .navbtn:hover{background:#eef1f6!important;color:var(--text)!important}
       .navbtn.active,.navbtn.active:hover{background:var(--primary)!important;color:#fff!important;border-color:transparent!important}
       .navbtn.active span{background:rgba(255,255,255,.2)!important;color:#fff!important}
-      .grid4 .stat:nth-child(1),.grid4 .stat:nth-child(2),.grid4 .stat:nth-child(3),.grid4 .stat:nth-child(4){background:#fff!important;border:1px solid var(--line)!important;box-shadow:none!important}
+      .grid4 .stat:nth-child(1),.grid4 .stat:nth-child(2),.grid4 .stat:nth-child(3),.grid4 .stat:nth-child(4){background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important}
       .grid4 .stat .num,.grid4 .stat .label{color:var(--text)!important}.grid4 .stat .label{opacity:1!important}
       .grid4 .stat::after{display:none!important}
       .grid4 .stat .stat-icon{background:var(--card2)!important;color:var(--muted)!important;border:0!important;box-shadow:none!important}
