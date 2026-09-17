@@ -262,7 +262,29 @@
       .capacity-label{font-size:7px!important;padding:1px 3px!important;margin:0!important}.calendar-event{display:block!important;width:100%!important;font-size:7.5px!important;font-weight:700!important;line-height:1!important;padding:1px 3px!important;margin:1px 0!important;color:#111!important;border-radius:3px!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;direction:rtl!important;text-align:right!important}
     }
 
-    .dashboard-conditional-reminder{display:none;flex-direction:column;align-items:flex-start;gap:6px;margin-top:10px;position:relative;z-index:1}
+    .dashboard-conditional-reminder{display:none!important}
+
+    .ai-inline-card{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(135deg,rgba(63,140,243,.14) 0%,var(--card) 70%);border:1px solid rgba(63,140,243,.35);border-radius:18px;padding:16px 20px;margin:14px 0;cursor:pointer;font:inherit;text-align:right}
+    .ai-inline-text strong{display:block;font-size:14px;color:var(--text);margin-bottom:3px}
+    .ai-inline-text span{font-size:11px;color:var(--muted)}
+    .ai-inline-mic{width:44px;height:44px;border-radius:50%;background:#3f8cf3;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}
+
+    .reminder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0}
+    .reminder-card{border-radius:16px;padding:13px 15px;border:1px solid var(--line)}
+    .reminder-head{font-size:11px;font-weight:800;margin-bottom:8px}
+    .reminder-body{font-size:11px;color:var(--muted)}
+    .reminder-card.amber{background:linear-gradient(135deg,rgba(232,168,60,.14) 0%,var(--card) 75%);border-color:rgba(232,168,60,.35)}
+    .reminder-card.amber .reminder-head{color:#f0c070}
+    .reminder-card.blue{background:linear-gradient(135deg,rgba(63,140,243,.14) 0%,var(--card) 75%);border-color:rgba(63,140,243,.35)}
+    .reminder-card.blue .reminder-head{color:#7fb2f7}
+    .reminder-card.green{background:linear-gradient(135deg,rgba(47,184,114,.14) 0%,var(--card) 75%);border-color:rgba(47,184,114,.35)}
+    .reminder-card.green .reminder-head{color:#5dd9a0}
+    .reminder-card.red{background:linear-gradient(135deg,rgba(224,71,90,.14) 0%,var(--card) 75%);border-color:rgba(224,71,90,.35)}
+    .reminder-card.red .reminder-head{color:#f28a97}
+    .reminder-item{padding:5px 0;border-top:1px solid rgba(255,255,255,.06)}
+    .reminder-item:first-child{border-top:0}
+    .reminder-item .rt-name{font-size:12px;font-weight:600;color:var(--text)}
+    .reminder-item .rt-meta{font-size:10px;color:var(--muted);margin-top:1px}
     .dashboard-conditional-reminder span{padding:8px 12px;border-radius:11px;background:rgba(247,185,85,.18);color:#fde68a;font-size:12px;font-weight:800}
 
     /* Desktop / tablet layout */
@@ -448,9 +470,11 @@
       }
       .topbar{
         top:env(safe-area-inset-top,0px);z-index:45;margin:0 -2px 10px;padding:7px 10px;border-radius:16px;
+        flex-wrap:wrap;
       }
       .brand-mark{width:32px;height:32px;border-radius:11px}.title h1{font-size:15px}.title p{font-size:9px}
       .cloud-tools{gap:4px}.iconbtn{width:31px;height:31px;border-radius:10px;font-size:13px}
+      .topbar .global-search{order:3;width:100%;max-width:none!important;flex:1 1 100%!important;margin:8px 0 0}
       .global-search{margin:0 0 14px}.global-search input{padding-block:12px;font-size:13px}
       .section{padding:14px;border-radius:18px}.section::before{right:14px;left:14px}
       .section-head{align-items:center}.section-head h2{font-size:18px}
@@ -729,7 +753,13 @@
        الحالة تُقرأ من لون أيقونة صغيرة لا من صبغ البطاقة كلها */
     .stat{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important;color:var(--text)!important;overflow:hidden;transition:.2s ease}
     .stat:hover{border-color:#c7d0da!important;transform:none!important}
-    .stat:nth-child(1),.stat:nth-child(2),.stat:nth-child(3),.stat:nth-child(4){background:var(--card)!important}
+    .stat:nth-child(1){background:var(--card2)!important}
+    .stat:nth-child(2){background:linear-gradient(135deg,rgba(47,184,114,.16) 0%,var(--card) 75%)!important;border-color:rgba(47,184,114,.4)!important}
+    .stat:nth-child(2) .num{color:#5dd9a0!important}
+    .stat:nth-child(3){background:linear-gradient(135deg,rgba(139,124,246,.16) 0%,var(--card) 75%)!important;border-color:rgba(139,124,246,.4)!important}
+    .stat:nth-child(3) .num{color:#b3a8f9!important}
+    .stat:nth-child(4){background:linear-gradient(135deg,rgba(224,71,90,.16) 0%,var(--card) 75%)!important;border-color:rgba(224,71,90,.4)!important}
+    .stat:nth-child(4) .num{color:#f28a97!important}
     .stat .num,.stat .label{color:var(--text)!important}.stat .label{opacity:1;color:var(--muted)!important}
     .stat::after{display:none!important}
     .stat-icon,.stat:nth-child(1) .stat-icon,.stat:nth-child(2) .stat-icon,.stat:nth-child(3) .stat-icon,.stat:nth-child(4) .stat-icon{
@@ -809,7 +839,10 @@
       .navbtn:hover{background:#eef1f6!important;color:var(--text)!important}
       .navbtn.active,.navbtn.active:hover{background:var(--primary)!important;color:#fff!important;border-color:transparent!important}
       .navbtn.active span{background:rgba(255,255,255,.2)!important;color:#fff!important}
-      .grid4 .stat:nth-child(1),.grid4 .stat:nth-child(2),.grid4 .stat:nth-child(3),.grid4 .stat:nth-child(4){background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important}
+      .grid4 .stat:nth-child(1){background:var(--card2)!important;border:1px solid var(--line)!important;box-shadow:none!important}
+      .grid4 .stat:nth-child(2){background:linear-gradient(135deg,rgba(47,184,114,.16) 0%,var(--card) 75%)!important;border:1px solid rgba(47,184,114,.4)!important;box-shadow:none!important}
+      .grid4 .stat:nth-child(3){background:linear-gradient(135deg,rgba(139,124,246,.16) 0%,var(--card) 75%)!important;border:1px solid rgba(139,124,246,.4)!important;box-shadow:none!important}
+      .grid4 .stat:nth-child(4){background:linear-gradient(135deg,rgba(224,71,90,.16) 0%,var(--card) 75%)!important;border:1px solid rgba(224,71,90,.4)!important;box-shadow:none!important}
       .grid4 .stat .num,.grid4 .stat .label{color:var(--text)!important}.grid4 .stat .label{opacity:1!important}
       .grid4 .stat::after{display:none!important}
       .grid4 .stat .stat-icon{background:var(--card2)!important;color:var(--muted)!important;border:0!important;box-shadow:none!important}
@@ -858,6 +891,11 @@
         <p>Group A · لوحة إدارة الشفت</p>
       </div>
     </div>
+    <div class="global-search" style="margin:0;flex:1;max-width:420px">
+      <span class="global-search-icon">⌕</span>
+      <input id="globalSearchInput" placeholder="بحث شامل: اسم الموظف أو الرقم الوظيفي" autocomplete="off" oninput="renderGlobalSearch()" onfocus="renderGlobalSearch()">
+      <div class="search-results" id="globalSearchResults"></div>
+    </div>
     <div class="cloud-tools">
       <span class="role-badge-top" id="currentRoleBadge">Admin</span>
       <span class="cloud-status" id="cloudStatus" title="حالة المزامنة"></span>
@@ -878,12 +916,6 @@
     <button class="navbtn" data-view="updateView" onclick="showView('updateView',this)"><span>📌</span>تحديثات</button>
     <button class="navbtn" data-view="formsView" onclick="showView('formsView',this)"><span>📎</span>نماذج</button>
   </nav>
-
-  <div class="global-search">
-    <span class="global-search-icon">⌕</span>
-    <input id="globalSearchInput" placeholder="بحث شامل: اسم الموظف أو الرقم الوظيفي" autocomplete="off" oninput="renderGlobalSearch()" onfocus="renderGlobalSearch()">
-    <div class="search-results" id="globalSearchResults"></div>
-  </div>
 
   <main>
     <section id="insightsView" class="view active">
@@ -918,6 +950,18 @@
         <div class="stat" style="--stat-glow:rgba(45,212,163,.16)"><div class="stat-top"><div class="stat-icon">✓</div><div class="num" id="workingCount">0</div></div><div class="label">على رأس العمل</div></div>
         <div class="stat" style="--stat-glow:rgba(96,165,250,.16)"><div class="stat-top"><div class="stat-icon">☂</div><div class="num" id="leaveCount">0</div></div><div class="label">في إجازة الآن</div></div>
         <div class="stat" style="--stat-glow:rgba(247,185,85,.16)"><div class="stat-top"><div class="stat-icon">◷</div><div class="num" id="soonCount">0</div></div><div class="label">تنبيهات خلال 3 أيام</div></div>
+      </div>
+
+      <button class="ai-inline-card" onclick="openAIAssistant()">
+        <div class="ai-inline-text"><strong>المساعد الذكي</strong><span>اضغط على الميكروفون أو تحدث الآن</span></div>
+        <div class="ai-inline-mic">🎙️</div>
+      </button>
+
+      <div class="reminder-grid">
+        <div class="reminder-card amber"><div class="reminder-head">🔔 تذكيرات اليوم</div><div id="reminderTodayBox" class="reminder-body"></div></div>
+        <div class="reminder-card blue"><div class="reminder-head">🛫 إجازات قادمة (خلال يومين)</div><div id="reminderUpcomingBox" class="reminder-body"></div></div>
+        <div class="reminder-card green"><div class="reminder-head">↩️ راجعون (خلال يومين)</div><div id="reminderReturningBox" class="reminder-body"></div></div>
+        <div class="reminder-card red"><div class="reminder-head">🪪 بطاقات بحرية منتهية</div><div id="reminderExpiredBox" class="reminder-body"></div></div>
       </div>
 
       <div class="section section-wide leave-insights-section">
@@ -1950,6 +1994,7 @@ function renderDashboardShift(){
   document.getElementById('dashboardShiftPeriod').textContent=current.code==='OFF'?`الراحة مستمرة حتى ${shortDate(end)}`:`${current.arabic} حتى ${shortDate(end)}`;
   document.getElementById('dashboardNextShift').textContent=next?`القادم: ${next.code} · ${next.name} — ${shortDate(next.date)}`:'—';
   renderConditionalReminder();
+  renderReminderCards();
 }
 const SHIFT_CONDITIONAL_REMINDERS=[
   {shift:'A',weekday:0,title:'Weekly Fence and Light Inspection'},
@@ -1996,6 +2041,38 @@ function renderConditionalReminder(){
   box.style.display=items.length?'flex':'none';
   const REMINDER_ICON={shift:'🛡️',personal:'📝',leave:'🧳'};
   box.innerHTML=items.map(i=>`<span>${REMINDER_ICON[i.type]||'📋'} ${esc(i.text)}</span>`).join('');
+}
+function reminderItemHtml(name,meta){return `<div class="reminder-item"><div class="rt-name">${esc(name)}</div><div class="rt-meta">${esc(meta)}</div></div>`}
+function reminderEmpty(){return '<div class="reminder-item rt-meta">لا يوجد</div>'}
+function renderReminderCards(){
+  const todayBox=document.getElementById('reminderTodayBox');
+  const upcomingBox=document.getElementById('reminderUpcomingBox');
+  const returningBox=document.getElementById('reminderReturningBox');
+  const expiredBox=document.getElementById('reminderExpiredBox');
+  if(!todayBox||!upcomingBox||!returningBox||!expiredBox)return;
+
+  /* تذكيرات اليوم — نفس conditionalShiftReminder وpersonalNotesForToday الموجودتين */
+  const todayItems=[];
+  const shiftReminder=conditionalShiftReminder(todayISO());
+  if(shiftReminder)todayItems.push(reminderItemHtml(shiftReminder.title,'تذكير الشفت اليوم'));
+  personalNotesForToday().forEach(n=>todayItems.push(reminderItemHtml(n.text,'اليوم')));
+  todayBox.innerHTML=todayItems.length?todayItems.join(''):reminderEmpty();
+
+  /* إجازات قادمة وراجعون — نفس منطق upcomingLeaveReminders موزّع على بطاقتين بدل نص واحد مدمج */
+  const target=addDaysISO(todayISO(),2);
+  const upcoming=[],returning=[];
+  state.leaves.forEach(leave=>{
+    if(leave.start===target)upcoming.push(reminderItemHtml(aiEmployeeName(leave.employeeId),'يبدأ إجازته في '+fmtDate(leave.start)));
+    const returnDuty=firstWorkDayAfterLeave(leave.end);
+    const returnDate=returnDuty?.date||addDaysISO(leave.end,1);
+    if(returnDate===target)returning.push(reminderItemHtml(aiEmployeeName(leave.employeeId),'يرجع تقريبًا في '+fmtDate(returnDate)));
+  });
+  upcomingBox.innerHTML=upcoming.length?upcoming.join(''):reminderEmpty();
+  returningBox.innerHTML=returning.length?returning.join(''):reminderEmpty();
+
+  /* بطاقات بحرية منتهية — نفس marineStatus المستخدمة أصلًا بـrenderMarineAlert */
+  const expired=state.employees.filter(e=>marineStatus(e).kind==='expired');
+  expiredBox.innerHTML=expired.length?expired.map(e=>reminderItemHtml(aiDisplayEmployee(e),'منتهية منذ '+fmtDate(marineExpiryFor(e)))).join(''):reminderEmpty();
 }
 // ==================== جدول الشفتات (عرض شهري بسيط) ====================
 function changeScheduleMonth(step){
@@ -2167,28 +2244,30 @@ function renderPersonalNotes(){
 
 // ==================== الموظفون: العرض، الملف الشخصي، السجلات والإنجازات ====================
 function renderEmployees(){
-  const box=document.getElementById('employeesList'); box.innerHTML='';
+  const box=document.getElementById('employeesList');
   const q=(document.getElementById('searchInput')?.value||'').trim().toLowerCase();
   const list=state.employees.filter(e=>!q || e.name.toLowerCase().includes(q) || (e.nameAr||'').toLowerCase().includes(q) || (e.empId||'').toLowerCase().includes(q) || (e.gc||'').toLowerCase().includes(q) || (e.position||'').toLowerCase().includes(q));
   if(!list.length){box.innerHTML='<div class="empty">لا يوجد موظفون</div>';return}
-  list.forEach(e=>{
+  const roleOptions=[['','حدد المهمة'],['chief','Shift Chief'],['assistant','Assistant'],['community','Community Supervisor'],['clerk','Shift Clerk'],['scc','SCC'],['visitor','Ind. Visitor'],['commVisitor','Comm. Visitor'],['leader','ليدر'],['officer','فرد'],['patrol','دورية'],['flex','فرد + دورية']];
+  const marineBadgeCls={missing:'b-blue',expired:'b-red',soon:'b-yellow',valid:'b-green'};
+  const rows=list.map((e,i)=>{
     const st=employeeStatus(e);
-    box.insertAdjacentHTML('beforeend',`
-    <div class="row employee-click" onclick="openEmployeeProfile('${e.id}')">
-      <div class="row-main">
-        <div class="avatar">${esc(initials(e.name))}</div>
-        <div><div class="name">${esc(e.nameAr||e.name)}</div>${e.nameAr?`<div class="meta">${esc(e.name)}</div>`:''}<div class="meta">#${esc(e.empId)} · GC ${esc(e.gc||'-')} · ${esc(e.position||e.shift||'-')}</div><div class="meta">رصيد الإجازة: <strong>${formatDays(e.leaveBalance)}</strong> يوم · <span class="badge role-badge">${employeeDutyRoleLabel(e.dutyRole)}</span></div></div>
-      </div>
-      <div class="employee-actions" style="display:flex;gap:6px;align-items:center">
-        <span class="badge ${st.cls}">${st.text}</span>
-        <select class="employee-role-select" aria-label="مهمة الموظف" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateEmployeeDutyRole('${e.id}',this.value)" style="width:auto;min-width:105px;padding:7px 9px">
-          <option value="" ${!e.dutyRole?'selected':''}>حدد المهمة</option><option value="chief" ${e.dutyRole==='chief'?'selected':''}>Shift Chief</option><option value="assistant" ${e.dutyRole==='assistant'?'selected':''}>Assistant</option><option value="community" ${e.dutyRole==='community'?'selected':''}>Community Supervisor</option><option value="clerk" ${e.dutyRole==='clerk'?'selected':''}>Shift Clerk</option><option value="scc" ${e.dutyRole==='scc'?'selected':''}>SCC</option><option value="visitor" ${e.dutyRole==='visitor'?'selected':''}>Ind. Visitor</option><option value="commVisitor" ${e.dutyRole==='commVisitor'?'selected':''}>Comm. Visitor</option><option value="leader" ${e.dutyRole==='leader'?'selected':''}>ليدر</option><option value="officer" ${e.dutyRole==='officer'?'selected':''}>فرد</option><option value="patrol" ${e.dutyRole==='patrol'?'selected':''}>دورية</option><option value="flex" ${e.dutyRole==='flex'?'selected':''}>فرد + دورية</option>
-        </select>
-        <button class="secondary" onclick="event.stopPropagation();openEmployeeModal('${e.id}')">تعديل الاسم</button>
-        <button class="secondary danger" onclick="event.stopPropagation();deleteEmployee('${e.id}')">حذف</button>
-      </div>
-    </div>`);
-  });
+    const marine=marineStatus(e);
+    const roleSelect=`<select class="employee-role-select" aria-label="مهمة الموظف" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateEmployeeDutyRole('${e.id}',this.value)" style="width:auto;min-width:105px;padding:6px 8px">${roleOptions.map(([v,l])=>`<option value="${v}" ${e.dutyRole===v?'selected':''}>${l}</option>`).join('')}</select>`;
+    return `<tr class="employee-click" onclick="openEmployeeProfile('${e.id}')" style="cursor:pointer">
+      <td>${i+1}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><span class="avatar">${esc(initials(e.name))}</span><div><div class="name">${esc(e.nameAr||e.name)}</div>${e.nameAr?`<div class="meta">${esc(e.name)}</div>`:''}</div></div></td>
+      <td>${esc(e.empId||'—')}</td>
+      <td onclick="event.stopPropagation()">${roleSelect}</td>
+      <td>${esc(e.shift||'—')}</td>
+      <td>${esc(e.location||'—')}</td>
+      <td><span class="badge ${st.cls}">${st.text}</span></td>
+      <td><strong>${formatDays(e.leaveBalance)}</strong></td>
+      <td><span class="badge ${marineBadgeCls[marine.kind]||'b-blue'}">${esc(marine.label)}</span></td>
+      <td onclick="event.stopPropagation()"><button class="secondary" onclick="openEmployeeModal('${e.id}')">تعديل</button> <button class="secondary danger" onclick="deleteEmployee('${e.id}')">حذف</button></td>
+    </tr>`;
+  }).join('');
+  box.innerHTML=`<div class="leave-table-wrap"><table class="leave-table"><thead><tr><th>م</th><th>الاسم</th><th>الرقم الوظيفي</th><th>المهمة</th><th>الشفت</th><th>الموقع</th><th>حالة اليوم</th><th>رصيد الإجازة</th><th>البطاقة البحرية</th><th>إجراءات</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 
