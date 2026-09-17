@@ -444,13 +444,13 @@
     /* Mobile layout fixes */
     @media(max-width:899px){
       .app{
-        max-width:520px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(132px + env(safe-area-inset-bottom,0px));
+        max-width:520px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(112px + env(safe-area-inset-bottom,0px));
       }
       .topbar{
-        top:env(safe-area-inset-top,0px);z-index:45;margin:0 -2px 16px;padding:10px 11px;border-radius:20px;
+        top:env(safe-area-inset-top,0px);z-index:45;margin:0 -2px 10px;padding:7px 10px;border-radius:16px;
       }
-      .brand-mark{width:40px;height:40px;border-radius:13px}.title h1{font-size:18px}.title p{font-size:10px}
-      .cloud-tools{gap:5px}.iconbtn{width:36px;height:36px;border-radius:12px;font-size:15px}
+      .brand-mark{width:32px;height:32px;border-radius:11px}.title h1{font-size:15px}.title p{font-size:9px}
+      .cloud-tools{gap:4px}.iconbtn{width:31px;height:31px;border-radius:10px;font-size:13px}
       .global-search{margin:0 0 14px}.global-search input{padding-block:12px;font-size:13px}
       .section{padding:14px;border-radius:18px}.section::before{right:14px;left:14px}
       .section-head{align-items:center}.section-head h2{font-size:18px}
@@ -480,10 +480,11 @@
       .schedule-day-number{font-size:10px;margin-bottom:5px}.schedule-shift-code{min-height:25px;font-size:11px;border-radius:8px}.schedule-shift-name{display:none}
       .calendar-shift-tag{padding:4px 5px}.calendar-shift-tag small{display:none}
       .bottom-nav{
-        bottom:calc(8px + env(safe-area-inset-bottom,0px));width:calc(100% - 20px);padding:6px;border-radius:20px;
+        bottom:calc(6px + env(safe-area-inset-bottom,0px));width:calc(100% - 20px);padding:4px;border-radius:16px;
       }
-      .navbtn{padding:7px 2px;border-radius:13px;font-size:10px}.navbtn span{font-size:17px;margin-bottom:3px}
-      .fab{right:18px;left:auto;bottom:calc(82px + env(safe-area-inset-bottom,0px));transform:none;width:48px;height:48px;border-radius:16px}
+      .navbtn{padding:5px 2px;border-radius:11px;font-size:9px}.navbtn span{font-size:15px;margin-bottom:2px}
+      .fab{right:16px;left:auto;bottom:calc(70px + env(safe-area-inset-bottom,0px));transform:none;width:38px;height:38px;border-radius:12px;font-size:22px}
+      .ai-fab{width:44px;height:44px;border-radius:14px;font-size:19px;bottom:calc(70px + env(safe-area-inset-bottom,0px));left:16px;transform:none}
     }
 
     @media(max-width:370px){
@@ -575,6 +576,15 @@
     .insight-chart-card:nth-child(2){background:linear-gradient(135deg,#f2f5ff 0%,#e3e9ff 52%,#eee8ff 100%);border-color:#aebcf6;box-shadow:0 10px 24px rgba(70,86,200,.12)}
     .insight-chart-card:nth-child(3){background:linear-gradient(135deg,#eafff9 0%,#d5f6ec 100%);border-color:#85d4bd;box-shadow:0 10px 24px rgba(22,160,133,.13)}
     .insight-chart-card:nth-child(1) .insight-copy h3{color:#9a5a05}.insight-chart-card:nth-child(2) .insight-copy h3{color:#384bb0}.insight-chart-card:nth-child(3) .insight-copy h3{color:#087c67}
+    .metric-card{border:1px solid #dbe2eb;border-radius:16px;background:#f8fafc;padding:15px;display:flex;align-items:center;gap:15px}
+    .metric-card.success{background:linear-gradient(135deg,#eafff9 0%,#d5f6ec 100%);border-color:#85d4bd;box-shadow:0 10px 24px rgba(22,160,133,.13)}
+    .metric-card.success .insight-copy h3{color:#087c67}
+    .metric-card.warning{background:linear-gradient(135deg,#fff8e8 0%,#ffedc1 100%);border-color:#f1c86d;box-shadow:0 10px 24px rgba(217,144,20,.13)}
+    .metric-card.warning .insight-copy h3{color:#9a5a05}
+    .metric-card.danger{background:linear-gradient(135deg,#fff0f0 0%,#ffd9d9 100%);border-color:#f1a0a0;box-shadow:0 10px 24px rgba(200,40,40,.13)}
+    .metric-card.danger .insight-copy h3{color:#a02020}
+    .metric-card.info{background:linear-gradient(135deg,#f2f5ff 0%,#e3e9ff 52%,#eee8ff 100%);border-color:#aebcf6;box-shadow:0 10px 24px rgba(70,86,200,.12)}
+    .metric-card.info .insight-copy h3{color:#384bb0}
     .insight-donut{--pct:0;--color:#315fe7;width:92px;height:92px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--color) calc(var(--pct)*1%),#e2e8f0 0);position:relative}
     .insight-donut::before{content:"";position:absolute;inset:10px;border-radius:50%;background:#fff}
     .insight-donut strong{position:relative;z-index:1;font-size:19px;color:#172033}
@@ -848,7 +858,7 @@
   </div>
 
   <nav class="bottom-nav">
-    <button class="navbtn active" data-view="insightsView" onclick="showView('insightsView',this)"><span>📊</span>لوحة المؤشرات</button>
+    <button class="navbtn active" data-view="insightsView" onclick="showView('insightsView',this)"><span>📊</span>المؤشرات</button>
     <button class="navbtn" data-view="homeView" onclick="showView('homeView',this)"><span>⌂</span>الرئيسية</button>
     <button class="navbtn" data-view="employeesView" onclick="showView('employeesView',this)"><span>👥</span>الموظفون</button>
     <button class="navbtn" data-view="leaveView" onclick="showView('leaveView',this)"><span>🗓️</span>الإجازات</button>
@@ -1698,10 +1708,10 @@ function renderInsightsDashboard(){
   const takenLeaves=yearLeaves.filter(l=>l.start<=today);
   const completionPct=yearLeaves.length?Math.round(takenLeaves.length/yearLeaves.length*100):0;
   box.innerHTML=`
-    <div class="insight-chart-card"><div class="insight-donut" style="--pct:${workingPct};--color:#2dd4a3"><strong>${workingPct}%</strong></div><div class="insight-copy"><h3>على رأس العمل</h3><p>الموظفون الحاضرون اليوم من إجمالي القوة</p><b>${working} من ${total} موظف</b></div></div>
-    <div class="insight-chart-card"><div class="insight-donut" style="--pct:${overTenPct};--color:#f59e0b"><strong>${overTenPct}%</strong></div><div class="insight-copy"><h3>رصيد فوق 10 أيام</h3><p>موظفون رصيد إجازتهم يتجاوز 10 أيام</p><b>${overTen.length} من ${total} موظف</b></div></div>
-    <div class="insight-chart-card"><div class="insight-donut" style="--pct:${expiredPct};--color:#ef4444"><strong>${expiredPct}%</strong></div><div class="insight-copy"><h3>بطاقات منتهية</h3><p>بطاقات Marine ID منتهية الصلاحية حاليًا</p><b>${expiredCards.length} من ${total} موظف</b></div></div>
-    <div class="insight-chart-card"><div class="insight-donut" style="--pct:${completionPct};--color:#16a085"><strong>${completionPct}%</strong></div><div class="insight-copy"><h3>نسبة الإنجاز بالإجازات السنوية</h3><p>الإجازات التي بدأ الموظفون فيها من إجمالي الإجازات المدخلة</p><b>${takenLeaves.length} من ${yearLeaves.length} إجازة</b></div></div>`;
+    <div class="metric-card success"><div class="insight-donut" style="--pct:${workingPct};--color:#2dd4a3"><strong>${workingPct}%</strong></div><div class="insight-copy"><h3>على رأس العمل</h3><p>الموظفون الحاضرون اليوم من إجمالي القوة</p><b>${working} من ${total} موظف</b></div></div>
+    <div class="metric-card warning"><div class="insight-donut" style="--pct:${overTenPct};--color:#f59e0b"><strong>${overTenPct}%</strong></div><div class="insight-copy"><h3>رصيد فوق 10 أيام</h3><p>موظفون رصيد إجازتهم يتجاوز 10 أيام</p><b>${overTen.length} من ${total} موظف</b></div></div>
+    <div class="metric-card danger"><div class="insight-donut" style="--pct:${expiredPct};--color:#ef4444"><strong>${expiredPct}%</strong></div><div class="insight-copy"><h3>بطاقات منتهية</h3><p>بطاقات Marine ID منتهية الصلاحية حاليًا</p><b>${expiredCards.length} من ${total} موظف</b></div></div>
+    <div class="metric-card info"><div class="insight-donut" style="--pct:${completionPct};--color:#315fe7"><strong>${completionPct}%</strong></div><div class="insight-copy"><h3>نسبة الإنجاز بالإجازات السنوية</h3><p>الإجازات التي بدأ الموظفون فيها من إجمالي الإجازات المدخلة</p><b>${takenLeaves.length} من ${yearLeaves.length} إجازة</b></div></div>`;
 }
 
 function renderLeaveBalanceInsights(){
