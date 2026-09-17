@@ -700,7 +700,7 @@
        والبروز، والباقي مسطّح بحد فاصل رفيع بدل ظل وتدرّج على كل شي.
        ========================================================= */
     :root{
-      --bg:#eef1f6;--card:#ffffff;--card2:#f6f8fb;--ink:#10161f;
+      --bg:#fdf6ee;--card:#ffffff;--card2:#f6f8fb;--ink:#10161f;
       --text:#151a24;--muted:#6b7686;--line:#e1e5ec;
       --primary:#0f8b8c;--primary2:#0c6f70;
       --green:#2f8f6b;--yellow:#c1801f;--red:#b64146;--blue:#3f6fa8;
@@ -708,7 +708,7 @@
       --radius:18px;--mono:ui-monospace,"SF Mono","JetBrains Mono","Roboto Mono",Menlo,Consolas,monospace;
     }
     *{font-family:"Cairo","-apple-system",BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif!important}
-    body{background:var(--bg)!important;color:var(--text);letter-spacing:-.1px}
+    body{background:radial-gradient(circle at 15% 0%,rgba(239,159,39,.07),transparent 32%),radial-gradient(circle at 100% 100%,rgba(93,202,165,.06),transparent 30%),var(--bg)!important;color:var(--text);letter-spacing:-.1px}
     h1,h2,h3,.name,strong,.section-head h2,.title h1,.calendar-title,.schedule-title{font-weight:800!important;letter-spacing:-.2px}
     .stat .num,.dashboard-shift-code,.marine-row .marine-date,.report-summary strong,.roster-summary strong{font-family:var(--mono)!important;font-variant-numeric:tabular-nums}
 
@@ -753,6 +753,16 @@
     .section::before{display:none!important}
     .section-head h2,.name,.note-text,.days-remaining,.calendar-title,.schedule-title{color:var(--text)!important}
     .section-kicker{color:var(--primary)!important}
+
+    /* لمسات لونية دافئة لكل صفحة — تكسر رتابة الأبيض بدون فقدان الهدوء العام */
+    #employeesView .section{border-top:4px solid #d85a30!important;background:linear-gradient(180deg,#faece7 0%,#fff 70%)!important}
+    #leaveView .section{border-top:4px solid #ef9f27!important;background:linear-gradient(180deg,#faeeda 0%,#fff 70%)!important}
+    #calendarView .section{border-top:4px solid #d4537e!important;background:linear-gradient(180deg,#fbeaf0 0%,#fff 70%)!important}
+    #shiftView .section{border-top:4px solid #d97706!important;background:linear-gradient(180deg,#fef3e2 0%,#fff 70%)!important}
+    #reportsView .section{border-top:4px solid #7f77dd!important;background:linear-gradient(180deg,#eeedfe 0%,#fff 70%)!important}
+    #updateView .section{border-top:4px solid #ef9f27!important;background:linear-gradient(180deg,#faeeda 0%,#fff 70%)!important}
+    #formsView .section{border-top:4px solid #5dcaa5!important;background:linear-gradient(180deg,#e1f5ee 0%,#fff 70%)!important}
+    #homeView .section{border-top:4px solid #1D9E75!important;background:linear-gradient(180deg,#e1f5ee 0%,#fff 70%)!important}
     .section-head button,.primary{background:var(--primary)!important;color:#fff!important;box-shadow:none!important;border-radius:12px!important;transition:.2s ease}
     .section-head button:hover,.primary:hover{background:var(--primary2)!important}
     .row,.note-row,.shift-card,.notification-item{background:#fff!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:14px!important;transition:.2s ease}
@@ -792,7 +802,7 @@
 
     /* سطح المكتب — نفس النظام، بدون تلوين مختلف لكل زر تنقل */
     @media(min-width:900px){
-      body{background:var(--bg)!important}
+      body{background:radial-gradient(circle at 15% 0%,rgba(239,159,39,.07),transparent 32%),radial-gradient(circle at 100% 100%,rgba(93,202,165,.06),transparent 30%),var(--bg)!important}
       .bottom-nav{background:#fff!important;border-color:var(--line)!important;box-shadow:var(--shadow)!important}
       .navbtn{background:var(--card2)!important;border:1px solid var(--line)!important;color:var(--muted)!important}
       .navbtn span{background:#fff!important;box-shadow:none!important;color:inherit!important}
