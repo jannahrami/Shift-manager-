@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#12162a" />
-  <title>Shift Manager</title>
+  <title>Hello Rami</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -789,8 +789,6 @@
       .navbtn:hover{background:#eef1f6!important;color:var(--text)!important}
       .navbtn.active,.navbtn.active:hover{background:var(--primary)!important;color:#fff!important;border-color:transparent!important}
       .navbtn.active span{background:rgba(255,255,255,.2)!important;color:#fff!important}
-      .dashboard-shift-card{background:linear-gradient(135deg,var(--ink) 0%,#16283a 55%,#0d4a4a 100%)!important;border-radius:20px!important}
-      .dashboard-add-card{background:linear-gradient(135deg,var(--primary),var(--primary2))!important;border-radius:20px!important}
       .grid4 .stat:nth-child(1),.grid4 .stat:nth-child(2),.grid4 .stat:nth-child(3),.grid4 .stat:nth-child(4){background:#fff!important;border:1px solid var(--line)!important;box-shadow:none!important}
       .grid4 .stat .num,.grid4 .stat .label{color:var(--text)!important}.grid4 .stat .label{opacity:1!important}
       .grid4 .stat::after{display:none!important}
@@ -1382,6 +1380,7 @@
 </div>
 
 <script>
+// ==================== الثوابت والحالة العامة (Constants & State) ====================
 const KEY='shiftManagerDataV3_GroupA_Leaves';
 const OLD_SESSION_KEY='shiftManagerSupabaseSession';
 const SESSION_KEY='shiftManagerAuthSessionV2';
@@ -1433,6 +1432,7 @@ let rememberSession=Boolean(localStorage.getItem(SESSION_KEY));
 let syncTimer=null;
 let cloudReady=false;
 
+// ==================== صيانة البيانات، Marine ID، بطاقات الصلاحية ====================
 function pruneOldMonthlyRosterLocations(){
   if(Number(state.monthlyRosterLocationsVersion)>=2)return false;
   const active=new Set([
@@ -1500,6 +1500,7 @@ function openAccessGroup(groupId){
   document.getElementById('accessGroupModal').classList.add('show');
 }
 
+// ==================== تسجيل الدخول، الجلسة، والمزامنة مع Supabase ====================
 function setCloudStatus(mode,title){
   const el=document.getElementById('cloudStatus');
   el.className='cloud-status'+(mode?' '+mode:''); el.title=title||'حالة المزامنة';
@@ -1614,6 +1615,7 @@ function logout(){
   session=null;currentRole='guest';rememberSession=false;cloudReady=false;localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY);localStorage.removeItem(KEY);document.body.classList.remove('guest-mode');setCloudStatus('offline','تم تسجيل الخروج');lockApp();
 }
 
+// ==================== دوال تنسيق عامة (تاريخ، نص، هاتف) ====================
 function fmtDate(s){ if(!s)return ''; return new Date(s+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{day:'2-digit',month:'2-digit',year:'numeric'}); }
 function diffDays(a,b){ const x=new Date(a+'T12:00:00'),y=new Date(b+'T12:00:00'); return Math.round((x-y)/86400000); }
 function formatDays(value){const n=Number(value)||0;return Number.isInteger(n)?String(n):n.toFixed(1)}
@@ -1633,6 +1635,7 @@ function normalizeSaudiPhone(value=''){
 }
 function localPhone(value=''){const phone=normalizeSaudiPhone(value);return phone?'0'+phone.slice(3):String(value||'')}
 
+// ==================== الداشبورد ولوحة المؤشرات ====================
 function employeeStatus(emp){
   const t=todayISO();
   const active=state.leaves.find(l=>l.employeeId===emp.id && l.start<=t && l.end>=t);
@@ -1710,6 +1713,7 @@ function exportLeaveInsightsPDF(){
   win.document.close();win.focus();setTimeout(()=>win.print(),300);
 }
 
+// ==================== التنبيهات والبحث الشامل ====================
 function getUpcomingNotifications(days=7){
   const t=todayISO(),items=[];
   state.leaves.forEach(l=>{
@@ -1748,6 +1752,7 @@ function renderGlobalSearch(){
   box.classList.add('show');
 }
 
+// ==================== التقويم (Calendar) ====================
 function calendarDateISO(year,month,day){
   return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 }
@@ -1800,6 +1805,7 @@ function renderLeaveCalendar(){
   box.innerHTML=html;
 }
 
+// ==================== دورة الشفت، التذكيرات اليومية والأسبوعية ====================
 const SHIFT_ANCHOR='2026-08-30';
 const SHIFT_CYCLE=[
   {from:0,to:6,code:'N',name:'Night',arabic:'ليلي',cls:'shift-night'},
@@ -1944,6 +1950,7 @@ function renderConditionalReminder(){
   const REMINDER_ICON={shift:'🛡️',personal:'📝',leave:'🧳'};
   box.innerHTML=items.map(i=>`<span>${REMINDER_ICON[i.type]||'📋'} ${esc(i.text)}</span>`).join('');
 }
+// ==================== جدول الشفتات (عرض شهري بسيط) ====================
 function changeScheduleMonth(step){
   let [year,month]=scheduleMonth.split('-').map(Number);month+=step;
   if(month<1){month=12;year--}if(month>12){month=1;year++}
@@ -1971,6 +1978,7 @@ function renderShiftSchedule(){
   }
   grid.innerHTML=html;
 }
+// ==================== رسائل واتساب وحالة الإجازة والتنبيهات ====================
 function selectGlobalEmployee(id){
   document.getElementById('globalSearchInput').value='';document.getElementById('globalSearchResults').classList.remove('show');openEmployeeProfile(id);
 }
@@ -2110,6 +2118,7 @@ function renderPersonalNotes(){
   }).join('');
 }
 
+// ==================== الموظفون: العرض، الملف الشخصي، السجلات والإنجازات ====================
 function renderEmployees(){
   const box=document.getElementById('employeesList'); box.innerHTML='';
   const q=(document.getElementById('searchInput')?.value||'').trim().toLowerCase();
@@ -2300,6 +2309,7 @@ function deleteEmployeeAchievement(id){
 }
 
 
+// ==================== التقارير (شهرية، سنوية، إنجازات، تصدير Excel/PDF) ====================
 function currentMonthValue(){return todayISO().slice(0,7)}
 function showCurrentLeaveMonth(){
   clearLeaveRange(false);document.getElementById('leaveMonthFilter').value=currentMonthValue();renderLeaves();
@@ -2461,6 +2471,7 @@ function printReport(boxId,title){
   win.document.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#172033}h2{margin-bottom:4px}.small-note{color:#64748b}.report-summary{display:flex;gap:10px;margin:18px 0}.report-summary div{flex:1;border:1px solid #d8dee8;border-radius:10px;padding:12px;text-align:center}.report-summary strong{display:block;font-size:22px}.report-summary span{font-size:11px;color:#64748b}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #d8dee8;padding:9px;text-align:right;font-size:12px}th{background:#eef2f7}@page{size:A4 landscape;margin:12mm}</style></head><body>${box.innerHTML}</body></html>`);
   win.document.close();win.focus();setTimeout(()=>win.print(),250);
 }
+// ==================== الإجازات والشفت (عرض القوائم) ====================
 function exportLeavesExcel(requestedMonth=''){
   const month=requestedMonth||document.getElementById('leaveMonthFilter')?.value||'';
   if(!month){alert('اختر الشهر أولًا ثم اضغط Export Excel');return}
@@ -2557,6 +2568,7 @@ function openEmployeeAnnualReport(id){
   selectReportType('annual');renderAnnualEmployeeReport();
 }
 
+// ==================== التوزيع الشهري للمواقع (Monthly Roster) ====================
 const MONTHLY_ROSTER_GROUPS=[
   {name:'Monthly Schedule',key:'leadership',posts:['Shift Chief (01)','Assistant Shift Chief (02)','Community Supervisor (03)','Shift Clerk','SCC','Ind. Visitor','Comm. Visitor']},
   {name:'Stations',key:'stations',posts:['STN# 01','STN# 04','STN# 05','STN# 06','STN# 07','STN# 10','STN# 16A']},
@@ -2726,6 +2738,7 @@ function printMonthlyRoster(){
   win.document.write(`<!doctype html><html dir="ltr"><head><meta charset="utf-8"><title>${esc(document.getElementById('monthlyRosterTitle').textContent)}</title><style>*{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}html,body{margin:0;padding:0}body{font-family:Arial,sans-serif;color:#172033;font-size:7.5px}h1{text-align:center;font-size:15px;line-height:1;margin:0 0 2px}.period{text-align:center;color:#64748b;font-size:7.5px;line-height:1;margin-bottom:4px}.monthly-roster-wrap{overflow:visible!important}table{width:100%;border-collapse:collapse;direction:ltr;table-layout:fixed}th,td{border:1px solid #aeb8c5;padding:2px 3px;text-align:left;font-size:7.2px;line-height:1.05;vertical-align:middle}th:nth-child(1),td:nth-child(1){width:18%}th:nth-child(2),td:nth-child(2){width:7%}.roster-group td{background:#167590;color:#fff;font-weight:bold;text-align:center;padding:2px}.roster-group.patrol td{background:#c45d1b}.roster-group.leave td{background:#be123c}.roster-people{display:flex;align-items:center;gap:2px;flex-wrap:wrap}.roster-person{display:inline-block;margin:0 1px;padding:1px 3px;border-radius:3px;font-size:6.8px;line-height:1.05;white-space:nowrap}.roster-leader{color:#b4232f;font-weight:bold}.roster-mid-leave{background:#fff4bf!important;color:#765500!important;border:1px solid #e9c94f}.roster-returning{background:#dcfce7!important;color:#166534!important;border:1px solid #86d79f}.roster-leave-person{color:#9f1239;font-weight:bold}.small-note{font-size:6px}.no-print,.roster-edit,button{display:none!important}input{border:0;background:transparent;width:28px;font-size:7px}.roster-fixed{box-shadow:none}tr{break-inside:avoid;page-break-inside:avoid}@page{size:A4 landscape;margin:4mm}@media print{body{width:100%;overflow:hidden}}</style></head><body><h1>${esc(document.getElementById('monthlyRosterTitle').textContent)}</h1><div class="period">From ${fmtDate(period.start)} To ${fmtDate(period.end)}</div>${box.innerHTML}</body></html>`);win.document.close();win.focus();setTimeout(()=>win.print(),250);
 }
 
+// ==================== التنقل بين الصفحات وفتح/إغلاق النماذج (Modals) ====================
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
   renderAccessCards();renderStats(); renderInsightsDashboard(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderUpdates(); renderForms(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
@@ -2784,6 +2797,7 @@ function openPersonalNoteModal(){
 function closeModal(id){document.getElementById(id).classList.remove('show');if(id==='aiAssistantModal')aiStopRealtime(false)}
 function quickAdd(){openEmployeeModal()}
 
+// ==================== حفظ وحذف السجلات (موظف، إجازة، شفت، ملاحظة شخصية) ====================
 function saveEmployee(){
   const name=document.getElementById('empName').value.trim();
   const nameAr=document.getElementById('empNameAr').value.trim();
@@ -2884,6 +2898,7 @@ function deletePersonalNote(id){
     state.personalNotes=state.personalNotes.filter(n=>n.id!==id);save();
   }
 }
+// ==================== صفحة التحديثات (تعليمات وتغييرات العمل) ====================
 function openUpdateModal(){
   document.getElementById('updateText').value='';
   document.getElementById('updateModal').classList.add('show');
@@ -2912,6 +2927,7 @@ function renderUpdates(){
     <button class="secondary danger" onclick="deleteUpdateEntry('${u.id}')">حذف</button>
   </div>`).join('');
 }
+// ==================== صفحة النماذج (رفع وإدارة ملفات Supabase Storage) ====================
 const FORMS_BUCKET='Forms';
 function formPublicUrl(path){return `${SUPABASE_URL}/storage/v1/object/public/${FORMS_BUCKET}/${encodeURIComponent(path)}`}
 function formSizeLabel(bytes){
@@ -3004,6 +3020,7 @@ let aiRealtimeWaitingRetry=false;
 const aiRealtimeHandledCalls=new Set();
 let aiRealtimeResponseActive=false;
 let aiRealtimeResponsePending=null;
+// ==================== المساعد الذكي: أدوات نصية وصوتية عامة ====================
 function aiNormalize(value=''){
   return String(value).toLowerCase().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u065F]/g,'').replace(/[^\u0600-\u06ff\w\s-]/g,' ').replace(/\s+/g,' ').trim();
 }
@@ -3131,6 +3148,7 @@ function aiDashboardSnapshot(year=Number(todayISO().slice(0,4))){
     annualIndicators:aiAnnualIndicatorsSnapshot(year)
   };
 }
+// ==================== المساعد الذكي: جلسة Realtime الصوتية (WebRTC) ====================
 function aiRealtimeInstructions(){
   return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي.
 عندك أدوات توصلك ببيانات النظام الفعلية (موظفين، إجازات، مؤشرات، سجلات، إنجازات، شفتات، مواقع، Marine ID، ملاحظات). استخدمها دائمًا لأي رقم أو اسم أو تاريخ حقيقي — ممنوع تختلق أو تخمّن أي بيانة. نفّذ كل الأدوات اللازمة أولًا، ثم رد فورًا في نفس الدورة؛ ممنوع تقول «بأشيك» أو «لحظة» أو «بأجهز» وتتوقف قبل تنفيذ الأداة. إذا احتجت تحدد موظف بالاسم استخدم find_employee أولًا؛ إذا رجع أكثر من نتيجة لا تخمّن، اسأل رامي أيهم يقصد.
@@ -3414,6 +3432,7 @@ function openAIAssistant(){
   setTimeout(()=>document.getElementById('aiInput')?.focus(),180);
 }
 function askAIQuick(text){const input=document.getElementById('aiInput');input.value=text;sendAIMessage()}
+// ==================== المساعد الذكي: فهم الأسئلة النصية والردود ====================
 function aiDelayDuration(text){
   const q=aiNormalize(text),words={واحد:1,وحده:1,ساعتين:2,اثنين:2,ثنتين:2,ثلاث:3,ثلاثه:3,اربع:4,اربعه:4,خمس:5,خمسه:5,ست:6,سته:6,سبع:7,سبعه:7,ثمان:8,ثمانيه:8,تسع:9,تسعه:9,عشر:10,عشره:10,خمستعش:15,خمسطعش:15,عشرين:20,نص:30,نصف:30,ثلاثين:30,اربعين:40,خمسين:50,ستين:60};
   if(/1\s*[\/\\]\s*4/.test(String(text))||q.includes('ربع'))return {minutes:15,label:'ربع ساعة'};
@@ -3595,6 +3614,7 @@ function aiHandleQuery(raw){
   }
   aiAddMessage('ما فهمت طلبك كامل يا رامي 😅\nممكن تقوله بطريقة ثانية؟ مثل: «مين في إجازة اليوم؟» أو «سجّل على فلان تأخير ربع ساعة».','bot');
 }
+// ==================== المساعد الذكي: تنفيذ الإجراءات وتأكيدها (save_leave وغيره) ====================
 function aiContextForAgent(){
   const groupShiftPeriods=[];let start='2025-01-01',end='2028-12-31';
   while(start<=end){const info=groupShiftForDate(start),periodEnd=shiftPeriodEnd(start,info.code);groupShiftPeriods.push({start,end:periodEnd>end?end:periodEnd,code:info.code,arabic:info.arabic});start=addDaysISO(periodEnd,1)}
