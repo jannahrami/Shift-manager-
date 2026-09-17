@@ -850,7 +850,8 @@
   </div>
 
   <nav class="bottom-nav">
-    <button class="navbtn active" data-view="homeView" onclick="showView('homeView',this)"><span>⌂</span>الرئيسية</button>
+    <button class="navbtn active" data-view="insightsView" onclick="showView('insightsView',this)"><span>📊</span>لوحة المؤشرات</button>
+    <button class="navbtn" data-view="homeView" onclick="showView('homeView',this)"><span>⌂</span>الرئيسية</button>
     <button class="navbtn" data-view="employeesView" onclick="showView('employeesView',this)"><span>👥</span>الموظفون</button>
     <button class="navbtn" data-view="leaveView" onclick="showView('leaveView',this)"><span>🗓️</span>الإجازات</button>
     <button class="navbtn" data-view="calendarView" onclick="showView('calendarView',this)"><span>▦</span>التقويم</button>
@@ -868,7 +869,14 @@
   <div class="access-cards" id="accessCards"></div>
 
   <main>
-    <section id="homeView" class="view active">
+    <section id="insightsView" class="view active">
+      <div class="section">
+        <div class="section-head"><div><span class="section-kicker">نظرة سريعة</span><h2>لوحة المؤشرات</h2></div></div>
+        <div class="leave-insights" id="insightsDashboardBox"></div>
+      </div>
+    </section>
+
+    <section id="homeView" class="view">
       <div class="dashboard-hero">
         <div class="dashboard-shift-card">
           <div class="dashboard-shift-kicker">دوام Group A اليوم</div>
@@ -1647,6 +1655,23 @@ function renderStats(){
     return d>=0&&d<=SOON_DAYS;
   }).length;
   document.getElementById('soonCount').textContent=soon;
+}
+function renderInsightsDashboard(){
+  const box=document.getElementById('insightsDashboardBox');if(!box)return;
+  const total=state.employees.length;
+  const inLeave=state.employees.filter(e=>employeeStatus(e).text==='إجازة').length;
+  const working=total-inLeave,workingPct=total?Math.round(working/total*100):0;
+  const overTen=state.employees.filter(e=>(Number(e.leaveBalance)||0)>9),overTenPct=total?Math.round(overTen.length/total*100):0;
+  const expiredCards=state.employees.filter(e=>marineStatus(e).kind==='expired'),expiredPct=total?Math.round(expiredCards.length/total*100):0;
+  const today=todayISO(),year=today.slice(0,4),yearStart=year+'-01-01',yearEnd=year+'-12-31';
+  const yearLeaves=state.leaves.filter(l=>l.start<=yearEnd&&l.end>=yearStart);
+  const takenLeaves=yearLeaves.filter(l=>l.start<=today);
+  const completionPct=yearLeaves.length?Math.round(takenLeaves.length/yearLeaves.length*100):0;
+  box.innerHTML=`
+    <div class="insight-chart-card"><div class="insight-donut" style="--pct:${workingPct};--color:#2dd4a3"><strong>${workingPct}%</strong></div><div class="insight-copy"><h3>على رأس العمل</h3><p>الموظفون الحاضرون اليوم من إجمالي القوة</p><b>${working} من ${total} موظف</b></div></div>
+    <div class="insight-chart-card"><div class="insight-donut" style="--pct:${overTenPct};--color:#f59e0b"><strong>${overTenPct}%</strong></div><div class="insight-copy"><h3>رصيد فوق 10 أيام</h3><p>موظفون رصيد إجازتهم يتجاوز 10 أيام</p><b>${overTen.length} من ${total} موظف</b></div></div>
+    <div class="insight-chart-card"><div class="insight-donut" style="--pct:${expiredPct};--color:#ef4444"><strong>${expiredPct}%</strong></div><div class="insight-copy"><h3>بطاقات منتهية</h3><p>بطاقات Marine ID منتهية الصلاحية حاليًا</p><b>${expiredCards.length} من ${total} موظف</b></div></div>
+    <div class="insight-chart-card"><div class="insight-donut" style="--pct:${completionPct};--color:#16a085"><strong>${completionPct}%</strong></div><div class="insight-copy"><h3>نسبة الإنجاز بالإجازات السنوية</h3><p>الإجازات التي بدأ الموظفون فيها من إجمالي الإجازات المدخلة</p><b>${takenLeaves.length} من ${yearLeaves.length} إجازة</b></div></div>`;
 }
 
 function renderLeaveBalanceInsights(){
@@ -2703,7 +2728,7 @@ function printMonthlyRoster(){
 
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderAccessCards();renderStats(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderUpdates(); renderForms(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
+  renderAccessCards();renderStats(); renderInsightsDashboard(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderUpdates(); renderForms(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
 }
 
 function showView(id,btn){
