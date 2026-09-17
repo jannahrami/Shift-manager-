@@ -6,80 +6,119 @@
 <title>Shift Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f7f8fa; --surface:#ffffff; --surface-2:#f4f5f7;
-  --blue:#2f6fed; --blue-tint:#eaf1ff;
-  --green:#1c9a6c; --green-tint:#e7f8f0;
-  --red:#e0463d; --red-tint:#fdecec;
-  --text:#15181d; --text-2:#5c6470; --text-3:#9aa1ab;
-  --line:#e7e9ec;
-  --radius:12px; --radius-sm:8px;
-  --shadow:0 1px 2px rgba(20,24,32,.04), 0 8px 20px rgba(20,24,32,.06);
-  --font:'IBM Plex Sans Arabic','Inter',sans-serif;
+  --bg:#0c121c; --panel:#141c29; --panel-2:#182233; --line:#232e40;
+  --text:#eef1f6; --text-2:#9aa6b8; --text-3:#5f6b80;
+  --amber:#f0a020; --amber-tint:#2b2211;
+  --red:#e0475a; --red-tint:#2a1620;
+  --purple:#8b7cf6; --purple-tint:#1f1c30;
+  --green:#2fb872; --green-tint:#122a1e;
+  --blue:#3f8cf3; --blue-tint:#142234;
+  --slate:#8b95a6; --slate-tint:#1a212c;
+  --radius:14px; --radius-sm:9px;
+  --font:'IBM Plex Sans Arabic',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--bg);color:var(--text);font-weight:400;line-height:1.55;min-height:100vh;padding-bottom:78px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-weight:400;line-height:1.5;min-height:100vh;padding-bottom:78px}
 
-.topbar{background:var(--surface);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
-.topbar .brand{font-size:15px;font-weight:600}
+.topbar{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:40;flex-wrap:wrap}
+.topbar .brand{font-size:15px;font-weight:700}
 .topbar .brand small{display:block;font-weight:400;font-size:11px;color:var(--text-3);margin-top:1px}
-.topbar .avatar{width:30px;height:30px;border-radius:50%;background:var(--blue-tint);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.topbar .who{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2)}
+.topbar .avatar{width:30px;height:30px;border-radius:50%;background:var(--blue-tint);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
 
-main{max-width:640px;margin:0 auto;padding:16px}
+main{max-width:1200px;margin:0 auto;padding:16px}
 
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:14px}
-.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.card-head h3{font-size:14px;font-weight:600}
-.eyebrow{font-size:11px;color:var(--text-3);display:block;margin-bottom:2px}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+.stat-card{border-radius:var(--radius);padding:14px 16px;border:1px solid var(--line)}
+.stat-card .n{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat-card .l{font-size:11px;color:var(--text-2);margin-top:2px}
+.stat-card.red{background:var(--red-tint);border-color:#4a222e}
+.stat-card.red .n{color:var(--red)}
+.stat-card.purple{background:var(--purple-tint);border-color:#332c52}
+.stat-card.purple .n{color:var(--purple)}
+.stat-card.green{background:var(--green-tint);border-color:#1e4732}
+.stat-card.green .n{color:var(--green)}
+.stat-card.slate{background:var(--panel-2);border-color:var(--line)}
+.stat-card.slate .n{color:var(--text)}
 
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);text-align:center}
-.stat-grid>div{padding:2px 4px}
-.stat-grid>div+div{border-right:1px solid var(--line)}
-.stat-grid .n{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
-.stat-grid .l{font-size:11px;color:var(--text-2);margin-top:2px}
+.ai-card{background:linear-gradient(135deg,#142234,#0f1a28);border:1px solid #244063;border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
+.ai-card .mic{width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}
+.ai-card .txt{font-size:11px;color:var(--text-2)}
+.ai-card .txt b{display:block;font-size:14px;color:var(--text);font-weight:600;margin-bottom:2px}
 
-.row-list{display:flex;flex-direction:column}
-.row-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
-.row-item:last-child{border-bottom:0}
-.row-item .av{width:30px;height:30px;border-radius:50%;background:var(--surface-2);color:var(--text-2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:0 0 auto}
-.row-item .info{flex:1;min-width:0}
-.row-item .name{font-size:13px;font-weight:500}
-.row-item .meta{font-size:11px;color:var(--text-3);margin-top:1px}
+.note-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:16px}
+.note-card{border-radius:var(--radius);padding:12px 14px;border:1px solid var(--line)}
+.note-card .eyebrow{font-size:10px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.note-card .item{padding:6px 0;border-top:1px solid rgba(255,255,255,.06)}
+.note-card .item:first-of-type{border-top:0}
+.note-card .item .nm{font-size:12px;font-weight:600}
+.note-card .item .dt{font-size:10px;color:var(--text-2);margin-top:1px}
+.note-card.amber{background:var(--amber-tint);border-color:#4a3a13}
+.note-card.amber .eyebrow{color:var(--amber)}
+.note-card.blue{background:var(--blue-tint);border-color:#1c3350}
+.note-card.blue .eyebrow{color:var(--blue)}
+.note-card.green{background:var(--green-tint);border-color:#1e4732}
+.note-card.green .eyebrow{color:var(--green)}
+.note-card.red{background:var(--red-tint);border-color:#4a222e}
+.note-card.red .eyebrow{color:var(--red)}
+.note-card .empty-note{font-size:11px;color:var(--text-3);padding:6px 0}
 
-.pill{font-size:11px;font-weight:500;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.panel-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.panel-head h3{font-size:14px;font-weight:600}
+
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:right;padding:10px 12px;color:var(--text-3);font-weight:600;font-size:11px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl tr:last-child td{border-bottom:0}
+.emp-name{display:flex;align-items:center;gap:8px}
+.av{width:26px;height:26px;border-radius:50%;background:var(--panel-2);color:var(--text-2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex:0 0 auto}
+.pill{font-size:10px;font-weight:600;padding:3px 9px;border-radius:999px;display:inline-block}
 .pill.on{background:var(--green-tint);color:var(--green)}
 .pill.off{background:var(--blue-tint);color:var(--blue)}
+.pill.expired{background:var(--red-tint);color:var(--red)}
+.pill.valid{background:var(--panel-2);color:var(--text-2)}
 
-.btn{font:inherit;font-size:13px;font-weight:500;padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;box-shadow:var(--shadow)}
-.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
-.btn:active{transform:scale(.98)}
+.tbl-wrap{overflow-x:auto}
+.empty{padding:26px 10px;text-align:center;color:var(--text-3);font-size:12px}
+
+.btn{font:inherit;font-size:12px;font-weight:600;padding:9px 15px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:pointer}
+.btn.primary{background:var(--amber);color:#241a05;border-color:var(--amber)}
 .btn.block{width:100%}
 
-input,select{font:inherit;font-size:13px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);width:100%}
-input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
+input,select{font:inherit;font-size:13px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel-2);color:var(--text);width:100%}
+input:focus,select:focus{outline:none;border-color:var(--amber)}
 .field{margin-bottom:10px}
 .field label{display:block;font-size:11px;color:var(--text-2);margin-bottom:5px}
 .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
-
-.empty{padding:26px 10px;text-align:center;color:var(--text-3);font-size:12px}
 .hint{font-size:12px;margin-top:8px;min-height:16px}
 .hint.err{color:var(--red)}
 .hint.ok{color:var(--green)}
 
 .hidden{display:none!important}
 
-.bottom-nav{position:fixed;bottom:0;right:0;left:0;background:var(--surface);border-top:1px solid var(--line);display:flex;overflow-x:auto;z-index:40;box-shadow:0 -1px 2px rgba(20,24,32,.03)}
+.bottom-nav{position:fixed;bottom:0;right:0;left:0;background:var(--panel);border-top:1px solid var(--line);display:flex;overflow-x:auto;z-index:40}
 .navbtn{flex:0 0 auto;min-width:64px;background:none;border:0;color:var(--text-3);font:inherit;font-size:10px;padding:9px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
 .navbtn i{font-size:18px;font-style:normal}
-.navbtn.active{color:var(--blue)}
-.navbtn.soon{opacity:.4}
+.navbtn.active{color:var(--amber)}
+.navbtn.soon{opacity:.35}
 
 .gate{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px}
-.gate-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:30px 26px;width:100%;max-width:340px}
-.gate-card h1{font-size:17px;font-weight:600;margin-bottom:3px}
-.gate-card .eyebrow{margin-bottom:22px}
+.gate-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:30px 26px;width:100%;max-width:340px;border-top:3px solid var(--amber)}
+.gate-card h1{font-size:17px;font-weight:700;margin-bottom:3px}
+.gate-card .eyebrow{font-size:11px;color:var(--text-3);margin-bottom:22px;display:block}
+
+@media(min-width:960px){
+  .layout{display:flex;max-width:1400px;margin:0 auto}
+  .layout main{flex:1;min-width:0}
+  .bottom-nav{position:sticky;top:0;flex-direction:column;width:210px;flex:0 0 auto;height:100vh;border-top:0;border-left:1px solid var(--line);overflow-x:visible;padding:14px 10px}
+  .navbtn{flex-direction:row;width:100%;justify-content:flex-start;padding:11px 12px;border-radius:var(--radius-sm);font-size:13px;gap:10px}
+  .navbtn.active{background:var(--amber);color:#241a05;font-weight:600}
+  body{padding-bottom:0}
+}
 </style>
 </head>
 <body>
@@ -103,56 +142,97 @@ input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 
 
 <div id="app" class="hidden">
   <div class="topbar">
-    <div class="brand">Shift Manager<small>لوحة إدارة الشفت · Group A</small></div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <span id="whoLabel" style="font-size:12px;color:var(--text-2)"></span>
+    <div class="brand">Shift Manager<small>إدارة الشفتات والموظفين</small></div>
+    <div class="who">
+      <span id="whoLabel"></span>
       <div class="avatar">S</div>
     </div>
   </div>
 
-  <main>
-    <section id="view-home">
-      <div class="card">
-        <div class="stat-grid">
-          <div><div class="n" id="statOnDuty">—</div><div class="l">على رأس العمل</div></div>
-          <div><div class="n" id="statOnLeave">—</div><div class="l">في إجازة</div></div>
-          <div><div class="n" id="statTotal">—</div><div class="l">الإجمالي</div></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-head"><div><span class="eyebrow">القوة العاملة</span><h3>الموظفون</h3></div></div>
-        <div class="row-list" id="employeesList"><div class="empty">جاري التحميل…</div></div>
-      </div>
-    </section>
+  <div class="layout">
+    <nav class="bottom-nav">
+      <button class="navbtn soon" disabled><i>📊</i>المؤشرات</button>
+      <button class="navbtn active" data-view="home" onclick="showView('home')"><i>🏠</i>الرئيسية</button>
+      <button class="navbtn" data-view="employees" onclick="showView('employees')"><i>👥</i>الموظفون</button>
+      <button class="navbtn" data-view="leaves" onclick="showView('leaves')"><i>🌴</i>الإجازات</button>
+      <button class="navbtn soon" disabled><i>📅</i>التقويم</button>
+      <button class="navbtn soon" disabled><i>🛡️</i>الشفت</button>
+      <button class="navbtn soon" disabled><i>🔀</i>التوزيع التلقائي</button>
+      <button class="navbtn soon" disabled><i>📈</i>التقارير</button>
+      <button class="navbtn soon" disabled><i>📝</i>الملاحظات</button>
+    </nav>
 
-    <section id="view-leaves" class="hidden">
-      <div class="card">
-        <div class="card-head"><div><span class="eyebrow">تسجيل جديد</span><h3>إضافة إجازة</h3></div></div>
-        <div class="form-row">
-          <div class="field" style="margin-bottom:0"><label>الموظف</label><select id="leaveEmployee"></select></div>
-          <div class="field" style="margin-bottom:0"><label>من تاريخ</label><input id="leaveStart" type="date"></div>
-          <div class="field" style="margin-bottom:0"><label>إلى تاريخ</label><input id="leaveEnd" type="date"></div>
+    <main>
+      <section id="view-home">
+        <div class="stat-row">
+          <div class="stat-card red"><div class="n" id="statAlerts">—</div><div class="l">تنبيهات</div></div>
+          <div class="stat-card purple"><div class="n" id="statOnLeave">—</div><div class="l">في إجازة</div></div>
+          <div class="stat-card green"><div class="n" id="statOnDuty">—</div><div class="l">على رأس العمل</div></div>
+          <div class="stat-card slate"><div class="n" id="statTotal">—</div><div class="l">إجمالي الموظفين</div></div>
         </div>
-        <button class="btn primary" onclick="addLeave()">حفظ الإجازة</button>
-        <div class="hint" id="leaveMsg"></div>
-      </div>
-      <div class="card">
-        <div class="card-head"><div><span class="eyebrow">السجل</span><h3>الإجازات الحالية والقادمة</h3></div></div>
-        <div class="row-list" id="leavesList"><div class="empty">جاري التحميل…</div></div>
-      </div>
-    </section>
-  </main>
 
-  <nav class="bottom-nav">
-    <button class="navbtn soon" data-view="insights" disabled><i>📊</i>المؤشرات</button>
-    <button class="navbtn active" data-view="home" onclick="showView('home')"><i>🏠</i>الرئيسية</button>
-    <button class="navbtn" data-view="leaves" onclick="showView('leaves')"><i>🗓️</i>الإجازات</button>
-    <button class="navbtn soon" data-view="calendar" disabled><i>▦</i>التقويم</button>
-    <button class="navbtn soon" data-view="shift" disabled><i>🛡️</i>الشفت</button>
-    <button class="navbtn soon" data-view="reports" disabled><i>📈</i>التقارير</button>
-    <button class="navbtn soon" data-view="updates" disabled><i>📌</i>تحديثات</button>
-    <button class="navbtn soon" data-view="forms" disabled><i>📎</i>نماذج</button>
-  </nav>
+        <div class="ai-card">
+          <div class="mic">🎙️</div>
+          <div class="txt"><b>المساعد الذكي — قريبًا بهذي النسخة</b>اضغط على الميكروفون أو تحدث الآن</div>
+        </div>
+
+        <div class="note-row">
+          <div class="note-card amber">
+            <div class="eyebrow">🔔 تذكيرات اليوم</div>
+            <div id="notesToday"></div>
+          </div>
+          <div class="note-card blue">
+            <div class="eyebrow">🛫 إجازات قادمة (خلال يومين)</div>
+            <div id="notesUpcoming"></div>
+          </div>
+          <div class="note-card green">
+            <div class="eyebrow">↩️ راجعون (خلال يومين)</div>
+            <div id="notesReturning"></div>
+          </div>
+          <div class="note-card red">
+            <div class="eyebrow">🪪 بطاقات بحرية منتهية</div>
+            <div id="notesExpired"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-employees" class="hidden">
+        <div class="panel">
+          <div class="panel-head"><h3>قائمة الموظفين</h3></div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>الاسم</th><th>الرقم</th><th>الشفت</th><th>الرصيد</th><th>حالة اليوم</th><th>البطاقة البحرية</th></tr></thead>
+              <tbody id="employeesTbody"><tr><td colspan="6" class="empty">جاري التحميل…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-leaves" class="hidden">
+        <div class="panel">
+          <div class="panel-head"><h3>إضافة إجازة</h3></div>
+          <div style="padding:16px">
+            <div class="form-row">
+              <div class="field" style="margin-bottom:0"><label>الموظف</label><select id="leaveEmployee"></select></div>
+              <div class="field" style="margin-bottom:0"><label>من تاريخ</label><input id="leaveStart" type="date"></div>
+              <div class="field" style="margin-bottom:0"><label>إلى تاريخ</label><input id="leaveEnd" type="date"></div>
+            </div>
+            <button class="btn primary" onclick="addLeave()">حفظ الإجازة</button>
+            <div class="hint" id="leaveMsg"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>الإجازات الحالية والقادمة</h3></div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>الموظف</th><th>من</th><th>إلى</th></tr></thead>
+              <tbody id="leavesTbody"><tr><td colspan="3" class="empty">جاري التحميل…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 </div>
 
 <script>
@@ -161,7 +241,7 @@ const SUPABASE_KEY = 'sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
 const ADMIN_EMAIL = 'jannahrami@yahoo.com';
 
 let session = null;
-let state = { employees: [], leaves: [] };
+let state = { employees: [], leaves: [], personalNotes: [] };
 
 async function supabaseFetch(path, options = {}) {
   const headers = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json', ...(options.headers || {}) };
@@ -175,10 +255,7 @@ async function login() {
   const msg = document.getElementById('gateMsg');
   msg.textContent = 'جاري الدخول…';
   try {
-    const res = await supabaseFetch('/auth/v1/token?grant_type=password', {
-      method: 'POST',
-      body: JSON.stringify({ email, password })
-    });
+    const res = await supabaseFetch('/auth/v1/token?grant_type=password', { method: 'POST', body: JSON.stringify({ email, password }) });
     if (!res.ok) { msg.textContent = 'بيانات الدخول غير صحيحة'; return; }
     session = await res.json();
     msg.textContent = '';
@@ -186,9 +263,7 @@ async function login() {
     document.getElementById('gate').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     document.getElementById('whoLabel').textContent = session.user?.email === ADMIN_EMAIL ? 'Admin' : session.user?.email || '';
-  } catch (e) {
-    msg.textContent = 'تعذر الاتصال، تأكد من الإنترنت';
-  }
+  } catch (e) { msg.textContent = 'تعذر الاتصال، تأكد من الإنترنت'; }
 }
 
 async function loadState() {
@@ -198,45 +273,61 @@ async function loadState() {
   if (rows[0]?.data) {
     state.employees = rows[0].data.employees || [];
     state.leaves = rows[0].data.leaves || [];
+    state.personalNotes = rows[0].data.personalNotes || [];
   }
   renderAll();
 }
 
-function todayISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-function fmtDate(s) {
-  if (!s) return '';
-  return new Date(s + 'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
+function todayISO() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function addDaysISO(date, days) { const d = new Date(date + 'T12:00:00'); d.setDate(d.getDate() + days); return d.toISOString().slice(0, 10); }
+function fmtDate(s) { if (!s) return ''; return new Date(s + 'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
 function displayName(e) { return e?.nameAr || e?.name || 'غير معروف'; }
 function initials(n) { return (n || '؟').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join(''); }
-function isOnLeave(employeeId) {
-  const t = todayISO();
-  return state.leaves.some(l => l.employeeId === employeeId && l.start <= t && l.end >= t);
-}
-function escapeHtml(s = '') {
-  return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-}
+function isOnLeave(employeeId) { const t = todayISO(); return state.leaves.some(l => l.employeeId === employeeId && l.start <= t && l.end >= t); }
+function escapeHtml(s = '') { return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m])); }
 
 function renderStats() {
   const onLeave = state.employees.filter(e => isOnLeave(e.id)).length;
+  const expired = state.employees.filter(e => e.marineIdExpiry && e.marineIdExpiry < todayISO()).length;
   document.getElementById('statTotal').textContent = state.employees.length;
   document.getElementById('statOnLeave').textContent = onLeave;
   document.getElementById('statOnDuty').textContent = state.employees.length - onLeave;
+  document.getElementById('statAlerts').textContent = expired + state.personalNotes.filter(n => n.date === todayISO()).length;
 }
 
-function renderEmployees() {
-  const box = document.getElementById('employeesList');
-  if (!state.employees.length) { box.innerHTML = '<div class="empty">لا يوجد موظفون مسجّلون</div>'; return; }
+function noteItem(name, sub) { return `<div class="item"><div class="nm">${escapeHtml(name)}</div><div class="dt">${escapeHtml(sub)}</div></div>`; }
+function noteEmpty() { return `<div class="empty-note">لا يوجد</div>`; }
+
+function renderNoteCards() {
+  const t = todayISO(), target = addDaysISO(t, 2);
+  const todayNotes = state.personalNotes.filter(n => n.date === t);
+  document.getElementById('notesToday').innerHTML = todayNotes.length ? todayNotes.map(n => noteItem(n.text, 'اليوم')).join('') : noteEmpty();
+
+  const upcoming = state.leaves.filter(l => l.start === target);
+  document.getElementById('notesUpcoming').innerHTML = upcoming.length ? upcoming.map(l => { const e = state.employees.find(x => x.id === l.employeeId); return noteItem(e ? displayName(e) : '؟', 'يبدأ إجازته في ' + fmtDate(l.start)); }).join('') : noteEmpty();
+
+  const returning = state.leaves.filter(l => addDaysISO(l.end, 1) === target);
+  document.getElementById('notesReturning').innerHTML = returning.length ? returning.map(l => { const e = state.employees.find(x => x.id === l.employeeId); return noteItem(e ? displayName(e) : '؟', 'يرجع تقريبًا في ' + fmtDate(addDaysISO(l.end, 1))); }).join('') : noteEmpty();
+
+  const expired = state.employees.filter(e => e.marineIdExpiry && e.marineIdExpiry < t);
+  document.getElementById('notesExpired').innerHTML = expired.length ? expired.map(e => noteItem(displayName(e), 'منتهية منذ ' + fmtDate(e.marineIdExpiry))).join('') : noteEmpty();
+}
+
+function renderEmployeesTable() {
+  const box = document.getElementById('employeesTbody');
+  if (!state.employees.length) { box.innerHTML = '<tr><td colspan="6" class="empty">لا يوجد موظفون مسجّلون</td></tr>'; return; }
+  const t = todayISO();
   box.innerHTML = state.employees.map(e => {
     const onLeave = isOnLeave(e.id);
-    return `<div class="row-item">
-      <div class="av">${escapeHtml(initials(displayName(e)))}</div>
-      <div class="info"><div class="name">${escapeHtml(displayName(e))}</div><div class="meta">#${escapeHtml(e.empId || '')}</div></div>
-      <span class="pill ${onLeave ? 'off' : 'on'}">${onLeave ? 'إجازة' : 'دوام'}</span>
-    </div>`;
+    const expired = e.marineIdExpiry && e.marineIdExpiry < t;
+    return `<tr>
+      <td><div class="emp-name"><div class="av">${escapeHtml(initials(displayName(e)))}</div>${escapeHtml(displayName(e))}</div></td>
+      <td>${escapeHtml(e.empId || '—')}</td>
+      <td>${escapeHtml(e.shift || '—')}</td>
+      <td>${e.leaveBalance ?? '—'}</td>
+      <td><span class="pill ${onLeave ? 'off' : 'on'}">${onLeave ? 'إجازة' : 'على العمل'}</span></td>
+      <td>${e.marineIdExpiry ? `<span class="pill ${expired ? 'expired' : 'valid'}">${expired ? 'منتهية' : 'سارية'}</span>` : '<span class="pill valid">غير مسجّل</span>'}</td>
+    </tr>`;
   }).join('');
 }
 
@@ -245,30 +336,29 @@ function renderLeaveEmployeeSelect() {
   sel.innerHTML = state.employees.map(e => `<option value="${e.id}">${escapeHtml(displayName(e))}</option>`).join('');
 }
 
-function renderLeaves() {
-  const box = document.getElementById('leavesList');
+function renderLeavesTable() {
+  const box = document.getElementById('leavesTbody');
   const t = todayISO();
   const upcoming = [...state.leaves].filter(l => l.end >= t).sort((a, b) => a.start.localeCompare(b.start));
-  if (!upcoming.length) { box.innerHTML = '<div class="empty">لا توجد إجازات حالية أو قادمة</div>'; return; }
+  if (!upcoming.length) { box.innerHTML = '<tr><td colspan="3" class="empty">لا توجد إجازات حالية أو قادمة</td></tr>'; return; }
   box.innerHTML = upcoming.map(l => {
-    const emp = state.employees.find(e => e.id === l.employeeId);
-    return `<div class="row-item">
-      <div class="av">${escapeHtml(initials(emp ? displayName(emp) : '؟'))}</div>
-      <div class="info"><div class="name">${escapeHtml(emp ? displayName(emp) : 'موظف محذوف')}</div><div class="meta">${fmtDate(l.start)} — ${fmtDate(l.end)}</div></div>
-    </div>`;
+    const e = state.employees.find(x => x.id === l.employeeId);
+    return `<tr><td>${escapeHtml(e ? displayName(e) : 'موظف محذوف')}</td><td>${fmtDate(l.start)}</td><td>${fmtDate(l.end)}</td></tr>`;
   }).join('');
 }
 
 function renderAll() {
   renderStats();
-  renderEmployees();
+  renderNoteCards();
+  renderEmployeesTable();
   renderLeaveEmployeeSelect();
-  renderLeaves();
+  renderLeavesTable();
 }
 
 function showView(name) {
   document.querySelectorAll('.bottom-nav .navbtn').forEach(b => b.classList.toggle('active', b.dataset.view === name));
   document.getElementById('view-home').classList.toggle('hidden', name !== 'home');
+  document.getElementById('view-employees').classList.toggle('hidden', name !== 'employees');
   document.getElementById('view-leaves').classList.toggle('hidden', name !== 'leaves');
 }
 
@@ -282,12 +372,10 @@ async function addLeave() {
   if (end < start) { msg.textContent = 'تاريخ النهاية قبل البداية'; msg.classList.add('err'); return; }
   const conflict = state.leaves.find(l => l.employeeId === employeeId && l.start <= end && l.end >= start);
   if (conflict) { msg.textContent = 'يوجد تداخل مع إجازة مسجّلة لنفس الموظف'; msg.classList.add('err'); return; }
-
   state.leaves.push({ id: crypto.randomUUID(), employeeId, start, end, source: 'v2' });
   msg.textContent = 'جاري الحفظ…';
   const res = await supabaseFetch('/rest/v1/shift_manager_state?on_conflict=id', {
-    method: 'POST',
-    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
     body: JSON.stringify({ id: 'main', data: state, updated_at: new Date().toISOString() })
   });
   if (res.ok) { msg.textContent = 'تم الحفظ'; msg.classList.add('ok'); renderAll(); }
