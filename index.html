@@ -264,10 +264,10 @@
 
     .dashboard-conditional-reminder{display:none!important}
 
-    .ai-inline-card{width:fit-content;max-width:100%;display:flex;align-items:center;justify-content:flex-start;gap:14px;background:linear-gradient(135deg,rgba(63,140,243,.14) 0%,var(--card) 70%);border:1px solid rgba(63,140,243,.35);border-radius:18px;padding:16px 20px;margin:14px 0;cursor:pointer;font:inherit;text-align:right}
-    .ai-inline-text strong{display:block;font-size:14px;color:var(--text);margin-bottom:3px}
-    .ai-inline-text span{font-size:11px;color:var(--muted)}
-    .ai-inline-mic{width:44px;height:44px;border-radius:50%;background:#3f8cf3;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}
+    .ai-inline-card{display:flex;align-items:center;gap:10px;cursor:pointer;font:inherit;text-align:right}
+    .ai-inline-text strong{display:block;font-size:12px;color:var(--text);margin-bottom:2px}
+    .ai-inline-text span{font-size:10px;color:var(--muted)}
+    .ai-inline-mic{width:34px;height:34px;border-radius:50%;background:#3f8cf3;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto}
 
     .reminder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0}
     .reminder-card{border-radius:16px;padding:13px 15px;border:1px solid var(--line)}
@@ -956,12 +956,11 @@
         <div class="stat" style="--stat-glow:rgba(247,185,85,.16)"><div class="stat-top"><div class="stat-icon">◷</div><div class="num" id="soonCount">0</div></div><div class="label">تنبيهات خلال 3 أيام</div></div>
       </div>
 
-      <button class="ai-inline-card" onclick="openAIAssistant()">
-        <div class="ai-inline-text"><strong>المساعد الذكي</strong><span>اضغط على الميكروفون أو تحدث الآن</span></div>
-        <div class="ai-inline-mic">🎙️</div>
-      </button>
-
       <div class="reminder-grid">
+        <button class="ai-inline-card reminder-card blue" onclick="openAIAssistant()">
+          <div class="ai-inline-mic">🎙️</div>
+          <div class="ai-inline-text"><strong>المساعد الذكي</strong><span>اضغط على الميكروفون أو تحدث الآن</span></div>
+        </button>
         <div class="reminder-card amber"><div class="reminder-head">🔔 تذكيرات اليوم</div><div id="reminderTodayBox" class="reminder-body"></div></div>
         <div class="reminder-card blue"><div class="reminder-head">🛫 إجازات قادمة (خلال يومين)</div><div id="reminderUpcomingBox" class="reminder-body"></div></div>
         <div class="reminder-card green"><div class="reminder-head">↩️ راجعون (خلال يومين)</div><div id="reminderReturningBox" class="reminder-body"></div></div>
