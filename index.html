@@ -827,6 +827,8 @@
     /* الجداول والتقويم */
     .leave-table-wrap,.calendar-scroll,.monthly-roster-wrap{background:var(--card)!important;border-color:var(--line)!important}
     #employeesList .leave-table-wrap{background:var(--card)!important}
+    #employeesList .leave-table-wrap{width:100%!important}
+    #employeesList .leave-table{width:100%!important}
     #employeesList .leave-table th{background:var(--card2)!important;color:var(--muted)!important}
     #employeesList .leave-table td{background:transparent!important;color:var(--text)!important}
     #employeesList .leave-table tr:hover td{background:rgba(255,255,255,.03)!important}
@@ -954,6 +956,11 @@
         <div class="stat" style="--stat-glow:rgba(45,212,163,.16)"><div class="stat-top"><div class="stat-icon">✓</div><div class="num" id="workingCount">0</div></div><div class="label">على رأس العمل</div></div>
         <div class="stat" style="--stat-glow:rgba(96,165,250,.16)"><div class="stat-top"><div class="stat-icon">☂</div><div class="num" id="leaveCount">0</div></div><div class="label">في إجازة الآن</div></div>
         <div class="stat" style="--stat-glow:rgba(247,185,85,.16)"><div class="stat-top"><div class="stat-icon">◷</div><div class="num" id="soonCount">0</div></div><div class="label">تنبيهات خلال 3 أيام</div></div>
+      </div>
+
+      <div class="reminder-card amber" style="margin:14px 0;cursor:pointer" onclick="showView('updateView',document.querySelector('[data-view=updateView]'))">
+        <div class="reminder-head">📌 آخر التحديثات</div>
+        <div id="latestUpdatesBox" class="reminder-body"></div>
       </div>
 
       <div class="reminder-grid">
@@ -1998,6 +2005,7 @@ function renderDashboardShift(){
   document.getElementById('dashboardNextShift').textContent=next?`القادم: ${next.code} · ${next.name} — ${shortDate(next.date)}`:'—';
   renderConditionalReminder();
   renderReminderCards();
+  renderLatestUpdatesCard();
 }
 const SHIFT_CONDITIONAL_REMINDERS=[
   {shift:'A',weekday:0,title:'Weekly Fence and Light Inspection'},
@@ -2037,6 +2045,11 @@ function todaySummaryItemsTyped(){
   personalNotesForToday().forEach(n=>items.push({type:'personal',text:n.text}));
   upcomingLeaveReminders().forEach(text=>items.push({type:'leave',text}));
   return items;
+}
+function renderLatestUpdatesCard(){
+  const box=document.getElementById('latestUpdatesBox');if(!box)return;
+  const latest=[...state.updates].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,3);
+  box.innerHTML=latest.length?latest.map(u=>reminderItemHtml(u.text,fmtDate(String(u.createdAt).slice(0,10)))).join(''):reminderEmpty();
 }
 function renderConditionalReminder(){
   const box=document.getElementById('conditionalShiftReminder');if(!box)return;
