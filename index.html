@@ -285,6 +285,14 @@
     .reminder-item:first-child{border-top:0}
     .reminder-item .rt-name{font-size:12px;font-weight:600;color:var(--text)}
     .reminder-item .rt-meta{font-size:10px;color:var(--muted);margin-top:1px}
+
+    .coverage-card{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:13px 15px}
+    .coverage-card h4{font-size:13px;font-weight:800;margin-bottom:8px;color:var(--text)}
+    .coverage-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid rgba(255,255,255,.06);font-size:12px}
+    .coverage-row:first-of-type{border-top:0}
+    .coverage-row .cov-name{color:var(--text)}
+    .coverage-row .cov-count{font-weight:800;color:var(--muted)}
+    .coverage-row.exceeded .cov-name,.coverage-row.exceeded .cov-count{color:var(--red)!important}
     .dashboard-conditional-reminder span{padding:8px 12px;border-radius:11px;background:rgba(247,185,85,.18);color:#fde68a;font-size:12px;font-weight:800}
 
     /* Desktop / tablet layout */
@@ -999,6 +1007,11 @@
         <div class="reminder-card red"><div class="reminder-head">🪪 بطاقات بحرية منتهية</div><div id="reminderExpiredBox" class="reminder-body"></div></div>
       </div>
 
+      <button class="reminder-card blue" style="width:100%;text-align:right;cursor:pointer;margin:14px 0;display:flex;align-items:center;justify-content:space-between" onclick="openGateCoverage()">
+        <div><div class="reminder-head" style="margin-bottom:2px">🚪🚓 Gate &amp; Patrol Coverage</div><div class="small-note">كم مرة غطّى كل موظف كل بوابة/دورية — بحسب السنة</div></div>
+        <span style="font-size:18px">←</span>
+      </button>
+
       <div class="section section-wide leave-insights-section">
         <div class="section-head">
           <div><span class="section-kicker">مؤشرات السنة الحالية</span><h2>متابعة استخدام وتصفية رصيد الإجازات</h2></div>
@@ -1123,6 +1136,29 @@
         </div>
         <div class="section-head"><span class="small-note" id="leaveMonthTitle">جميع الإجازات</span><span class="chip" id="leaveMonthCount">0 موظف</span></div>
         <div class="list" id="leaveList"></div>
+      </div>
+    </section>
+
+    <section id="gateCoverageView" class="view">
+      <div class="section">
+        <div class="section-head">
+          <div><span class="section-kicker">Read Only — من بيانات History المحفوظة</span><h2>Gate &amp; Patrol Coverage</h2></div>
+          <button class="secondary" onclick="showView('homeView',document.querySelector('[data-view=homeView]'))">→ الرئيسية</button>
+        </div>
+        <div class="form" style="max-width:220px;margin-bottom:6px">
+          <label class="small-note">السنة</label>
+          <select id="gateCoverageYear" onchange="renderGateCoverage()"></select>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><div><span class="section-kicker">🚪</span><h2>Gate Coverage</h2></div></div>
+        <div id="gateCoverageGates" class="access-cards" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><div><span class="section-kicker">🚓</span><h2>Patrol Coverage</h2></div></div>
+        <div id="gateCoveragePatrols" class="access-cards" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div>
       </div>
     </section>
 
@@ -2894,6 +2930,57 @@ function confirmHistoricalImport(){
   alert(`تم اعتماد الاستيراد.\nموظفون مرتبطون: ${p.matched.length}\nسجلات (شهر×موقع) محفوظة: ${recordCount}\nيحتاج مراجعة: ${p.review.length}\nغير مرتبط: ${p.unmatched.length}`);
   renderEmployeeHistoryModal();
   pendingHistoricalImport=null;
+}
+// ==================== Gate & Patrol Coverage — تقرير محسوب من History الموجودة فعليًا، Read Only ====================
+function getAvailableHistoryYears(){
+  const years=new Set();
+  Object.values(state.locationHistory||{}).forEach(byYear=>{
+    Object.keys(byYear||{}).forEach(y=>years.add(y));
+  });
+  Object.keys(state.monthlySchedules||{}).forEach(m=>years.add(m.split('-')[0]));
+  years.add(String(new Date().getFullYear()));
+  return [...years].sort((a,b)=>b.localeCompare(a));
+}
+function getGateCoverageReport(year){
+  const gates={},patrols={};
+  state.employees.forEach(e=>{
+    const history=getEmployeeLocationHistory(e.id,Number(year));
+    history.forEach(row=>{
+      row.locations.forEach(loc=>{
+        let bucket=null;
+        if(/^STN/i.test(loc))bucket=gates;
+        else if(/^Patrol/i.test(loc))bucket=patrols;
+        if(!bucket)return;
+        if(!bucket[loc])bucket[loc]={};
+        if(!bucket[loc][e.id])bucket[loc][e.id]={employee:e,count:0};
+        bucket[loc][e.id].count++;
+      });
+    });
+  });
+  function finalize(bucket){
+    return Object.keys(bucket).sort().map(loc=>({
+      location:loc,
+      employees:Object.values(bucket[loc]).map(x=>({employee:x.employee,count:x.count,exceeded:x.count>3})).sort((a,b)=>b.count-a.count)
+    }));
+  }
+  return {gates:finalize(gates),patrols:finalize(patrols)};
+}
+function coverageCardHtml(item){
+  const rows=item.employees.map(x=>`<div class="coverage-row ${x.exceeded?'exceeded':''}"><span class="cov-name">${esc(x.employee.nameAr||x.employee.name)}</span><span class="cov-count">${x.count} ${x.count===1?'مرة':'مرات'}</span></div>`).join('');
+  return `<div class="coverage-card"><h4>${esc(item.location)}</h4>${rows||'<div class="empty">لا يوجد</div>'}</div>`;
+}
+function openGateCoverage(){
+  const sel=document.getElementById('gateCoverageYear');
+  const years=getAvailableHistoryYears();
+  sel.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  showView('gateCoverageView');
+  renderGateCoverage();
+}
+function renderGateCoverage(){
+  const year=document.getElementById('gateCoverageYear').value;
+  const report=getGateCoverageReport(year);
+  document.getElementById('gateCoverageGates').innerHTML=report.gates.length?report.gates.map(coverageCardHtml).join(''):'<div class="empty">لا توجد بيانات بوابات لهذه السنة</div>';
+  document.getElementById('gateCoveragePatrols').innerHTML=report.patrols.length?report.patrols.map(coverageCardHtml).join(''):'<div class="empty">لا توجد بيانات دوريات لهذه السنة</div>';
 }
 let employeeHistoryEmployeeId=null;
 function openEmployeeHistory(id){
