@@ -2821,7 +2821,15 @@ function cleanNameForMatch(name){
     .replace(/\s+/g,' ')
     .trim();
 }
-function nameTokensForMatch(name){return cleanNameForMatch(name).split(' ').filter(Boolean)}
+function nameTokensForMatch(name){
+  const raw=cleanNameForMatch(name).split(' ').filter(Boolean);
+  const tokens=[];
+  for(let i=0;i<raw.length;i++){
+    if(raw[i]==='عبد'&&raw[i+1]){tokens.push('عبد'+raw[i+1]);i++}
+    else tokens.push(raw[i]);
+  }
+  return tokens;
+}
 function matchHistoricalName(excelName){
   const cleanExcel=cleanNameForMatch(excelName);
   const exact=state.employees.filter(e=>cleanNameForMatch(e.nameAr||e.name)===cleanExcel);
