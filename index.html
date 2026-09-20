@@ -1906,10 +1906,10 @@ function renderGlobalSearch(){
   const input=document.getElementById('globalSearchInput'),box=document.getElementById('globalSearchResults');
   const q=input.value.trim().toLowerCase();
   if(!q){box.classList.remove('show');box.innerHTML='';return}
-  const matches=state.employees.filter(e=>e.name.toLowerCase().includes(q)||(e.empId||'').toLowerCase().includes(q)).slice(0,10);
+  const matches=state.employees.filter(e=>e.name.toLowerCase().includes(q)||(e.nameAr||'').toLowerCase().includes(q)||(e.empId||'').toLowerCase().includes(q)).slice(0,10);
   box.innerHTML=matches.length?matches.map(e=>{
     const leaves=state.leaves.filter(l=>l.employeeId===e.id).length,records=state.records.filter(r=>r.employeeId===e.id).length;
-    return `<div class="search-result" onclick="selectGlobalEmployee('${e.id}')"><div class="name">${esc(e.name)}</div><div class="meta">#${esc(e.empId)} · ${leaves} إجازة · ${records} ملاحظة</div></div>`;
+    return `<div class="search-result" onclick="selectGlobalEmployee('${e.id}')"><div class="name">${esc(e.nameAr||e.name)}</div><div class="meta">#${esc(e.empId)} · ${leaves} إجازة · ${records} ملاحظة</div></div>`;
   }).join(''):'<div class="empty">لا يوجد موظف مطابق</div>';
   box.classList.add('show');
 }
