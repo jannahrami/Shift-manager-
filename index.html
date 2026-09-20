@@ -1463,6 +1463,39 @@
   </div>
 </div>
 
+<div class="modal" id="employeeHistoryModal">
+  <div class="sheet">
+    <div class="section-head"><h3 id="employeeHistoryTitle">History</h3><button class="secondary" onclick="closeModal('employeeHistoryModal')">إغلاق</button></div>
+    <div class="small-note" style="margin-bottom:12px">سجل المواقع من التوزيعات الشهرية المحفوظة فعليًا — للقراءة فقط</div>
+    <div class="form" style="margin-bottom:12px">
+      <label class="small-note">السنة</label>
+      <select id="employeeHistoryYear" onchange="renderEmployeeHistoryModal()"></select>
+    </div>
+    <div id="employeeHistoryUnique" style="margin-bottom:12px"></div>
+    <div id="employeeHistoryList"></div>
+    <div class="small-note" style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
+      <button class="secondary" onclick="runHistoricalImportMatch()">🗂️ استيراد History 2026 من Excel (إجراء مرة واحدة لكل النظام)</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="historicalImportModal">
+  <div class="sheet">
+    <div class="section-head"><h3>مراجعة استيراد History 2026</h3><button class="secondary" onclick="closeModal('historicalImportModal')">إغلاق</button></div>
+    <div class="small-note" id="histImportSummary" style="margin-bottom:12px"></div>
+    <div class="small-note" style="font-weight:800;margin-bottom:6px">✅ تم الربط تلقائيًا</div>
+    <div id="histImportMatched" style="margin-bottom:14px"></div>
+    <div class="small-note" style="font-weight:800;margin-bottom:6px">⚠️ يحتاج مراجعة (أكثر من موظف محتمل)</div>
+    <div id="histImportReview" style="margin-bottom:14px"></div>
+    <div class="small-note" style="font-weight:800;margin-bottom:6px">❌ غير مرتبط</div>
+    <div id="histImportUnmatched" style="margin-bottom:14px"></div>
+    <div class="form-actions">
+      <button class="primary" id="histImportConfirmBtn" onclick="confirmHistoricalImport()">اعتماد الأسماء المرتبطة فقط</button>
+      <button class="secondary" onclick="closeModal('historicalImportModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="marineAlertsModal">
   <div class="sheet">
     <div class="section-head"><div><span class="section-kicker">تنبيه قبل 30 يومًا</span><h3>Marine ID Access</h3></div><button class="secondary" onclick="closeModal('marineAlertsModal')">إغلاق</button></div>
@@ -1525,7 +1558,7 @@ const ACCESS_GROUPS=[
   {id:'ecc',title:'ECC Room Access',icon:'🖥️',badges:['101725','104121','101690','101694','103619'],names:{'101725':'ADEL A BELADI','104121':'HASSAN AZIZALLAH TASH','101690':'YOUSEF BARKI BARKAH FARSI','101694':'RAYAN NASSAR DHAHRI','103619':'ABDULLAH SALEH GHAMDI'}},
   {id:'patrols',title:'PRC Patrols',icon:'🚓',countLabel:'12 رقم تاج للدوريات',tagPrefix:'',badges:['PRC-338','PRC-335','PRC-334','PRC-337','PRC-270','PRC-332','PRC-313','PRC-314','PRC-312','PRC-333','PRC-315','PRC-336'],names:{'PRC-338':'Shift Chief (01)','PRC-335':'Shift Chief Assistant (02)','PRC-334':'Community Group Leader','PRC-337':'Patrol-05','PRC-270':'Patrol-06','PRC-332':'Patrol-07','PRC-313':'Patrol-08','PRC-314':'Patrol-09','PRC-312':'Patrol-010','PRC-333':'Patrol-011','PRC-315':'Patrol-012','PRC-336':'Patrol-013'}}
 ];
-function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],updates:[],forms:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[]}}
+function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],updates:[],forms:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[],locationHistory:{}}}
 let state=emptyState();
 
 if(!Array.isArray(state.records)) state.records=[];
@@ -1536,6 +1569,7 @@ if(!Array.isArray(state.forms)) state.forms=[];
 if(!state.monthlySchedules||typeof state.monthlySchedules!=='object'||Array.isArray(state.monthlySchedules))state.monthlySchedules={};
 if(!state.monthlyScheduleRequirements||typeof state.monthlyScheduleRequirements!=='object'||Array.isArray(state.monthlyScheduleRequirements))state.monthlyScheduleRequirements={};
 if(!state.monthlySchedulePeriods||typeof state.monthlySchedulePeriods!=='object'||Array.isArray(state.monthlySchedulePeriods))state.monthlySchedulePeriods={};
+if(!state.locationHistory||typeof state.locationHistory!=='object'||Array.isArray(state.locationHistory))state.locationHistory={};
 state.employees.forEach(e=>{if(!['chief','assistant','community','clerk','scc','visitor','commVisitor','leader','officer','patrol','flex'].includes(e.dutyRole))e.dutyRole=''})
 state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
 if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
@@ -1710,6 +1744,7 @@ async function loadCloudState(){
     if(!state.monthlySchedules||typeof state.monthlySchedules!=='object'||Array.isArray(state.monthlySchedules))state.monthlySchedules={};
     if(!state.monthlyScheduleRequirements||typeof state.monthlyScheduleRequirements!=='object'||Array.isArray(state.monthlyScheduleRequirements))state.monthlyScheduleRequirements={};
     if(!state.monthlySchedulePeriods||typeof state.monthlySchedulePeriods!=='object'||Array.isArray(state.monthlySchedulePeriods))state.monthlySchedulePeriods={};
+    if(!state.locationHistory||typeof state.locationHistory!=='object'||Array.isArray(state.locationHistory))state.locationHistory={};
     state.employees.forEach(e=>{if(!['chief','assistant','community','clerk','scc','visitor','commVisitor','leader','officer','patrol','flex'].includes(e.dutyRole))e.dutyRole=''})
     state.employees.forEach(e=>{if(!Number.isFinite(Number(e.leaveBalance)))e.leaveBalance=0;else e.leaveBalance=Number(e.leaveBalance)});
     if(!Array.isArray(state.leaveBalanceHistory))state.leaveBalanceHistory=[];
@@ -2360,7 +2395,7 @@ function renderEmployeeProfile(){
           <div class="meta" style="margin-top:7px">المهمة: <span class="badge role-badge">${employeeDutyRoleLabel(e.dutyRole)}</span> <button class="secondary" style="padding:4px 9px;margin-right:6px" onclick="editEmployeeDutyRole('${e.id}')">تعديل المهمة</button></div>
         </div>
       </div>
-      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span class="badge ${st.cls}">${st.text}</span><button class="secondary" onclick="openEmployeeModal('${e.id}')">✏️ تعديل البيانات</button><button class="secondary" onclick="openEmployeeAnnualReport('${e.id}')">📊 التقرير السنوي</button></div>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span class="badge ${st.cls}">${st.text}</span><button class="secondary" onclick="openEmployeeModal('${e.id}')">✏️ تعديل البيانات</button><button class="secondary" onclick="openEmployeeAnnualReport('${e.id}')">📊 التقرير السنوي</button><button class="secondary" onclick="openEmployeeHistory('${e.id}')">🗂️ History</button></div>
     </div>`;
 
   const employeeLeaves=state.leaves.filter(l=>l.employeeId===e.id).sort((a,b)=>b.start.localeCompare(a.start));
@@ -2734,6 +2769,148 @@ function openEmployeeAnnualReport(id){
   document.getElementById('annualReportEmployee').value=id;
   document.getElementById('annualReportYear').value=new Date().getFullYear();
   selectReportType('annual');renderAnnualEmployeeReport();
+}
+
+const HISTORICAL_LOCATIONS_2026={
+  "2026-02":{"Assistant Shift Chief (02)":["رامي جنة"],"Community Supervisor (03)":["عادل البلادي"],"Shift Clerk":["ثامر المالكي"],"SCC":["أسامة الينبعاوي","احمد الشهري"],"Ind. Visitor":["احمد السليهبي"],"Comm. Visitor":["حسن الصاعدي"],"STN# 01":["ناصر اليوبي","متعب المولد","يوسف الفارسي","عثمان السهلي"],"STN# 04":["رامي الزهراني","محمد المطيري","هاني الغانمي","فهد اليوبي"],"STN# 05":["أشرف الجحدلي","عبد الرحيم الفارسي","محمد الغانمي","محمد القريقري"],"STN# 06":["محمد المولد"],"STN# 07":["عبد الملك الزنبقي"],"STN# 10":["نزار الهدهدي","سلطان الطويرقي","بذال الحجري"],"STN# 16A":["رامي الشماسي","ماجد الغانمي","رياض الحربي","غازي الزنبقي"],"STN# 17":["حمدي البلادي","محمد يوسف","تركي الجهني"],"Patrol# (05)":["عادل الصبحي"],"Patrol# (06)":["نادر المحمدي"],"Patrol# (07)":["ريان الظاهري"],"Patrol# (08)":["حسام الفارسي"],"Patrol# (09)":["سعد النافعي"],"Patrol# (010)":["حسان تاش"],"Patrol# (011)":["محمد البلادي"],"Patrol# (012)":["عبد الله الغامدي"],"Patrol# (013)":["عمار اللهيبي"]},
+  "2026-03":{"Assistant Shift Chief (02)":["رامي جنة"],"Community Supervisor (03)":["عادل البلادي"],"Shift Clerk":["ثامر المالكي"],"SCC":["أحمد الشهري","رياض الحربي"],"Ind. Visitor":["أحمد السليهبي"],"Comm. Visitor":["حسن الصاعدي"],"STN# 01":["رامي الشماسي","عثمان السهلي","محمد البلادي","عبد الرحيم الفارسي"],"STN# 04":["ناصر اليوبي","متعب المولد","سعد النافعي"],"STN# 05":["رامي الزهراني","عبد الله الغامدي","عمار اللهيبي"],"STN# 06":["محمد المولد"],"STN# 07":["عبد الملك الزنبقي"],"STN# 10":["حسام الفارسي","محمد يوسف","ريان الظاهري"],"STN# 16A":["حمدي البلادي","فهد اليوبي","بذال الحجري","محمد المطيري"],"STN# 17":["نزار الهدهدي","أشرف الجحدلي","نادر المحمدي"],"Patrol# (05)":["سلطان الطويرقي"],"Patrol# (06)":["متعب المولد"],"Patrol# (07)":["تركي الجهني"],"Patrol# (08)":["عادل الصبحي"],"Patrol# (09)":["غازي الزنبقي"],"Patrol# (010)":["محمد القريقري"],"Patrol# (011)":["محمد الغانمي"],"Patrol# (012)":["ماجد الغانمي"],"Patrol# (013)":["يوسف الفارسي"]},
+  "2026-05":{"Assistant Shift Chief (02)":["رامي جنة"],"Community Supervisor (03)":["عادل البلادي"],"Shift Clerk":["ثامر المالكي"],"SCC":["أحمد الشهري","أسامة المولد"],"Ind. Visitor":["أحمد السليهبي"],"Comm. Visitor":["حسن الصاعدي"],"STN# 01":["ناصر اليوبي","متعب المولد","هاني الغانمي","يوسف الفارسي"],"STN# 04":["رامي الزهراني","ماجد الغانمي","محمد المطيري"],"STN# 05":["رامي الشماسي","سلطان الطويرقي","محمد القريقري"],"STN# 06":["محمد المولد"],"STN# 07":["عبد الملك الزنبقي"],"STN# 10":["نزار الهدهدي","أشرف الجحدلي","نادر المحمدي"],"STN# 16A":["عبد الرحيم الفارسي","غازي الزنبقي","سعد النافعي"],"STN# 17":["حمدي البلادي","فهد اليوبي","بذال الحجري"],"Patrol# (05)":["عادل الصبحي"],"Patrol# (06)":["محمد المطيري"],"Patrol# (07)":["عثمان السهلي"],"Patrol# (08)":["ريان الظاهري"],"Patrol# (09)":["حسام الفارسي"],"Patrol# (010)":["رياض الحربي"],"Patrol# (011)":["عبد الله الغامدي"],"Patrol# (012)":["عمار اللهيبي"],"Patrol# (013)":["حسان تاش"]},
+  "2026-06":{"Assistant Shift Chief (02)":["رامي جنة"],"Community Supervisor (03)":["عادل البلادي"],"Shift Clerk":["ثامر المالكي"],"SCC":["أحمد الشهري","أسامة المولد"],"Ind. Visitor":["أحمد السليهبي"],"Comm. Visitor":["حسن الصاعدي"],"STN# 01":["ناصر اليوبي","يوسف الفارسي","حسان تاش","محمد الغانمي"],"STN# 04":["رامي الشماسي","ريان الظاهري","رياض الحربي"],"STN# 05":["محمد القريقري","حسام الفارسي","فهد اليوبي","تركي الجهني"],"STN# 06":["محمد المولد"],"STN# 07":["عبد الملك الزنبقي"],"STN# 10":["هاني الغانمي","عادل الصبحي","بذال الحجري"],"STN# 16A":["ماجد الغانمي","أشرف الجحدلي","نادر المحمدي"],"STN# 17":["محمد المطيري","عثمان السهلي","عبد الرحيم الفارسي"],"Patrol# (05)":["متعب المولد"],"Patrol# (06)":["ريان الظاهري"],"Patrol# (07)":["محمد يوسف"],"Patrol# (08)":["سلطان الطويرقي"],"Patrol# (09)":["محمد البلادي"],"Patrol# (010)":["سعد النافعي"],"Patrol# (011)":["حمدي البلادي"],"Patrol# (012)":["عبد الله الغامدي"],"Patrol# (013)":["عمار اللهيبي"]},
+  "2026-08":{"Assistant Shift Chief (02)":["رامي جنة"],"Community Supervisor (03)":["رامي الزهراني"],"Shift Clerk":["حسان تاش"],"SCC":["أحمد الشهري","أسامة المولد"],"Ind. Visitor":["أحمد السليهبي"],"Comm. Visitor":["حسن الصاعدي"],"STN# 01":["نزار الهدهدي","بذال الحجري","هاني الغانمي","عبد الرحيم الفارسي"],"STN# 04":["ناصر اليوبي","سعد النافعي","عثمان السهلي"],"STN# 05":["رامي الشماسي","فهد اليوبي","رياض الحربي"],"STN# 06":["محمد المولد"],"STN# 07":["عبد الملك الزنبقي"],"STN# 10":["متعب المولد","عادل الصبحي","تركي الجهني"],"STN# 16A":["محمد القريقري","أشرف الجحدلي","محمد يوسف"],"STN# 17":["حمدي البلادي","سلطان الطويرقي"],"Patrol# (05)":["ريان الظاهري"],"Patrol# (06)":["عثمان السهلي"],"Patrol# (07)":["محمد البلادي"],"Patrol# (08)":["حسام الفارسي"],"Patrol# (09)":["غازي الزنبقي"],"Patrol# (010)":["عمار اللهيبي"],"Patrol# (011)":["عبد الله الغامدي"],"Patrol# (012)":["محمد المطيري"],"Patrol# (013)":["محمد الغانمي"]},
+  "2026-09":{"Assistant Shift Chief (02)":["رامي جنة"],"Community Supervisor (03)":["عادل البلادي"],"Shift Clerk":["ثامر المالكي"],"SCC":["أحمد الشهري","أسامة المولد"],"Ind. Visitor":["أحمد السليهبي"],"Comm. Visitor":["حسن الصاعدي"],"STN# 01":["ناصر اليوبي","متعب المولد","هاني الغانمي","محمد البلادي"],"STN# 04":["رامي الشماسي","أشرف الجحدلي","ريان الظاهري","محمد عبد الله"],"STN# 05":["رامي الزهراني","عبد الله الغامدي","عبد الرحيم الفارسي","رياض الحربي"],"STN# 06":["سلطان الطويرقي"],"STN# 07":["عبد الملك الزنبقي","تركي الجهني"],"STN# 10":["نزار الهدهدي","عادل الصبحي","محمد يوسف","نادر المحمدي"],"STN# 16A":["محمد القريقري","فهد اليوبي","سعد النافعي","غازي الزنبقي"],"Patrol# (05)":["ماجد الغانمي"],"Patrol# (06)":["محمد عبد الله"],"Patrol# (07)":["حسام الفارسي"],"Patrol# (08)":["بذال الحجري"],"Patrol# (09)":["عثمان السهلي"],"Patrol# (010)":["حمدي البلادي"],"Patrol# (011)":["عمار اللهيبي"],"Patrol# (012)":["حسان تاش"],"Patrol# (013)":["يوسف الفارسي"]},
+};
+// ==================== History الموظف — قراءة فقط، من monthlySchedules وmonthlySchedulePeriods الموجودتين فعليًا (بدون بيانات أو جدول جديد) ====================
+function getEmployeeLocationHistory(employeeId,year){
+  const months=new Set();
+  Object.keys(state.monthlySchedules||{}).forEach(m=>{if(m.startsWith(String(year)+'-'))months.add(m)});
+  const baselineYear=state.locationHistory?.[employeeId]?.[String(year)]||{};
+  Object.keys(baselineYear).forEach(mm=>months.add(`${year}-${mm}`));
+  const result=[];
+  [...months].sort().forEach(month=>{
+    const mm=month.split('-')[1];
+    const locations=[];
+    const schedule=state.monthlySchedules?.[month]||{};
+    Object.entries(schedule).forEach(([key,ids])=>{
+      if(Array.isArray(ids)&&ids.includes(employeeId)){
+        const loc=key.includes('|')?key.split('|').slice(1).join('|'):key;
+        if(!locations.includes(loc))locations.push(loc);
+      }
+    });
+    (baselineYear[mm]||[]).forEach(loc=>{if(!locations.includes(loc))locations.push(loc)});
+    if(locations.length){
+      const period=state.monthlySchedulePeriods?.[month]||monthBounds(month);
+      result.push({month,period,locations});
+    }
+  });
+  return result;
+}
+function historyPeriodLabel(month,period){
+  const [y,m]=month.split('-').map(Number);
+  const bounds=monthBounds(month);
+  const monthYearFull=new Date(y,m-1,1).toLocaleDateString('ar-SA-u-ca-gregory',{month:'long',year:'numeric'});
+  if(!period||(period.start===bounds.start&&period.end===bounds.end))return monthYearFull;
+  const monthNameOnly=new Date(y,m-1,1).toLocaleDateString('ar-SA-u-ca-gregory',{month:'long'});
+  return `${period.start.slice(8,10)}–${period.end.slice(8,10)} ${monthNameOnly} ${y}`;
+}
+function cleanNameForMatch(name){
+  return (name||'')
+    .replace(/[\u064B-\u065F\u0670]/g,'')
+    .replace(/[إأآا]/g,'ا')
+    .replace(/ى/g,'ي')
+    .replace(/ة/g,'ه')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function nameTokensForMatch(name){return cleanNameForMatch(name).split(' ').filter(Boolean)}
+function matchHistoricalName(excelName){
+  const cleanExcel=cleanNameForMatch(excelName);
+  const exact=state.employees.filter(e=>cleanNameForMatch(e.nameAr||e.name)===cleanExcel);
+  if(exact.length===1)return{status:'matched',employee:exact[0],method:'exact'};
+  if(exact.length>1)return{status:'review',candidates:exact,method:'exact-ambiguous'};
+  const tokens=nameTokensForMatch(excelName);
+  if(tokens.length>=2){
+    const first=tokens[0],last=tokens[tokens.length-1];
+    const candidates=state.employees.filter(e=>{
+      const et=nameTokensForMatch(e.nameAr||e.name);
+      return et.length>=2&&et[0]===first&&et[et.length-1]===last;
+    });
+    if(candidates.length===1)return{status:'matched',employee:candidates[0],method:'first-last'};
+    if(candidates.length>1)return{status:'review',candidates,method:'first-last-ambiguous'};
+  }
+  return{status:'unmatched'};
+}
+let pendingHistoricalImport=null;
+function runHistoricalImportMatch(){
+  const namesSet=new Set();
+  Object.values(HISTORICAL_LOCATIONS_2026).forEach(monthData=>{
+    Object.values(monthData).forEach(names=>names.forEach(n=>namesSet.add(n)));
+  });
+  const matched=[],review=[],unmatched=[],nameToEmployeeId={};
+  namesSet.forEach(name=>{
+    const r=matchHistoricalName(name);
+    if(r.status==='matched'){matched.push({excelName:name,employee:r.employee});nameToEmployeeId[name]=r.employee.id}
+    else if(r.status==='review'){review.push({excelName:name,candidates:r.candidates})}
+    else{unmatched.push({excelName:name})}
+  });
+  pendingHistoricalImport={nameToEmployeeId,matched,review,unmatched};
+  document.getElementById('historicalImportModal').classList.add('show');
+  renderHistoricalImportReport();
+}
+function renderHistoricalImportReport(){
+  const p=pendingHistoricalImport;if(!p)return;
+  document.getElementById('histImportSummary').textContent=`عدد أسماء Excel الفريدة: ${p.matched.length+p.review.length+p.unmatched.length} — تم الربط: ${p.matched.length} · يحتاج مراجعة: ${p.review.length} · غير مرتبط: ${p.unmatched.length}`;
+  document.getElementById('histImportMatched').innerHTML=p.matched.length?p.matched.map(m=>`<div class="row"><div class="row-main"><div><div class="name">${esc(m.excelName)}</div><div class="meta">↳ ${esc(m.employee.nameAr||m.employee.name)}</div></div></div></div>`).join(''):'<div class="empty">لا يوجد</div>';
+  document.getElementById('histImportReview').innerHTML=p.review.length?p.review.map(m=>`<div class="row"><div class="row-main"><div><div class="name">${esc(m.excelName)}</div><div class="meta">تطابق مع ${m.candidates.length} موظفين: ${esc(m.candidates.map(c=>c.nameAr||c.name).join('، '))} — لم يُربط تلقائيًا</div></div></div></div>`).join(''):'<div class="empty">لا يوجد</div>';
+  document.getElementById('histImportUnmatched').innerHTML=p.unmatched.length?p.unmatched.map(m=>`<div class="row"><div class="row-main"><div class="name">${esc(m.excelName)}</div></div></div>`).join(''):'<div class="empty">لا يوجد</div>';
+  const btn=document.getElementById('histImportConfirmBtn');if(btn)btn.disabled=!p.matched.length;
+}
+function confirmHistoricalImport(){
+  const p=pendingHistoricalImport;if(!p||!p.matched.length)return;
+  if(!state.locationHistory||typeof state.locationHistory!=='object')state.locationHistory={};
+  let recordCount=0;
+  Object.entries(HISTORICAL_LOCATIONS_2026).forEach(([monthKey,monthData])=>{
+    const [year,mm]=monthKey.split('-');
+    Object.entries(monthData).forEach(([loc,names])=>{
+      names.forEach(name=>{
+        const empId=p.nameToEmployeeId[name];
+        if(!empId)return;
+        if(!state.locationHistory[empId])state.locationHistory[empId]={};
+        if(!state.locationHistory[empId][year])state.locationHistory[empId][year]={};
+        if(!state.locationHistory[empId][year][mm])state.locationHistory[empId][year][mm]=[];
+        if(!state.locationHistory[empId][year][mm].includes(loc)){state.locationHistory[empId][year][mm].push(loc);recordCount++}
+      });
+    });
+  });
+  save();
+  closeModal('historicalImportModal');
+  alert(`تم اعتماد الاستيراد.\nموظفون مرتبطون: ${p.matched.length}\nسجلات (شهر×موقع) محفوظة: ${recordCount}\nيحتاج مراجعة: ${p.review.length}\nغير مرتبط: ${p.unmatched.length}`);
+  renderEmployeeHistoryModal();
+  pendingHistoricalImport=null;
+}
+let employeeHistoryEmployeeId=null;
+function openEmployeeHistory(id){
+  const e=state.employees.find(x=>x.id===id);if(!e)return;
+  employeeHistoryEmployeeId=id;
+  document.getElementById('employeeHistoryTitle').textContent='History — '+(e.nameAr||e.name);
+  const years=new Set(Object.keys(state.monthlySchedules||{}).map(m=>m.slice(0,4)));
+  years.add(String(new Date().getFullYear()));
+  const sortedYears=[...years].sort((a,b)=>b.localeCompare(a));
+  const sel=document.getElementById('employeeHistoryYear');
+  sel.innerHTML=sortedYears.map(y=>`<option value="${y}">${y}</option>`).join('');
+  document.getElementById('employeeHistoryModal').classList.add('show');
+  renderEmployeeHistoryModal();
+}
+function renderEmployeeHistoryModal(){
+  const box=document.getElementById('employeeHistoryList');if(!box)return;
+  const e=state.employees.find(x=>x.id===employeeHistoryEmployeeId);if(!e)return;
+  const year=document.getElementById('employeeHistoryYear').value;
+  const data=getEmployeeLocationHistory(e.id,Number(year));
+  const uniqueBox=document.getElementById('employeeHistoryUnique');
+  if(uniqueBox){
+    const uniqueLocations=[...new Set(data.flatMap(row=>row.locations))];
+    uniqueBox.innerHTML=uniqueLocations.length?`<div class="small-note" style="margin-bottom:6px">المواقع التي سبق له تغطيتها:</div><div>${uniqueLocations.map(l=>`<span class="chip" style="margin:2px">${esc(l)}</span>`).join('')}</div>`:'';
+  }
+  box.innerHTML=data.length?data.map(row=>`<div class="row"><div class="row-main"><div><div class="name">${esc(historyPeriodLabel(row.month,row.period))}</div><div class="meta">${esc(row.locations.join(' / '))}</div></div></div></div>`).join(''):'<div class="empty">لا يوجد سجل توزيع محفوظ لهذه السنة</div>';
 }
 
 // ==================== التوزيع الشهري للمواقع (Monthly Roster) ====================
@@ -3798,6 +3975,7 @@ function aiContextForAgent(){
     personalNotes:state.personalNotes.map(n=>({date:n.date||'',text:n.text||'',createdAt:n.createdAt||''})),
     monthlySchedules:state.monthlySchedules||{},
     monthlySchedulePeriods:state.monthlySchedulePeriods||{},
+    locationHistory:state.locationHistory||{},
     accessGroups:ACCESS_GROUPS.map(g=>({title:g.title,badges:g.badges})),
     groupShiftPeriods,
     leaveBalanceHistory:Array.isArray(state.leaveBalanceHistory)?state.leaveBalanceHistory:[]
