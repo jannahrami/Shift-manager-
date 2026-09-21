@@ -902,6 +902,21 @@
     @keyframes aiPulse{50%{box-shadow:0 0 0 7px rgba(239,68,68,.16)}}
     .ai-confirm{display:flex;gap:7px;margin-top:10px}.ai-confirm button{border:0;border-radius:10px;padding:7px 12px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.ai-confirm .yes{background:#16a085;color:#fff}.ai-confirm .no{background:#e8ebf4;color:#4a5468}
     @media(min-width:900px){.ai-fab{left:calc(50% - 355px);bottom:24px}}
+    /* Accident Report */
+    .accident-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+    .accident-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.accident-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .accident-field{display:flex;flex-direction:column;gap:5px}.accident-field.wide{grid-column:1/-1}.accident-field label{font-size:11px;font-weight:800;color:var(--muted)}
+    .accident-field input,.accident-field textarea,.accident-field select{width:100%}.accident-field textarea{min-height:110px;resize:vertical}
+    .accident-subtitle{margin:18px 0 10px;font-size:14px;color:var(--text);display:flex;align-items:center;gap:7px}.accident-subtitle:after{content:"";height:1px;background:var(--line);flex:1}
+    .signature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.signature-box{border:1px solid var(--line);border-radius:15px;padding:10px;background:var(--card2)}
+    .signature-box strong{display:block;font-size:12px;margin-bottom:7px}.signature-canvas{width:100%;height:130px;background:#fff;border:1px dashed #aab5c6;border-radius:10px;touch-action:none;display:block}
+    .signature-tools{display:flex;justify-content:flex-end;margin-top:7px}.signature-tools button{padding:6px 10px;font-size:10px}
+    .sketch-shell{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--card2)}.sketch-toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:9px;border-bottom:1px solid var(--line)}
+    .sketch-toolbar button,.sketch-toolbar select{padding:7px 9px;font-size:10px;min-height:34px}.sketch-stage{position:relative;background:#fff;overflow:hidden}.sketch-canvas{display:block;width:100%;height:440px;touch-action:none;background-color:#fff;background-image:linear-gradient(#e5e9ef 1px,transparent 1px),linear-gradient(90deg,#e5e9ef 1px,transparent 1px);background-size:22px 22px}
+    .sketch-hint{padding:8px 10px;color:var(--muted);font-size:10px}.accident-record{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid var(--line);padding:10px;border-radius:13px;margin-bottom:8px;background:var(--card2)}.accident-record strong{display:block}.accident-record small{color:var(--muted)}.accident-record-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.accident-record-actions button{padding:6px 8px;font-size:10px}
+    .accident-actions{position:sticky;bottom:8px;z-index:3;display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding:10px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:15px;backdrop-filter:blur(12px)}
+    @media(max-width:900px){.accident-layout{grid-template-columns:1fr}.accident-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.accident-records-panel{order:2}.signature-grid{grid-template-columns:1fr}.sketch-canvas{height:360px}}
+    @media(max-width:520px){.accident-grid,.accident-grid.two{grid-template-columns:1fr}.accident-field.wide{grid-column:auto}.sketch-toolbar{overflow-x:auto;flex-wrap:nowrap}.sketch-toolbar button,.sketch-toolbar select{white-space:nowrap}.signature-canvas{height:150px}}
   </style>
 </head>
 <body>
@@ -954,6 +969,7 @@
     <button class="navbtn" data-view="reportsView" onclick="showView('reportsView',this)"><span>📊</span>التقارير</button>
     <button class="navbtn" data-view="updateView" onclick="showView('updateView',this)"><span>📌</span>تحديثات</button>
     <button class="navbtn" data-view="formsView" onclick="showView('formsView',this)"><span>📎</span>نماذج</button>
+    <button class="navbtn" data-view="accidentView" onclick="showView('accidentView',this)"><span>🚧</span>تقرير حادث</button>
   </nav>
 
   <main>
@@ -1247,6 +1263,75 @@
         <div class="section-head"><div><span class="section-kicker">نماذج وملفات جاهزة</span><h2>النماذج</h2></div><button class="primary" onclick="document.getElementById('formUploadInput').click()">+ رفع نموذج</button></div>
         <input type="file" id="formUploadInput" style="display:none" onchange="uploadFormFile(this.files[0])">
         <div class="note-list" id="formsList"></div>
+      </div>
+    </section>
+
+    <section id="accidentView" class="view">
+      <div class="accident-layout">
+        <div class="section">
+          <div class="section-head"><div><span class="section-kicker">PR/ISD/F-020</span><h2>تقرير حادث</h2></div><button class="secondary" onclick="newAccidentReport()">+ تقرير جديد</button></div>
+          <input type="hidden" id="accidentId">
+          <div class="accident-grid">
+            <div class="accident-field"><label>التاريخ</label><input type="date" id="accidentDate" onchange="updateAccidentDay()"></div>
+            <div class="accident-field"><label>اليوم</label><input id="accidentDay" readonly></div>
+            <div class="accident-field"><label>الوقت</label><input type="time" id="accidentTime"></div>
+            <div class="accident-field"><label>موقع الحادث</label><input id="accidentLocation" placeholder="مثال: Gate 16"></div>
+          </div>
+
+          <h3 class="accident-subtitle">المركبة رقم 1</h3>
+          <div class="accident-grid">
+            <div class="accident-field"><label>اسم قائد المركبة</label><input id="accidentV1Driver"></div>
+            <div class="accident-field"><label>السجل المدني / الإقامة</label><input inputmode="numeric" id="accidentV1Id"></div>
+            <div class="accident-field"><label>نوع المركبة</label><input id="accidentV1Type"></div>
+            <div class="accident-field"><label>رقم اللوحة</label><input id="accidentV1Plate"></div>
+            <div class="accident-field"><label>اللون</label><input id="accidentV1Color"></div>
+          </div>
+
+          <h3 class="accident-subtitle">المركبة رقم 2 <span class="small-note">اختياري</span></h3>
+          <div class="accident-grid">
+            <div class="accident-field"><label>اسم قائد المركبة</label><input id="accidentV2Driver"></div>
+            <div class="accident-field"><label>السجل المدني / الإقامة</label><input inputmode="numeric" id="accidentV2Id"></div>
+            <div class="accident-field"><label>نوع المركبة</label><input id="accidentV2Type"></div>
+            <div class="accident-field"><label>رقم اللوحة</label><input id="accidentV2Plate"></div>
+            <div class="accident-field"><label>اللون</label><input id="accidentV2Color"></div>
+          </div>
+
+          <h3 class="accident-subtitle">وصف الحالة</h3>
+          <div class="accident-field"><textarea id="accidentDescription" placeholder="اكتب وصفًا واضحًا لما حدث"></textarea></div>
+
+          <h3 class="accident-subtitle">وصف موجز للموقع / كروكي</h3>
+          <div class="sketch-shell">
+            <div class="sketch-toolbar">
+              <select id="sketchInsert" onchange="insertSketchSelected(this.value);this.value=''">
+                <option value="">＋ Insert إدراج</option>
+                <optgroup label="الطرق"><option value="road-straight">طريق مستقيم</option><option value="road-t">تقاطع T</option><option value="road-l">منعطف L</option><option value="road-cross">تقاطع رباعي</option></optgroup>
+                <optgroup label="المركبات والاتجاه"><option value="car1">سيارة 1</option><option value="car2">سيارة 2</option><option value="arrow">سهم اتجاه</option><option value="impact">نقطة اصطدام</option><option value="north">سهم الشمال</option></optgroup>
+                <optgroup label="الموقع"><option value="building">مبنى</option><option value="light">عمود إنارة</option><option value="hydrant">Fire Hydrant</option><option value="gate">بوابة</option><option value="barrier">حاجز</option><option value="fence">سياج</option><option value="stop">STOP</option><option value="text">نص</option></optgroup>
+              </select>
+              <button class="secondary" onclick="sketchMode='pen'">✎ رسم حر</button><button class="secondary" onclick="sketchMode='select'">⌖ تحديد</button>
+              <button class="secondary" onclick="rotateSketch(-15)">↺</button><button class="secondary" onclick="rotateSketch(15)">↻</button>
+              <button class="secondary" onclick="scaleSketch(.85)">− حجم</button><button class="secondary" onclick="scaleSketch(1.15)">＋ حجم</button>
+              <button class="secondary" onclick="duplicateSketch()">⧉ نسخ</button><button class="secondary danger" onclick="deleteSketchObject()">حذف</button>
+              <button class="secondary" onclick="undoSketch()">تراجع</button><button class="secondary danger" onclick="clearSketch()">مسح الكروكي</button>
+            </div>
+            <div class="sketch-stage"><canvas id="accidentSketch" class="sketch-canvas"></canvas></div>
+            <div class="sketch-hint">المس العنصر لتحريكه. استخدم التدوير والحجم بعد تحديده، أو اختر «رسم حر» للرسم بالإصبع.</div>
+          </div>
+
+          <h3 class="accident-subtitle">التواقيع</h3>
+          <div class="signature-grid">
+            <div class="signature-box"><strong>توقيع قائد المركبة 1</strong><canvas class="signature-canvas" id="sigDriver1"></canvas><div class="signature-tools"><button class="secondary" onclick="clearSignature('sigDriver1')">مسح</button></div></div>
+            <div class="signature-box"><strong>توقيع قائد المركبة 2</strong><canvas class="signature-canvas" id="sigDriver2"></canvas><div class="signature-tools"><button class="secondary" onclick="clearSignature('sigDriver2')">مسح</button></div></div>
+            <div class="signature-box"><strong>توقيع معد التقرير</strong><canvas class="signature-canvas" id="sigPrepared"></canvas><div class="signature-tools"><button class="secondary" onclick="clearSignature('sigPrepared')">مسح</button></div></div>
+            <div class="signature-box"><strong>توقيع المعتمد</strong><canvas class="signature-canvas" id="sigApproved"></canvas><div class="signature-tools"><button class="secondary" onclick="clearSignature('sigApproved')">مسح</button></div></div>
+          </div>
+          <div class="accident-grid two" style="margin-top:12px">
+            <div class="accident-field"><label>اسم معد التقرير</label><input id="accidentPreparedName"></div><div class="accident-field"><label>اسم المعتمد</label><input id="accidentApprovedName"></div>
+            <div class="accident-field"><label>وظيفة المعتمد</label><input id="accidentApprovedJob"></div>
+          </div>
+          <div class="accident-actions"><button class="primary" onclick="saveAccidentReport()">💾 حفظ التقرير</button><button class="secondary" onclick="printAccidentReport()">🖨 طباعة / PDF</button><button class="secondary" onclick="newAccidentReport()">تفريغ النموذج</button></div>
+        </div>
+        <div class="section accident-records-panel"><div class="section-head"><div><span class="section-kicker">السجل المحفوظ</span><h2>تقارير الحوادث</h2></div><span class="chip" id="accidentReportCount">0</span></div><div id="accidentReportsList"></div></div>
       </div>
     </section>
 
@@ -1594,7 +1679,7 @@ const ACCESS_GROUPS=[
   {id:'ecc',title:'ECC Room Access',icon:'🖥️',badges:['101725','104121','101690','101694','103619'],names:{'101725':'ADEL A BELADI','104121':'HASSAN AZIZALLAH TASH','101690':'YOUSEF BARKI BARKAH FARSI','101694':'RAYAN NASSAR DHAHRI','103619':'ABDULLAH SALEH GHAMDI'}},
   {id:'patrols',title:'PRC Patrols',icon:'🚓',countLabel:'12 رقم تاج للدوريات',tagPrefix:'',badges:['PRC-338','PRC-335','PRC-334','PRC-337','PRC-270','PRC-332','PRC-313','PRC-314','PRC-312','PRC-333','PRC-315','PRC-336'],names:{'PRC-338':'Shift Chief (01)','PRC-335':'Shift Chief Assistant (02)','PRC-334':'Community Group Leader','PRC-337':'Patrol-05','PRC-270':'Patrol-06','PRC-332':'Patrol-07','PRC-313':'Patrol-08','PRC-314':'Patrol-09','PRC-312':'Patrol-010','PRC-333':'Patrol-011','PRC-315':'Patrol-012','PRC-336':'Patrol-013'}}
 ];
-function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],updates:[],forms:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[],locationHistory:{}}}
+function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],updates:[],forms:[],accidentReports:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[],locationHistory:{}}}
 let state=emptyState();
 
 if(!Array.isArray(state.records)) state.records=[];
@@ -1602,6 +1687,7 @@ if(!Array.isArray(state.achievements)) state.achievements=[];
 if(!Array.isArray(state.personalNotes)) state.personalNotes=[];
 if(!Array.isArray(state.updates)) state.updates=[];
 if(!Array.isArray(state.forms)) state.forms=[];
+if(!Array.isArray(state.accidentReports)) state.accidentReports=[];
 if(!state.monthlySchedules||typeof state.monthlySchedules!=='object'||Array.isArray(state.monthlySchedules))state.monthlySchedules={};
 if(!state.monthlyScheduleRequirements||typeof state.monthlyScheduleRequirements!=='object'||Array.isArray(state.monthlyScheduleRequirements))state.monthlyScheduleRequirements={};
 if(!state.monthlySchedulePeriods||typeof state.monthlySchedulePeriods!=='object'||Array.isArray(state.monthlySchedulePeriods))state.monthlySchedulePeriods={};
@@ -1777,6 +1863,7 @@ async function loadCloudState(){
     if(!Array.isArray(state.personalNotes))state.personalNotes=[];
     if(!Array.isArray(state.updates))state.updates=[];
     if(!Array.isArray(state.forms))state.forms=[];
+    if(!Array.isArray(state.accidentReports))state.accidentReports=[];
     if(!state.monthlySchedules||typeof state.monthlySchedules!=='object'||Array.isArray(state.monthlySchedules))state.monthlySchedules={};
     if(!state.monthlyScheduleRequirements||typeof state.monthlyScheduleRequirements!=='object'||Array.isArray(state.monthlyScheduleRequirements))state.monthlyScheduleRequirements={};
     if(!state.monthlySchedulePeriods||typeof state.monthlySchedulePeriods!=='object'||Array.isArray(state.monthlySchedulePeriods))state.monthlySchedulePeriods={};
@@ -3181,7 +3268,7 @@ function printMonthlyRoster(){
 // ==================== التنقل بين الصفحات وفتح/إغلاق النماذج (Modals) ====================
 function renderAll(){
   document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-  renderAccessCards();renderStats(); renderInsightsDashboard(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderUpdates(); renderForms(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
+  renderAccessCards();renderStats(); renderInsightsDashboard(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderUpdates(); renderForms(); renderAccidentReports(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
 }
 
 function showView(id,btn){
@@ -3193,6 +3280,7 @@ function showView(id,btn){
     const month=document.getElementById('monthlyReportMonth'),year=document.getElementById('annualReportYear');
     if(month&&!month.value)month.value=currentMonthValue();if(year&&!year.value)year.value=new Date().getFullYear();refreshSelects();selectReportType('balances');
   }
+  if(id==='accidentView')setTimeout(initAccidentCanvases,40);
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function openEmployeeModal(id=''){
@@ -4197,6 +4285,65 @@ async function aiConfirmAction(){
 }
 function aiCancelAction(){aiPendingAction=null;aiAddMessage('تم إلغاء الأمر، وما تغيّر شيء.')}
 
+// ==================== تقارير الحوادث والتوقيع والكروكي ====================
+const ACCIDENT_FIELDS=['accidentDate','accidentDay','accidentTime','accidentLocation','accidentV1Driver','accidentV1Id','accidentV1Type','accidentV1Plate','accidentV1Color','accidentV2Driver','accidentV2Id','accidentV2Type','accidentV2Plate','accidentV2Color','accidentDescription','accidentPreparedName','accidentApprovedName','accidentApprovedJob'];
+const SIGNATURE_IDS=['sigDriver1','sigDriver2','sigPrepared','sigApproved'];
+let sketchObjects=[],sketchUndo=[],sketchSelected=-1,sketchMode='select',sketchDrag=null,sketchInitialized=false;
+function updateAccidentDay(){const v=document.getElementById('accidentDate')?.value;if(!v)return document.getElementById('accidentDay').value='';document.getElementById('accidentDay').value=new Date(v+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'long'})}
+function initAccidentCanvases(){
+  SIGNATURE_IDS.forEach(id=>initSignatureCanvas(document.getElementById(id)));
+  const c=document.getElementById('accidentSketch');if(!c)return;const rect=c.getBoundingClientRect(),w=Math.max(700,Math.round(rect.width*2)),h=Math.round((parseFloat(getComputedStyle(c).height)||440)*2);if(c.width!==w||c.height!==h){c.width=w;c.height=h}drawSketch();
+  if(sketchInitialized)return;sketchInitialized=true;
+  c.addEventListener('pointerdown',sketchPointerDown);c.addEventListener('pointermove',sketchPointerMove);c.addEventListener('pointerup',sketchPointerUp);c.addEventListener('pointercancel',sketchPointerUp);
+}
+function initSignatureCanvas(c){if(!c||c.dataset.ready)return;c.dataset.ready='1';const fit=()=>{if(c.dataset.drawing==='1')return;const old=c.width?c.toDataURL('image/png'):'';const r=c.getBoundingClientRect();c.width=Math.max(500,Math.round(r.width*2));c.height=Math.max(220,Math.round(r.height*2));if(old){const im=new Image();im.onload=()=>c.getContext('2d').drawImage(im,0,0,c.width,c.height);im.src=old}};fit();
+  const pos=e=>{const r=c.getBoundingClientRect();return {x:(e.clientX-r.left)*c.width/r.width,y:(e.clientY-r.top)*c.height/r.height}};let last=null;
+  c.addEventListener('pointerdown',e=>{if(!isAdmin())return;c.setPointerCapture(e.pointerId);c.dataset.drawing='1';last=pos(e)});
+  c.addEventListener('pointermove',e=>{if(!last)return;const p=pos(e),x=c.getContext('2d');x.strokeStyle='#1258c7';x.lineWidth=5;x.lineCap='round';x.lineJoin='round';x.beginPath();x.moveTo(last.x,last.y);x.lineTo(p.x,p.y);x.stroke();last=p});
+  const stop=()=>{last=null;c.dataset.drawing='0'};c.addEventListener('pointerup',stop);c.addEventListener('pointercancel',stop);
+}
+function clearSignature(id){if(!isAdmin())return;const c=document.getElementById(id);c?.getContext('2d').clearRect(0,0,c.width,c.height)}
+function signatureData(id){const c=document.getElementById(id);if(!c)return '';const x=c.getContext('2d'),data=x.getImageData(0,0,c.width,c.height).data;for(let i=3;i<data.length;i+=4)if(data[i])return c.toDataURL('image/png');return ''}
+function loadSignature(id,src){const c=document.getElementById(id);if(!c)return;clearSignature(id);if(!src)return;const im=new Image();im.onload=()=>c.getContext('2d').drawImage(im,0,0,c.width,c.height);im.src=src}
+function sketchSnapshot(){sketchUndo.push(JSON.stringify(sketchObjects));if(sketchUndo.length>30)sketchUndo.shift()}
+function insertSketchSelected(type){if(!type||!isAdmin())return;sketchSnapshot();let o={type,x:450,y:250,w:180,h:100,r:0};if(type==='car1'||type==='car2')Object.assign(o,{w:70,h:135});if(type==='arrow')Object.assign(o,{w:150,h:55});if(type==='impact'||type==='light'||type==='hydrant'||type==='north'||type==='stop')Object.assign(o,{w:80,h:80});if(type==='road-straight')Object.assign(o,{w:380,h:130});if(type==='road-t'||type==='road-cross')Object.assign(o,{w:330,h:270});if(type==='road-l')Object.assign(o,{w:300,h:250});if(type==='fence'||type==='barrier'||type==='gate')Object.assign(o,{w:220,h:70});if(type==='text'){const t=prompt('اكتب النص');if(!t){sketchUndo.pop();return}o.text=t;o.w=200;o.h=60}sketchObjects.push(o);sketchSelected=sketchObjects.length-1;sketchMode='select';drawSketch()}
+function sketchPoint(e){const c=document.getElementById('accidentSketch'),r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*c.width/r.width,y:(e.clientY-r.top)*c.height/r.height}}
+function hitSketch(p,o){const dx=p.x-o.x,dy=p.y-o.y,cs=Math.cos(-o.r*Math.PI/180),sn=Math.sin(-o.r*Math.PI/180),x=dx*cs-dy*sn,y=dx*sn+dy*cs;return Math.abs(x)<=o.w/2&&Math.abs(y)<=o.h/2}
+function sketchPointerDown(e){if(!isAdmin())return;const c=e.currentTarget,p=sketchPoint(e);c.setPointerCapture(e.pointerId);if(sketchMode==='pen'){sketchSnapshot();const o={type:'path',points:[p],x:0,y:0,w:0,h:0,r:0};sketchObjects.push(o);sketchSelected=sketchObjects.length-1;sketchDrag={pen:true};return}for(let i=sketchObjects.length-1;i>=0;i--)if(hitSketch(p,sketchObjects[i])){sketchSelected=i;sketchSnapshot();sketchDrag={dx:p.x-sketchObjects[i].x,dy:p.y-sketchObjects[i].y};drawSketch();return}sketchSelected=-1;drawSketch()}
+function sketchPointerMove(e){if(!sketchDrag)return;const p=sketchPoint(e),o=sketchObjects[sketchSelected];if(sketchDrag.pen){o.points.push(p)}else{o.x=p.x-sketchDrag.dx;o.y=p.y-sketchDrag.dy}drawSketch()}
+function sketchPointerUp(){sketchDrag=null}
+function rotateSketch(n){if(sketchSelected<0||!isAdmin())return;sketchSnapshot();sketchObjects[sketchSelected].r=(sketchObjects[sketchSelected].r+n)%360;drawSketch()}
+function scaleSketch(n){if(sketchSelected<0||!isAdmin())return;sketchSnapshot();const o=sketchObjects[sketchSelected];o.w=Math.max(30,o.w*n);o.h=Math.max(30,o.h*n);drawSketch()}
+function duplicateSketch(){if(sketchSelected<0||!isAdmin())return;sketchSnapshot();const o=JSON.parse(JSON.stringify(sketchObjects[sketchSelected]));o.x+=30;o.y+=30;sketchObjects.push(o);sketchSelected=sketchObjects.length-1;drawSketch()}
+function deleteSketchObject(){if(sketchSelected<0||!isAdmin())return;sketchSnapshot();sketchObjects.splice(sketchSelected,1);sketchSelected=-1;drawSketch()}
+function undoSketch(){if(!sketchUndo.length||!isAdmin())return;sketchObjects=JSON.parse(sketchUndo.pop());sketchSelected=-1;drawSketch()}
+function clearSketch(){if(!isAdmin()||!sketchObjects.length||!confirm('مسح جميع عناصر الكروكي؟'))return;sketchSnapshot();sketchObjects=[];sketchSelected=-1;drawSketch()}
+function sketchLabel(x,text,color='#172033'){x.fillStyle=color;x.font='bold 28px Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(text,0,0)}
+function drawSketchObject(x,o){x.save();x.translate(o.x,o.y);x.rotate((o.r||0)*Math.PI/180);const w=o.w,h=o.h;x.lineWidth=5;x.strokeStyle='#253247';x.fillStyle='#fff';
+  if(o.type==='path'){x.restore();x.save();x.strokeStyle='#1258c7';x.lineWidth=5;x.lineCap='round';x.lineJoin='round';x.beginPath();o.points.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.stroke();x.restore();return}
+  if(o.type.startsWith('road-')){x.fillStyle='#d8dde4';x.strokeRect(-w/2,-h/2,w,h);x.fillRect(-w/2,-h/2,w,h);x.strokeStyle='#fff';x.setLineDash([22,18]);x.beginPath();x.moveTo(-w/2,0);x.lineTo(w/2,0);x.stroke();x.setLineDash([]);if(o.type==='road-t'||o.type==='road-cross'){x.fillRect(-h/2,-w/2,h,w);x.strokeStyle='#fff';x.setLineDash([22,18]);x.beginPath();x.moveTo(0,-w/2);x.lineTo(0,o.type==='road-t'?0:w/2);x.stroke();x.setLineDash([])}if(o.type==='road-l'){x.fillRect(-w/2,-h/2,h,w);x.fillStyle='#fff';x.setLineDash([22,18]);x.beginPath();x.moveTo(-w/2,0);x.lineTo(0,0);x.lineTo(0,h/2);x.stroke();x.setLineDash([])}}
+  else if(o.type==='car1'||o.type==='car2'){x.fillStyle=o.type==='car1'?'#3b82f6':'#f59e0b';x.beginPath();x.roundRect(-w/2,-h/2,w,h,16);x.fill();x.stroke();x.fillStyle='#dbeafe';x.fillRect(-w*.34,-h*.23,w*.68,h*.24);sketchLabel(x,o.type==='car1'?'1':'2','#fff')}
+  else if(o.type==='arrow'||o.type==='north'){x.strokeStyle='#1258c7';x.fillStyle='#1258c7';x.lineWidth=8;x.beginPath();x.moveTo(-w/2,0);x.lineTo(w/3,0);x.stroke();x.beginPath();x.moveTo(w/2,0);x.lineTo(w/5,-h/2);x.lineTo(w/5,h/2);x.closePath();x.fill();if(o.type==='north'){x.save();x.translate(0,h*.7);sketchLabel(x,'N');x.restore()}}
+  else if(o.type==='impact'){x.strokeStyle='#dc2626';x.lineWidth=9;x.beginPath();x.moveTo(-w/2,-h/2);x.lineTo(w/2,h/2);x.moveTo(w/2,-h/2);x.lineTo(-w/2,h/2);x.stroke()}
+  else if(o.type==='building'){x.fillStyle='#e8edf4';x.fillRect(-w/2,-h/2,w,h);x.strokeRect(-w/2,-h/2,w,h);sketchLabel(x,'مبنى')}
+  else if(o.type==='light'){x.beginPath();x.arc(0,-h*.2,w*.22,0,Math.PI*2);x.stroke();x.beginPath();x.moveTo(0,0);x.lineTo(0,h/2);x.stroke();sketchLabel(x,'ضوء')}
+  else if(o.type==='hydrant'){x.strokeStyle='#dc2626';x.lineWidth=8;x.beginPath();x.moveTo(0,-h/2);x.lineTo(0,h/2);x.moveTo(-w/3,0);x.lineTo(w/3,0);x.stroke();x.save();x.translate(0,h*.7);sketchLabel(x,'FH','#dc2626');x.restore()}
+  else if(o.type==='stop'){x.fillStyle='#dc2626';x.beginPath();for(let i=0;i<8;i++){const a=Math.PI/8+i*Math.PI/4,px=Math.cos(a)*w/2,py=Math.sin(a)*h/2;i?x.lineTo(px,py):x.moveTo(px,py)}x.closePath();x.fill();sketchLabel(x,'STOP','#fff')}
+  else if(o.type==='fence'){x.setLineDash([15,10]);x.beginPath();x.moveTo(-w/2,0);x.lineTo(w/2,0);x.stroke();x.setLineDash([]);sketchLabel(x,'سياج')}
+  else if(o.type==='barrier'){x.fillStyle='#f59e0b';x.fillRect(-w/2,-h/5,w,h*2/5);x.strokeRect(-w/2,-h/5,w,h*2/5)}
+  else if(o.type==='gate'){x.beginPath();x.moveTo(-w/2,h/2);x.lineTo(-w/2,-h/2);x.lineTo(0,h/2);x.moveTo(w/2,h/2);x.lineTo(w/2,-h/2);x.lineTo(0,h/2);x.stroke()}
+  else if(o.type==='text')sketchLabel(x,o.text||'نص');
+  x.restore()}
+function drawSketch(exporting=false){const c=document.getElementById('accidentSketch');if(!c)return;const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);sketchObjects.forEach(o=>drawSketchObject(x,o));if(!exporting&&sketchSelected>=0&&sketchObjects[sketchSelected]?.type!=='path'){const o=sketchObjects[sketchSelected];x.save();x.translate(o.x,o.y);x.rotate((o.r||0)*Math.PI/180);x.strokeStyle='#2563eb';x.lineWidth=3;x.setLineDash([10,8]);x.strokeRect(-o.w/2-8,-o.h/2-8,o.w+16,o.h+16);x.restore()}}
+function sketchImage(){const c=document.getElementById('accidentSketch');drawSketch(true);const url=c.toDataURL('image/png');drawSketch();return url}
+function collectAccidentReport(){const r={};ACCIDENT_FIELDS.forEach(id=>r[id.replace('accident','').replace(/^./,m=>m.toLowerCase())]=document.getElementById(id).value);r.id=document.getElementById('accidentId').value||((crypto.randomUUID&&crypto.randomUUID())||'acc-'+Date.now());r.sketch=JSON.parse(JSON.stringify(sketchObjects));r.signatures={driver1:signatureData('sigDriver1'),driver2:signatureData('sigDriver2'),prepared:signatureData('sigPrepared'),approved:signatureData('sigApproved')};r.updatedAt=new Date().toISOString();return r}
+function saveAccidentReport(){if(!isAdmin())return alert('حساب Guest للعرض فقط');const r=collectAccidentReport();if(!r.date||!r.location||!r.v1Driver||!r.description)return alert('أكمل التاريخ، موقع الحادث، قائد المركبة الأولى، ووصف الحالة');const i=state.accidentReports.findIndex(x=>x.id===r.id);if(i>=0){r.createdAt=state.accidentReports[i].createdAt;state.accidentReports[i]=r}else{r.createdAt=new Date().toISOString();state.accidentReports.unshift(r)}document.getElementById('accidentId').value=r.id;save();alert('تم حفظ تقرير الحادث ومزامنته')}
+function newAccidentReport(){document.getElementById('accidentId').value='';ACCIDENT_FIELDS.forEach(id=>document.getElementById(id).value='');document.getElementById('accidentDate').value=todayISO();updateAccidentDay();SIGNATURE_IDS.forEach(clearSignature);sketchObjects=[];sketchUndo=[];sketchSelected=-1;drawSketch();window.scrollTo({top:0,behavior:'smooth'})}
+function loadAccidentReport(id){const r=state.accidentReports.find(x=>x.id===id);if(!r)return;document.getElementById('accidentId').value=r.id;ACCIDENT_FIELDS.forEach(fid=>{const key=fid.replace('accident','').replace(/^./,m=>m.toLowerCase());document.getElementById(fid).value=r[key]||''});sketchObjects=JSON.parse(JSON.stringify(r.sketch||[]));sketchUndo=[];sketchSelected=-1;SIGNATURE_IDS.forEach((sid,i)=>loadSignature(sid,[r.signatures?.driver1,r.signatures?.driver2,r.signatures?.prepared,r.signatures?.approved][i]||''));drawSketch();window.scrollTo({top:0,behavior:'smooth'})}
+function deleteAccidentReport(id){if(!isAdmin()||!confirm('حذف تقرير الحادث نهائيًا؟'))return;state.accidentReports=state.accidentReports.filter(x=>x.id!==id);if(document.getElementById('accidentId').value===id)newAccidentReport();save()}
+function renderAccidentReports(){const list=document.getElementById('accidentReportsList');if(!list)return;const rows=state.accidentReports||[];document.getElementById('accidentReportCount').textContent=rows.length;list.innerHTML=rows.length?rows.map(r=>`<div class="accident-record"><div><strong>${esc(r.location||'بدون موقع')}</strong><small>${esc(fmtDate(r.date))} · ${esc(r.v1Driver||'')}</small></div><div class="accident-record-actions"><button class="secondary" onclick="loadAccidentReport('${r.id}')">فتح</button><button class="secondary" onclick="loadAccidentReport('${r.id}');setTimeout(printAccidentReport,80)">طباعة</button><button class="secondary danger" onclick="deleteAccidentReport('${r.id}')">حذف</button></div></div>`).join(''):'<div class="small-note">لا توجد تقارير محفوظة حتى الآن.</div>'}
+function printAccidentReport(){initAccidentCanvases();const r=collectAccidentReport(),sk=sketchImage(),sig=k=>r.signatures[k]?`<img src="${r.signatures[k]}">`:'';const win=window.open('','_blank');if(!win)return alert('اسمح بالنوافذ المنبثقة للطباعة');const cell=v=>esc(v||'');win.document.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>تقرير حادث - ${cell(r.location)}</title><style>*{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Tahoma,sans-serif;margin:0;color:#000}.page{width:210mm;min-height:297mm;padding:12mm;margin:auto}.frame{border:2px solid #000;padding:7mm}.head{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;text-align:center}.head .brand{font-weight:700}.head h1{font-size:25px}.head h2{text-decoration:underline;font-size:22px}table{width:100%;border-collapse:collapse;margin-top:5mm;table-layout:fixed}th,td{border:1px solid #000;padding:3mm;text-align:center;font-size:12px;min-height:12mm}th{font-weight:800}.desc{text-align:right;white-space:pre-wrap;height:48mm;vertical-align:top;line-height:1.8}.sketch{margin-top:4mm;border:1px solid #000;height:96mm;position:relative}.sketch h3{position:absolute;right:3mm;top:1mm;margin:0;font-size:14px}.sketch img{width:100%;height:100%;object-fit:contain;padding-top:8mm}.signatures{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:8mm}.sig{text-align:center;font-weight:700}.sig img{display:block;width:65mm;height:22mm;object-fit:contain;margin:auto}.approval{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:10mm;line-height:2}.footer{font-weight:700;margin-top:6mm;direction:ltr}.sensitivity{position:fixed;bottom:5mm;left:10mm;color:#143de0;font-size:10px}@page{size:A4 portrait;margin:0}@media print{.page{page-break-after:always}.page:last-child{page-break-after:auto}}</style></head><body><div class="page"><div class="frame"><div class="head"><div class="brand">Petro Rabigh<br>بترو رابغ</div><h2>تقرير حادث</h2><h1>إدارة الأمن الصناعي</h1></div><table><tr><th>موقع الحادث</th><th>اليوم</th><th>التاريخ</th><th>الوقت</th></tr><tr><td>${cell(r.location)}</td><td>${cell(r.day)}</td><td>${cell(fmtDate(r.date))}</td><td>${cell(r.time)}</td></tr></table><table><tr><th>اسم قائد المركبة (1)</th><th>رقم السجل المدني / الإقامة</th><th>نوع المركبة (1)</th><th>رقم اللوحة</th><th>اللون</th></tr><tr><td>${cell(r.v1Driver)}</td><td>${cell(r.v1Id)}</td><td>${cell(r.v1Type)}</td><td>${cell(r.v1Plate)}</td><td>${cell(r.v1Color)}</td></tr></table><table><tr><th>اسم قائد المركبة (2)</th><th>رقم السجل المدني / الإقامة</th><th>نوع المركبة (2)</th><th>رقم اللوحة</th><th>اللون</th></tr><tr><td>${cell(r.v2Driver)}</td><td>${cell(r.v2Id)}</td><td>${cell(r.v2Type)}</td><td>${cell(r.v2Plate)}</td><td>${cell(r.v2Color)}</td></tr></table><table><tr><th style="text-align:right">وصف الحالة</th></tr><tr><td class="desc">${cell(r.description)}</td></tr></table><div class="sketch"><h3>وصف موجز للموقع / كروكي</h3><img src="${sk}"></div></div><div class="sensitivity">Sensitivity: This content has been classified as Petro Rabigh: General Use "PRC Only"</div></div><div class="page"><div class="frame"><div class="signatures"><div class="sig">توقيع قائد المركبة (1)${sig('driver1')}</div><div class="sig">توقيع قائد المركبة (2)${sig('driver2')}</div></div><div class="approval"><div><strong>معد التقرير:</strong><br>الاسم: ${cell(r.preparedName)}<br>التوقيع: ${sig('prepared')}</div><div><strong>يعتمد</strong><br>الاسم: ${cell(r.approvedName)}<br>الوظيفة: ${cell(r.approvedJob)}<br>التوقيع: ${sig('approved')}</div></div></div><div class="footer">PR/ISD/F-020 (March-2021)</div><div class="sensitivity">Sensitivity: This content has been classified as Petro Rabigh: General Use "PRC Only"</div></div><script>onload=()=>setTimeout(()=>print(),350)<\/script></body></html>`);win.document.close()}
+
 document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){m.classList.remove('show');if(m.id==='aiAssistantModal')aiStopRealtime(false)}}));
 document.addEventListener('click',e=>{
   if(!e.target.closest('.global-search'))document.getElementById('globalSearchResults')?.classList.remove('show');
@@ -4210,6 +4357,7 @@ document.getElementById('backupBtn').addEventListener('click',()=>{
 lockApp();
 localStorage.removeItem(OLD_SESSION_KEY);updateLoginRoleUI();
 if(document.getElementById('recordDate')) document.getElementById('recordDate').value=todayISO();
+if(document.getElementById('accidentDate')){document.getElementById('accidentDate').value=todayISO();updateAccidentDay()}
 if(session){
   refreshSession().then(ok=>ok?loadCloudState():logout()).catch(()=>logout());
 }else{
