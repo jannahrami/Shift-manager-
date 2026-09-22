@@ -213,6 +213,78 @@
     .access-card.industrial{background:linear-gradient(135deg,#625bea,#3943b8)!important;border-color:#514bd1!important;color:#fff!important;box-shadow:0 10px 24px rgba(76,70,190,.25)}.access-card.community{background:linear-gradient(135deg,#20bda4,#087d70)!important;border-color:#129783!important;color:#fff!important;box-shadow:0 10px 24px rgba(8,125,112,.23)}.access-card.ecc{background:linear-gradient(135deg,#f0a52f,#c76618)!important;border-color:#d77b20!important;color:#fff!important;box-shadow:0 10px 24px rgba(199,102,24,.24)}.access-card.patrols{background:linear-gradient(135deg,#e14d76,#9f2354)!important;border-color:#bd2f60!important;color:#fff!important;box-shadow:0 10px 24px rgba(159,35,84,.24)}.access-card small{color:rgba(255,255,255,.86)}.access-card strong{font-weight:500!important}.access-card .access-card-icon{background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}.access-card:hover{filter:brightness(1.04);box-shadow:0 14px 29px rgba(31,44,64,.22)}
     .access-card{font-family:Arial,Tahoma,sans-serif;min-height:84px}.access-card strong{font-family:Arial,Tahoma,sans-serif;font-size:15px;font-weight:800;line-height:1.35;letter-spacing:.05px;text-shadow:0 1px 1px rgba(0,0,0,.12)}.access-card small{font-family:Tahoma,Arial,sans-serif;font-size:12px;font-weight:700;line-height:1.55;margin-top:6px}.access-member .name{font-family:Arial,Tahoma,sans-serif;font-size:15px;font-weight:800;line-height:1.45}.access-member .meta,.access-member-badge{font-family:Tahoma,Arial,sans-serif;font-size:12px;font-weight:700}
     @media(max-width:700px){.access-cards{grid-template-columns:1fr}.access-card{padding:11px 13px}.access-card-icon{width:36px;height:36px}}
+    /* Home shortcuts: quiet dark cards that match the dashboard theme */
+    #accessCards .access-card{
+      --access-accent:#41c7ff;
+      position:relative;
+      overflow:hidden;
+      min-height:82px;
+      padding:13px 14px;
+      gap:11px;
+      font-family:"Cairo",-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;
+      background:linear-gradient(145deg,rgba(19,36,58,.96),rgba(12,25,43,.98))!important;
+      color:var(--text)!important;
+      border:1px solid rgba(148,163,184,.16)!important;
+      border-top-color:color-mix(in srgb,var(--access-accent) 65%,transparent)!important;
+      box-shadow:0 8px 22px rgba(0,0,0,.16)!important;
+      text-decoration:none;
+      filter:none;
+    }
+    #accessCards .access-card::before{
+      content:"";
+      position:absolute;
+      inset:0 auto 0 0;
+      width:3px;
+      background:var(--access-accent);
+      opacity:.82;
+    }
+    #accessCards .access-card.industrial{--access-accent:#6f8cff}
+    #accessCards .access-card.community{--access-accent:#2dd4bf}
+    #accessCards .access-card.ecc{--access-accent:#f7b955}
+    #accessCards .access-card.patrols{--access-accent:#e879b7}
+    #accessCards .access-card[href*="newgrid"]{--access-accent:#41c7ff}
+    #accessCards .access-card .access-card-icon{
+      width:39px;
+      height:39px;
+      border-radius:11px;
+      background:color-mix(in srgb,var(--access-accent) 13%,transparent)!important;
+      border:1px solid color-mix(in srgb,var(--access-accent) 28%,transparent);
+      color:var(--access-accent);
+      box-shadow:none;
+      font-size:18px;
+      padding:0!important;
+    }
+    #accessCards .access-card .access-card-icon img{width:100%!important;height:100%!important;border-radius:10px!important}
+    #accessCards .access-card strong{
+      font-family:inherit;
+      font-size:13px;
+      font-weight:600!important;
+      line-height:1.45;
+      letter-spacing:0;
+      text-shadow:none;
+    }
+    #accessCards .access-card small{
+      font-family:inherit;
+      margin-top:3px;
+      color:var(--muted)!important;
+      font-size:10.5px;
+      font-weight:400;
+      line-height:1.55;
+    }
+    #accessCards .access-card:hover{
+      transform:translateY(-2px);
+      border-color:color-mix(in srgb,var(--access-accent) 42%,transparent)!important;
+      box-shadow:0 12px 26px rgba(0,0,0,.23),0 0 0 1px color-mix(in srgb,var(--access-accent) 8%,transparent)!important;
+      filter:none;
+    }
+    @media(max-width:700px){
+      #accessCards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      #accessCards .access-card{min-height:76px;padding:10px 11px;gap:9px}
+      #accessCards .access-card:last-child:nth-child(odd){grid-column:1/-1}
+      #accessCards .access-card .access-card-icon{width:35px;height:35px}
+      #accessCards .access-card strong{font-size:12px}
+      #accessCards .access-card small{font-size:9.5px}
+    }
     .notification-list{display:grid;gap:9px}.notification-item{display:flex;gap:11px;align-items:flex-start;padding:13px;border:1px solid var(--line);border-radius:15px;background:#0b1424}.notification-icon{font-size:19px}
     .month-filter{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;margin:14px 0}
     .month-filter input{min-width:0}
