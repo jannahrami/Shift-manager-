@@ -1722,7 +1722,7 @@ function pruneOldMonthlyRosterLocations(){
   if(Number(state.monthlyRosterLocationsVersion)>=2)return false;
   const active=new Set([
     'leadership|Shift Chief (01)','leadership|Assistant Shift Chief (02)','leadership|Community Supervisor (03)','leadership|Shift Clerk','leadership|SCC','leadership|Ind. Visitor','leadership|Comm. Visitor',
-    'stations|STN# 01','stations|STN# 04','stations|STN# 05','stations|STN# 06','stations|STN# 07','stations|STN# 10','stations|STN# 16A',
+    'stations|STN# 01','stations|STN# 04','stations|STN# 05','stations|STN# 06','stations|STN# 07','stations|STN# 10','stations|STN# 16A','stations|STN# 17',
     'patrol|Patrol# (05)','patrol|Patrol# (06)','patrol|Patrol# (07)','patrol|Patrol# (08)','patrol|Patrol# (09)','patrol|Patrol# (010)','patrol|Patrol# (011)','patrol|Patrol# (012)','patrol|Patrol# (013)'
   ]);
   [state.monthlySchedules,state.monthlyScheduleRequirements].forEach(months=>Object.values(months||{}).forEach(month=>Object.keys(month||{}).forEach(key=>{if(!active.has(key))delete month[key]})));
@@ -3096,7 +3096,7 @@ function renderEmployeeHistoryModal(){
 // ==================== التوزيع الشهري للمواقع (Monthly Roster) ====================
 const MONTHLY_ROSTER_GROUPS=[
   {name:'Monthly Schedule',key:'leadership',posts:['Shift Chief (01)','Assistant Shift Chief (02)','Community Supervisor (03)','Shift Clerk','SCC','Ind. Visitor','Comm. Visitor']},
-  {name:'Stations',key:'stations',posts:['STN# 01','STN# 04','STN# 05','STN# 06','STN# 07','STN# 10','STN# 16A']},
+  {name:'Stations',key:'stations',posts:['STN# 01','STN# 04','STN# 05','STN# 06','STN# 07','STN# 10','STN# 16A','STN# 17']},
   {name:'Patrols',key:'patrol',posts:['Patrol# (05)','Patrol# (06)','Patrol# (07)','Patrol# (08)','Patrol# (09)','Patrol# (010)','Patrol# (011)','Patrol# (012)','Patrol# (013)']}
 ];
 const ROSTER_STATION_LIMITS={
@@ -3674,54 +3674,14 @@ function aiDashboardSnapshot(year=Number(todayISO().slice(0,4))){
     annualIndicators:aiAnnualIndicatorsSnapshot(year)
   };
 }
-// ==================== مرجع الإجراءات الأمنية المعتمد ====================
-const SECURITY_PROCEDURES=[
-  {id:1,title:'فقدان ممتلكات',aliases:['فقدان ممتلكات','ممتلكات مفقودة','غرض ضايع','شي ضاع'],action:'أخذ إفادة، إجراء تحقيق أولي، ورفع تقرير الحادث الأولي أو النهائي إلى ISU. إذا لم تُغلق الحالة بواسطة العمليات الأمنية، تتولى ISU التحقيق.'},
-  {id:2,title:'العثور على ممتلكات',aliases:['العثور على ممتلكات','ممتلكات معثور عليها','غرض موجود','لقيت غرض','وجدت غرض'],action:'أخذ إفادة، رفع تقرير الحادث الأولي أو النهائي إلى ISU، وتسليم الغرض إلى ISU لإعادته إلى مالكه.'},
-  {id:3,title:'استخدام بطاقة شخص آخر',aliases:['استخدام بطاقة شخص آخر','بطاقة شخص ثاني','سوء استخدام بطاقة','انتحال بطاقة','بطاقة غيره'],action:'إجراء تحقيق أولي، مصادرة بطاقة الهوية، ورفع تقرير الحادث إلى ISU. إذا لم تُغلق الحالة بواسطة العمليات الأمنية، تتولى ISU التحقيق والإجراء المناسب.'},
-  {id:4,title:'بطاقة مكسورة',aliases:['بطاقة مكسورة','كسر البطاقة','بطاقة تالفة','تلف البطاقة'],action:'توجيه حامل البطاقة إلى مكتب البطاقات لاستبدالها، إذا لم يكن التلف متعمداً.'},
-  {id:5,title:'بطاقة مقاول منتهية',aliases:['بطاقة مقاول منتهية','بطاقة منتهية للمقاول','بطاقة كونتراكتور منتهية'],action:'إجراء تحقيق أولي، مصادرة البطاقة، ورفع تقرير الحادث إلى ISU. تتولى ISU التحقيق وتطبيق غرامة التأخر في استرجاع البطاقة.'},
-  {id:6,title:'فقدان بطاقة الهوية',aliases:['فقدان بطاقة','بطاقة مفقودة','ضياع بطاقة','بطاقتي ضاعت','ضاعت البطاقة','فقدت بطاقتي','ضاع الباج','بطاقة ضايعة'],action:'إجراء تحقيق أولي، إيقاف البطاقة في النظام عن طريق مكتب البطاقات، إبلاغ FSF، ورفع تقرير الحادث إلى ISU. تطبق ISU الجزاء حسب سياسات الشركة.'},
-  {id:7,title:'إقامة مزورة',aliases:['إقامة مزورة','اقامة مزورة','تزوير إقامة','تزوير اقامة'],action:'إجراء تحقيق أولي، تصوير الشخص المتورط، وتحويل الحالة إلى FSF. تستلم ISU تقرير الحادث من العمليات الأمنية.'},
-  {id:8,title:'رخصة قيادة مزورة',aliases:['رخصة قيادة مزورة','رخصة مزورة','تزوير رخصة','ليسنس مزور'],action:'إجراء تحقيق أولي، تصوير الشخص المتورط، وتحويل الحالة إلى FSF. تستلم ISU تقرير الحادث من العمليات الأمنية.'},
-  {id:9,title:'نقل ملصق مركبة إلى مركبة أخرى',aliases:['نقل ملصق سيارة','نقل ستيكر','تركيب ملصق على سيارة ثانية','إعادة لصق الملصق','ستيكر سيارة ثانية'],action:'إجراء تحقيق أولي، إزالة ملصق المركبة، إصدار نموذج استرجاع، ورفع تقرير الحادث إلى ISU. تتولى ISU التحقيق وتطبيق الجزاء حسب سياسة الشركة.'},
-  {id:10,title:'ملصق مركبة منتهي',aliases:['ملصق سيارة منتهي','ستيكر منتهي','ملصق مركبة منتهي','استكر منتهي'],action:'منع الدخول، استرجاع الملصق، وتوجيه الموظف إلى تجديد ملصق المركبة.'},
-  {id:11,title:'إخراج مواد دون تصريح حركة مواد',aliases:['إخراج مواد دون تصريح','مواد بدون تصريح','خروج مواد بدون تصريح','بدون material gate pass','بدون تصريح حركة مواد'],action:'إجراء تحقيق أولي، تصوير المواد، مصادرة البطاقات، رفع تقرير الحادث إلى ISU، وتجهيز تصريح حركة المواد وتسليمه إلى ISU. تتولى ISU التحقيق في الحالة.'},
-  {id:12,title:'سرقة ممتلكات الشركة أو الممتلكات الشخصية',aliases:['سرقة ممتلكات','سرقة الشركة','سرقة شخصية','حالة سرقة','بلاغ سرقة'],action:'إجراء تحقيق أولي، تأمين الموقع، ورفع تقرير الحادث إلى ISU. يحضر محقق الأمن إلى الموقع عند استدعائه من العمليات الأمنية ويتولى التحقيق.'},
-  {id:13,title:'تلف أو إساءة استخدام أجهزة الاتصال',aliases:['تلف جهاز اتصال','إساءة استخدام جهاز اتصال','تلف راديو','استخدام الراديو بشكل خاطئ','communication equipment'],action:'إجراء تحقيق أولي ورفع تقرير الحادث إلى ISU. تتولى ISU التحقيق ورفع التقرير إلى مدير SED ومدير IT&C.'},
-  {id:14,title:'شجار بين موظفي المقاولين',aliases:['شجار مقاولين','مضاربة مقاولين','هوشة مقاولين','قتال بين المقاولين'],action:'إجراء تحقيق أولي، مصادرة بطاقات الهوية وتسليمها إلى FSF، ورفع تقرير الحادث إلى ISU.'},
-  {id:15,title:'تصوير غير مصرح به',aliases:['تصوير غير مصرح','تصوير ممنوع','تصوير داخل الشركة','تصوير بدون تصريح','كاميرا ممنوعة'],action:'إجراء تحقيق أولي، مصادرة بطاقات الأشخاص والكاميرا أو الجوال، ورفع تقرير الحادث إلى ISU. تتولى ISU التحقيق وتحويل الموضوع إلى مدير SED.'},
-  {id:16,title:'حادث بسيط مع إصابة أو تلف ممتلكات',aliases:['حادث بسيط مع إصابة','حادث مع تلف ممتلكات','minor mva with injury','حادث إصابة بسيط'],action:'التوجه إلى الموقع، إجراء تحقيق أولي وتصوير الحادث، استكمال التقارير المطلوبة، وإصدار مخالفة للمتسبب. يُسلّم السائق تقريراً لمراجعة المرور وإصلاح المركبة، وتحال الحالة إلى ISU إذا احتاجت تحقيقاً إضافياً.'},
-  {id:17,title:'حادث بسيط لمركبات الشركة أو الموظفين دون إصابة أو تلف',aliases:['حادث سيارة شركة بسيط','حادث موظف بسيط','حادث بدون إصابة لمركبة الشركة','حادث بدون أضرار لموظف'],action:'التوجه إلى الموقع، إجراء تحقيق أولي وتصوير الحادث، استكمال التقارير، مصادرة بطاقات الأطراف، وإصدار مخالفة للمتسبب. يُسلّم السائق تقريراً لمراجعة المرور، وتحال الحالة إلى ISU عند الحاجة.'},
-  {id:18,title:'حادث بسيط لمركبة مقاول دون إصابة أو تلف',aliases:['حادث مقاول بسيط','حادث سيارة مقاول','حادث كونتراكتور','حادث بدون إصابة للمقاول'],action:'التوجه إلى الموقع، إجراء تحقيق أولي وتصوير الحادث، استكمال التقارير، مصادرة بطاقات الأطراف، وإصدار مخالفة للمتسبب. يُسلّم السائق تقريراً لمراجعة المرور، وتحال الحالة إلى ISU عند الحاجة.'},
-  {id:19,title:'حادث مروري جسيم داخل الشركة',aliases:['حادث مروري جسيم','حادث كبير داخل الشركة','major mva','حادث قوي','حادث خطير'],action:'تأمين موقع الحادث، الاتصال بالمرور والإسعاف عند الحاجة، تصوير المركبات، مصادرة البطاقات، ومساعدة المرور. تدعم العمليات الأمنية وISU المرور عند الحاجة.'},
-  {id:20,title:'وفاة أو انتحار داخل الشركة',aliases:['وفاة داخل الشركة','انتحار داخل الشركة','حالة وفاة','حالة انتحار'],action:'تأمين الموقع، جمع المعلومات، الاتصال بالشرطة، وإبلاغ وحدة التحقيقات. تشارك ISU في التحقيق مع الجهات الحكومية عند الحاجة.'},
-  {id:21,title:'تأمين مسرح جريمة',aliases:['مسرح جريمة','تأمين جريمة','crime scene','موقع جريمة'],action:'تطويق وتأمين مسرح الجريمة بشريط خاص ومنع دخول أي شخص. في الجرائم الجسيمة، تُنشر قوة أمنية لحماية الموقع.'}
-];
-function aiSecurityProcedureSearch(raw){
-  const q=aiNormalize(raw);if(!q)return null;
-  const procedureIntent=/(اجراء|التصرف|اسوي|نسوي|نعمل|اتعامل|تعامل|حاله|مرجع|تعليمات|خطوات)/.test(q);
-  let best=null,bestScore=0;
-  for(const item of SECURITY_PROCEDURES){
-    for(const alias of item.aliases){const a=aiNormalize(alias);let score=0;if(q.includes(a))score=100+a.length;else{const words=a.split(/\s+/).filter(w=>w.length>2),hits=words.filter(w=>q.includes(w)).length;score=hits*10-(words.length-hits)*2}if(score>bestScore){best=item;bestScore=score}}
-  }
-  if(!best||bestScore<18||(!procedureIntent&&bestScore<100))return null;
-  return best;
-}
-function aiSecurityProcedureReply(raw){
-  const q=aiNormalize(raw);
-  if(/(كل|جميع|قائمه|قائمة).{0,20}(الاجراء|الحالات)|مرجع الاجراءات/.test(q))return `المرجع يحتوي ${SECURITY_PROCEDURES.length} حالة أمنية. اسألني عن الحالة بالاسم، مثل: فقدان بطاقة، تصوير غير مصرح، أو حادث مروري جسيم.`;
-  const item=aiSecurityProcedureSearch(raw);return item?`الإجراء - ${item.title}: ${item.action}`:'';
-}
 // ==================== المساعد الذكي: جلسة Realtime الصوتية (WebRTC) ====================
 function aiRealtimeInstructions(){
   return `أنت مساعد الشفت الصوتي الخاص برامي، مشرف الأمن الصناعي. تحدث دائمًا بالعربية السعودية الحجازية بصوت طبيعي ودافئ مثل زميل يعرف رامي، وليس كمجيب آلي أو موظف خدمة عملاء. اختصر في الكلام اليومي، وافهم المزح والتحية ورد بعفوية. لا تقل: كيف أقدر أخدمك، كيف يمكنني مساعدتك، يرجى التوضيح، أو أنا هنا لمساعدتك. لا تسرد قدراتك إلا إذا سألك رامي.
-عندك أدوات توصلك ببيانات النظام الفعلية (موظفين، إجازات، مؤشرات، سجلات، إنجازات، شفتات، مواقع، Marine ID، ملاحظات، وإجراءات أمنية). استخدمها دائمًا لأي رقم أو اسم أو تاريخ حقيقي — ممنوع تختلق أو تخمّن أي بيانة. في أسئلة الإجراءات الأمنية استخدم get_security_procedure وانقل الإجراء كما رجع بدون إضافة تعليمات من عندك. نفّذ كل الأدوات اللازمة أولًا، ثم رد فورًا في نفس الدورة؛ ممنوع تقول «بأشيك» أو «لحظة» أو «بأجهز» وتتوقف قبل تنفيذ الأداة. إذا احتجت تحدد موظف بالاسم استخدم find_employee أولًا؛ إذا رجع أكثر من نتيجة لا تخمّن، اسأل رامي أيهم يقصد.
+عندك أدوات توصلك ببيانات النظام الفعلية (موظفين، إجازات، مؤشرات، سجلات، إنجازات، شفتات، مواقع، Marine ID، ملاحظات). استخدمها دائمًا لأي رقم أو اسم أو تاريخ حقيقي — ممنوع تختلق أو تخمّن أي بيانة. نفّذ كل الأدوات اللازمة أولًا، ثم رد فورًا في نفس الدورة؛ ممنوع تقول «بأشيك» أو «لحظة» أو «بأجهز» وتتوقف قبل تنفيذ الأداة. إذا احتجت تحدد موظف بالاسم استخدم find_employee أولًا؛ إذا رجع أكثر من نتيجة لا تخمّن، اسأل رامي أيهم يقصد.
 تسجيل الملاحظات والتأخير والتذكيرات لا يحتاج تكرار تأكيد؛ نفّذها مباشرة بعد اكتمال الاسم والتاريخ والتفصيل. الإجازة فقط تحتاج تأكيدًا واحدًا: كرر الاسم والتاريخ مرة واحدة، وبعد أي موافقة طبيعية مثل نعم أو تمام أو أوكي أو أبشر أو اعتمد نفّذ الحفظ ولا تطلب تأكيدًا ثانيًا. افحص تداخل الإجازة والرصيد قبل الحفظ. إذا طلب رامي إرسال واتساب لموظف، استخدم أداة open_whatsapp مع الموظف ونص الرسالة، واعرض الاسم والرقم والنص واطلب تأكيدًا واحدًا؛ بعد الموافقة ستفتح الصفحة واتساب بالنص الجاهز، ولا تقل إن الرسالة أُرسلت لأن رامي هو من يضغط إرسال داخل واتساب. لا تقل «تم الحفظ» إلا إذا أعادت الأداة ok:true.
 تاريخ اليوم ${todayISO()}.`;
 }
 function aiRealtimeTools(){return [
-  {type:'function',name:'get_security_procedure',description:'البحث في المرجع المعتمد عن الإجراء الأمني لحالة مثل فقدان بطاقة أو تصوير غير مصرح أو حادث مروري.',parameters:{type:'object',properties:{query:{type:'string',description:'وصف الحالة أو اسمها'}},required:['query']}},
   {type:'function',name:'find_employee',description:'ابحث عن موظف بالاسم أو رقمه لتحديد هويته أو جلب رقم جواله أو رصيده أو شفته.',parameters:{type:'object',properties:{query:{type:'string'}},required:['query']}},
   {type:'function',name:'get_employee_leaves',description:'إجازات موظف محدد (سابقة وحالية وقادمة).',parameters:{type:'object',properties:{employee_id:{type:'string'},employee_name:{type:'string'}}}},
   {type:'function',name:'get_leaves_in_range',description:'كل الإجازات المتقاطعة مع نطاق تاريخ معيّن، مثل شهر كامل.',parameters:{type:'object',properties:{start:{type:'string',description:'YYYY-MM-DD'},end:{type:'string',description:'YYYY-MM-DD'}},required:['start','end']}},
@@ -3770,7 +3730,6 @@ function aiBalanceThreshold(raw){
 }
 function aiVerifiedReadReply(raw){
   const q=aiNormalize(raw),year=aiRequestedYear(raw),snapshot=aiDashboardSnapshot(year);
-  const securityReply=aiSecurityProcedureReply(raw);if(securityReply)return securityReply;
   const threshold=aiBalanceThreshold(raw);
   if(threshold!==null){
     const rows=state.employees.filter(e=>(Number(e.leaveBalance)||0)>threshold).sort((a,b)=>Number(b.leaveBalance)-Number(a.leaveBalance));
@@ -3802,10 +3761,6 @@ function aiRealtimeEmployeeBrief(e){
 }
 function aiRealtimeRunReadTool(name,args){
   switch(name){
-    case 'get_security_procedure':{
-      const item=aiSecurityProcedureSearch(args?.query||'');
-      return item?{found:true,id:item.id,title:item.title,procedure:item.action}:{found:false,message:'الحالة غير موجودة في المرجع الأمني المعتمد'};
-    }
     case 'find_employee':{
       const found=aiFindEmployee(args?.query||'');
       if(found.status==='one')return {count:1,employees:[aiRealtimeEmployeeBrief(found.employee)]};
@@ -3871,7 +3826,7 @@ function aiRealtimeRunReadTool(name,args){
       return {error:'أداة غير معروفة'};
   }
 }
-const AI_REALTIME_READ_TOOLS=new Set(['get_security_procedure','find_employee','get_employee_leaves','get_leaves_in_range','list_employees_on_leave_at','get_dashboard_indicators','get_annual_leave_indicators','get_group_shift','get_employee_records','get_employee_achievements','list_personal_notes','get_employee_marine_status','get_employee_location']);
+const AI_REALTIME_READ_TOOLS=new Set(['find_employee','get_employee_leaves','get_leaves_in_range','list_employees_on_leave_at','get_dashboard_indicators','get_annual_leave_indicators','get_group_shift','get_employee_records','get_employee_achievements','list_personal_notes','get_employee_marine_status','get_employee_location']);
 async function aiHandleRealtimeTool(event){
   const callId=event.call_id;if(!callId||aiRealtimeHandledCalls.has(callId))return;aiRealtimeHandledCalls.add(callId);
   let args={};try{args=JSON.parse(event.arguments||'{}')}catch{return aiRealtimeToolResult(callId,{ok:false,error:'البيانات غير مفهومة'})}
@@ -4204,8 +4159,7 @@ function aiContextForAgent(){
     locationHistory:state.locationHistory||{},
     accessGroups:ACCESS_GROUPS.map(g=>({title:g.title,badges:g.badges})),
     groupShiftPeriods,
-    leaveBalanceHistory:Array.isArray(state.leaveBalanceHistory)?state.leaveBalanceHistory:[],
-    securityProcedures:SECURITY_PROCEDURES.map(x=>({id:x.id,title:x.title,aliases:x.aliases,procedure:x.action}))
+    leaveBalanceHistory:Array.isArray(state.leaveBalanceHistory)?state.leaveBalanceHistory:[]
   };
 }
 async function aiAskGroq(message){
