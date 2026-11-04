@@ -198,11 +198,11 @@
       padding:13px 14px;
       gap:11px;
       font-family:"Cairo",-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;
-      background:linear-gradient(145deg,rgba(19,36,58,.96),rgba(12,25,43,.98))!important;
+      background:linear-gradient(145deg,color-mix(in srgb,var(--access-accent) 9%,#fff),#fff)!important;
       color:var(--text)!important;
-      border:1px solid rgba(148,163,184,.16)!important;
+      border:1px solid var(--line)!important;
       border-top-color:color-mix(in srgb,var(--access-accent) 65%,transparent)!important;
-      box-shadow:0 8px 22px rgba(0,0,0,.16)!important;
+      box-shadow:0 6px 18px rgba(16,22,31,.06)!important;
       text-decoration:none;
       filter:none;
     }
@@ -250,7 +250,7 @@
     #accessCards .access-card:hover{
       transform:translateY(-2px);
       border-color:color-mix(in srgb,var(--access-accent) 42%,transparent)!important;
-      box-shadow:0 12px 26px rgba(0,0,0,.23),0 0 0 1px color-mix(in srgb,var(--access-accent) 8%,transparent)!important;
+      box-shadow:0 12px 26px rgba(16,22,31,.10),0 0 0 1px color-mix(in srgb,var(--access-accent) 8%,transparent)!important;
       filter:none;
     }
     @media(max-width:700px){
@@ -323,13 +323,13 @@
     .reminder-head{font-size:11px;font-weight:800;margin-bottom:8px}
     .reminder-body{font-size:11px;color:var(--muted)}
     .reminder-card.amber{background:linear-gradient(135deg,rgba(232,168,60,.14) 0%,var(--card) 75%);border-color:rgba(232,168,60,.35)}
-    .reminder-card.amber .reminder-head{color:#f0c070}
+    .reminder-card.amber .reminder-head{color:#a8670c}
     .reminder-card.blue{background:linear-gradient(135deg,rgba(63,140,243,.14) 0%,var(--card) 75%);border-color:rgba(63,140,243,.35)}
-    .reminder-card.blue .reminder-head{color:#7fb2f7}
+    .reminder-card.blue .reminder-head{color:#2563c9}
     .reminder-card.green{background:linear-gradient(135deg,rgba(47,184,114,.14) 0%,var(--card) 75%);border-color:rgba(47,184,114,.35)}
-    .reminder-card.green .reminder-head{color:#5dd9a0}
+    .reminder-card.green .reminder-head{color:#1a8a55}
     .reminder-card.red{background:linear-gradient(135deg,rgba(224,71,90,.14) 0%,var(--card) 75%);border-color:rgba(224,71,90,.35)}
-    .reminder-card.red .reminder-head{color:#f28a97}
+    .reminder-card.red .reminder-head{color:#c0303f}
     .reminder-item{padding:5px 0;border-top:1px solid rgba(255,255,255,.06)}
     .reminder-item:first-child{border-top:0}
     .reminder-item .rt-name{font-size:12px;font-weight:600;color:var(--text)}
@@ -604,16 +604,16 @@
     .insight-chart-card:nth-child(1){background:linear-gradient(135deg,rgba(232,168,60,.16) 0%,var(--card2) 75%);border-color:rgba(232,168,60,.4)}
     .insight-chart-card:nth-child(2){background:linear-gradient(135deg,rgba(63,140,243,.14) 0%,var(--card2) 75%);border-color:rgba(63,140,243,.35)}
     .insight-chart-card:nth-child(3){background:linear-gradient(135deg,rgba(47,184,114,.16) 0%,var(--card2) 75%);border-color:rgba(47,184,114,.4)}
-    .insight-chart-card:nth-child(1) .insight-copy h3{color:#f0c070}.insight-chart-card:nth-child(2) .insight-copy h3{color:#7fb2f7}.insight-chart-card:nth-child(3) .insight-copy h3{color:#5dd9a0}
+    .insight-chart-card:nth-child(1) .insight-copy h3{color:#a8670c}.insight-chart-card:nth-child(2) .insight-copy h3{color:#2563c9}.insight-chart-card:nth-child(3) .insight-copy h3{color:#1a8a55}
     .metric-card{border:1px solid var(--line);border-radius:16px;background:var(--card2);padding:15px;display:flex;align-items:center;gap:15px}
     .metric-card.success{background:linear-gradient(135deg,rgba(47,184,114,.16) 0%,var(--card2) 75%);border-color:rgba(47,184,114,.4)}
-    .metric-card.success .insight-copy h3{color:#5dd9a0}
+    .metric-card.success .insight-copy h3{color:#1a8a55}
     .metric-card.warning{background:linear-gradient(135deg,rgba(232,168,60,.16) 0%,var(--card2) 75%);border-color:rgba(232,168,60,.4)}
-    .metric-card.warning .insight-copy h3{color:#f0c070}
+    .metric-card.warning .insight-copy h3{color:#a8670c}
     .metric-card.danger{background:linear-gradient(135deg,rgba(224,71,90,.16) 0%,var(--card2) 75%);border-color:rgba(224,71,90,.4)}
-    .metric-card.danger .insight-copy h3{color:#f28a97}
+    .metric-card.danger .insight-copy h3{color:#c0303f}
     .metric-card.info{background:linear-gradient(135deg,rgba(63,140,243,.14) 0%,var(--card2) 75%);border-color:rgba(63,140,243,.35)}
-    .metric-card.info .insight-copy h3{color:#7fb2f7}
+    .metric-card.info .insight-copy h3{color:#2563c9}
     .insight-donut{--pct:0;--color:#315fe7;width:92px;height:92px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--color) calc(var(--pct)*1%),var(--line) 0);position:relative}
     .insight-donut::before{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--card2)}
     .insight-donut strong{position:relative;z-index:1;font-size:19px;color:var(--text)}
