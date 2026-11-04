@@ -3456,12 +3456,92 @@ function lpWhatsApp(id){
   const url=phone?`https://wa.me/${phone}?text=${encodeURIComponent(lpMessage(r))}`:`https://wa.me/?text=${encodeURIComponent(lpMessage(r))}`;
   const opened=window.open(url,'_blank');if(!opened)window.location.href=url;
 }
+/* ===== Minimal styled XLSX writer (no external library) ===== */
+const LPX_CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function lpxCrc(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=LPX_CRC[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function lpxZip(files){
+  const enc=new TextEncoder(),parts=[],central=[];let offset=0;
+  const u16=n=>[n&255,(n>>>8)&255],u32=n=>[n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255];
+  files.forEach(f=>{
+    const name=enc.encode(f.name),data=enc.encode(f.data),crc=lpxCrc(data);
+    const head=new Uint8Array([...u32(0x04034b50),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0)]);
+    parts.push(head,name,data);
+    central.push(new Uint8Array([...u32(0x02014b50),...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset)]),name);
+    offset+=head.length+name.length+data.length;
+  });
+  const cdSize=central.reduce((s,p)=>s+p.length,0);
+  const end=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSize),...u32(offset),...u16(0)]);
+  return new Blob([...parts,...central,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+const LPX_STYLE={default:0,title:1,sub:2,head:3,body:4,bodyC:5,zebra:6,zebraC:7,approved:8,submitted:9,rejected:10,none:11,assigned:12,wrap:13,full:14,near:15,ok:16,zebraWrap:17,num:18};
+function lpxStyles(){
+  const font=(sz,color,b)=>`<font>${b?'<b/>':''}<sz val="${sz}"/><color rgb="FF${color}"/><name val="Arial"/></font>`;
+  const fonts=[font(11,'1A2233'),font(16,'FFFFFF',1),font(10,'5D6B80'),font(11,'FFFFFF',1),font(11,'1F7A4D',1),font(11,'8F5C14',1),font(11,'B3263A',1),font(11,'5D6B80'),font(11,'FFFFFF',1),font(11,'1A2233',1)];
+  const fill=c=>`<fill><patternFill patternType="solid"><fgColor rgb="FF${c}"/><bgColor indexed="64"/></patternFill></fill>`;
+  const fills=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>',fill('14284B'),fill('EEF2F8'),fill('1F3C6E'),fill('F7F9FC'),fill('E3F4EA'),fill('FCEFD9'),fill('FBE4E7'),fill('EEF0F3'),fill('F0A020')];
+  const side='<left style="thin"><color rgb="FFD9DFE8"/></left><right style="thin"><color rgb="FFD9DFE8"/></right><top style="thin"><color rgb="FFD9DFE8"/></top><bottom style="thin"><color rgb="FFD9DFE8"/></bottom>';
+  const borders=['<border><left/><right/><top/><bottom/><diagonal/></border>',`<border>${side}<diagonal/></border>`];
+  const xf=(f,fi,b,h,wrap)=>`<xf numFmtId="0" fontId="${f}" fillId="${fi}" borderId="${b}" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${h}" vertical="center" readingOrder="2"${h==='right'?' indent="1"':''}${wrap?' wrapText="1"':''}/></xf>`;
+  const xfs=[xf(0,0,0,'general'),xf(1,2,0,'center'),xf(2,3,0,'center'),xf(3,4,1,'center',1),xf(0,0,1,'right'),xf(0,0,1,'center'),xf(0,5,1,'right'),xf(0,5,1,'center'),
+    xf(4,6,1,'center'),xf(5,7,1,'center'),xf(6,8,1,'center'),xf(7,9,1,'center'),xf(8,10,1,'center'),xf(0,0,1,'right',1),xf(6,8,1,'center'),xf(5,7,1,'center'),xf(4,6,1,'center'),xf(0,5,1,'right',1),xf(9,0,1,'center')];
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="${fonts.length}">${fonts.join('')}</fonts><fills count="${fills.length}">${fills.join('')}</fills><borders count="${borders.length}">${borders.join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+}
+function lpxCol(i){let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s}
+function lpxXml(v){return String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'')}
+/* sheet: {name, cols:[widths], rows:[{height, cells:[{v, s}]}], merges:['A1:J1'], freeze:rowNumber, filter:'A3:J10'} */
+function lpxSheet(sh){
+  const rows=sh.rows.map((r,ri)=>{
+    const cells=r.cells.map((c,ci)=>{
+      if(c==null)return '';const ref=lpxCol(ci)+(ri+1),s=LPX_STYLE[c.s||'default']||0;
+      if(c.v===''||c.v==null)return `<c r="${ref}" s="${s}"/>`;
+      if(typeof c.v==='number')return `<c r="${ref}" s="${s}"><v>${c.v}</v></c>`;
+      return `<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${lpxXml(c.v)}</t></is></c>`;
+    }).join('');
+    return `<row r="${ri+1}"${r.height?` ht="${r.height}" customHeight="1"`:''}>${cells}</row>`;
+  }).join('');
+  const pane=sh.freeze?`<pane ySplit="${sh.freeze}" topLeftCell="A${sh.freeze+1}" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A${sh.freeze+1}" sqref="A${sh.freeze+1}"/>`:'';
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0" rightToLeft="1" showGridLines="0">${pane}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="20"/><cols>${sh.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${rows}</sheetData>${sh.filter?`<autoFilter ref="${sh.filter}"/>`:''}${sh.merges?.length?`<mergeCells count="${sh.merges.length}">${sh.merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup orientation="landscape" paperSize="9" fitToWidth="1" fitToHeight="0"/></worksheet>`;
+}
+function lpxWorkbook(sheets){
+  const files=[
+    {name:'[Content_Types].xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`},
+    {name:'_rels/.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+    {name:'xl/workbook.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets>${sheets.map((s,i)=>`<sheet name="${lpxXml(s.name).slice(0,31)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets><definedNames>${sheets.map((s,i)=>s.filter?`<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">'${lpxXml(s.name).slice(0,31)}'!$${s.filter.split(':')[0].replace(/(\d+)/,'$$$1')}:$${s.filter.split(':')[1].replace(/(\d+)/,'$$$1')}</definedName>`:'').join('')}</definedNames></workbook>`},
+    {name:'xl/_rels/workbook.xml.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+    {name:'xl/styles.xml',data:lpxStyles()},
+    ...sheets.map((s,i)=>({name:`xl/worksheets/sheet${i+1}.xml`,data:lpxSheet(s)}))
+  ];
+  return lpxZip(files);
+}
+function lpxDownload(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000)}
 function lpExport(){
   const rows=lpRows();if(!rows.length){alert('لا يوجد بيانات');return}
-  const m=x=>x?`${LP_MONTHS_EN[x-1]} / ${LP_MONTHS_AR[x-1]}`:'';
-  downloadCsv(`Group_A_Annual_Leave_Plan_${lpState.year}.csv`,
-    ['Employee Name / اسم الموظف','Badge Number / رقم الباج','Status / الحالة','1st Choice / الخيار الأول','2nd Choice / الخيار الثاني','3rd Choice / الخيار الثالث','Assigned Month / الشهر المحجوز','Note / ملاحظة','Submitted / تاريخ الإرسال'],
-    rows.map(r=>{const p=r.plan;return [r.name,r.badge,LP_STATUS[p?.status||'none'][0],m(p?.choice1),m(p?.choice2),m(p?.choice3),p&&p.status!=='rejected'?m(p.assigned_month):'',p?.admin_note||'',p?.submitted_at?String(p.submitted_at).slice(0,10):'']}));
+  const year=lpState.year,max=lpMax(),m=x=>x?`${LP_MONTHS_AR[x-1]} · ${LP_MONTHS_EN[x-1].slice(0,3)}`:'';
+  const sent=rows.filter(r=>r.plan).length,today=new Date();
+  const dstr=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
+  const head=['#','اسم الموظف','رقم الباج','الحالة','الخيار الأول','الخيار الثاني','الخيار الثالث','الشهر المعتمد','ملاحظة','تاريخ الإرسال'];
+  const statusStyle={approved:'approved',submitted:'submitted',rejected:'rejected',none:'none'};
+  const order={approved:0,submitted:1,rejected:2,none:3};
+  const sorted=[...rows].sort((a,b)=>(order[a.plan?.status||'none']-order[b.plan?.status||'none'])||(a.plan&&b.plan?a.plan.assigned_month-b.plan.assigned_month:0)||String(a.name).localeCompare(String(b.name),'ar'));
+  const body=sorted.map((r,i)=>{
+    const p=r.plan,st=p?.status||'none',z=i%2===1,b=z?'zebra':'body',bc=z?'zebraC':'bodyC';
+    const ch=k=>({v:p?m(p[k]):'—',s:p&&p.status!=='rejected'&&p.assigned_month===p[k]?'assigned':bc});
+    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:LP_STATUS[st][0],s:statusStyle[st]},ch('choice1'),ch('choice2'),ch('choice3'),
+      {v:p&&p.status!=='rejected'?m(p.assigned_month):'—',s:p&&p.status==='approved'?'approved':bc},{v:p?.admin_note||'',s:z?'zebraWrap':'wrap'},{v:p?.submitted_at?String(p.submitted_at).slice(0,10):'—',s:bc}]};
+  });
+  const last=3+body.length;
+  const sheet1={name:`خطة الإجازة ${year}`,cols:[5,30,13,18,16,16,16,18,28,15],freeze:3,filter:`A3:J${last}`,merges:['A1:J1','A2:J2'],
+    rows:[{height:34,cells:[{v:`خطة الإجازة السنوية ${year} · Group A`,s:'title'},...Array(9).fill({v:'',s:'title'})]},
+      {height:22,cells:[{v:`تاريخ التصدير ${dstr}   ·   سلّموا ${sent} من ${rows.length}   ·   الحد في الشهر ${max}   ·   الخانة البرتقالية = الشهر المحجوز`,s:'sub'},...Array(9).fill({v:'',s:'sub'})]},
+      {height:26,cells:head.map(v=>({v,s:'head'}))},...body]};
+  const byMonth=Array.from({length:12},()=>[]);
+  rows.forEach(r=>{if(r.plan&&r.plan.status!=='rejected')byMonth[r.plan.assigned_month-1].push(r.name+(r.plan.status==='approved'?' ✓':''))});
+  const mrows=byMonth.map((names,i)=>{const n=names.length,z=i%2===1;return {height:Math.max(22,16*Math.ceil(Math.max(1,names.length)/2)),cells:[{v:`${LP_MONTHS_AR[i]} · ${LP_MONTHS_EN[i]}`,s:z?'zebra':'body'},{v:n,s:n>=max?'full':n>=max-1?'near':'ok'},{v:max,s:z?'zebraC':'bodyC'},{v:Math.max(0,max-n),s:z?'zebraC':'bodyC'},{v:names.join('، '),s:z?'zebraWrap':'wrap'}]}});
+  const sheet2={name:'ملخص الأشهر',cols:[22,12,10,10,70],freeze:3,merges:['A1:E1','A2:E2'],
+    rows:[{height:34,cells:[{v:`توزيع الإجازات على الأشهر ${year}`,s:'title'},...Array(4).fill({v:'',s:'title'})]},
+      {height:22,cells:[{v:'أخضر = متاح · أصفر = قارب يمتلئ · أحمر = ممتلئ   ·   ✓ = معتمد',s:'sub'},...Array(4).fill({v:'',s:'sub'})]},
+      {height:26,cells:['الشهر','المحجوز','الحد','المتبقي','الموظفين'].map(v=>({v,s:'head'}))},...mrows]};
+  lpxDownload(lpxWorkbook([sheet1,sheet2]),`Group_A_Annual_Leave_Plan_${year}.xlsx`);
 }
 function showView(id,btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
