@@ -100,12 +100,12 @@
     <!-- النموذج -->
     <div id="formCard" class="card hidden">
       <h1>اختر أشهر إجازتك لسنة <span class="yr"></span></h1>
-      <p class="sub">رتّب 3 أشهر حسب رغبتك. الخيار الأول هو اللي يُحجز لك، والثاني والثالث بدائل يستخدمها المشرف عند الحاجة.</p>
+      <p class="sub">رتّب 3 أشهر حسب رغبتك. المشرف يراجع الخطط ويعتمدها، والخيار الثاني والثالث بدائل إذا ما تيسّر الأول.</p>
       <div id="fullNote" class="full-note hidden"><span>ممتلئة كخيار أول:</span></div>
       <div id="formAlert"></div>
 
       <div class="choice first">
-        <label for="c1"><span class="rank">1</span>الخيار الأول<span class="hint">يحجز لك</span></label>
+        <label for="c1"><span class="rank">1</span>الخيار الأول<span class="hint">رغبتك الأساسية</span></label>
         <select id="c1"></select>
       </div>
       <div class="choice">
@@ -131,7 +131,7 @@ const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
 const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
 const MONTHS_AR=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const STATUS={submitted:['بانتظار اعتماد المشرف','st-submitted'],approved:['معتمدة ✓','st-approved'],rejected:['مرفوضة','st-rejected']};
+const STATUS={submitted:['قيد المراجعة والاعتماد','st-submitted'],approved:['معتمدة ✓','st-approved'],rejected:['مرفوضة','st-rejected']};
 const $=id=>document.getElementById(id);
 const token=new URLSearchParams(location.search).get('t')||'';
 let data=null;
@@ -156,7 +156,7 @@ async function load(){
   if(!data?.ok)return fatal('الرابط غير صالح','هذا الرابط غير موجود أو انتهى. تواصل مع المشرف.');
   show('loading',false);show('app');
   $('empName').textContent=data.name;$('empBadge').textContent=data.badge||'—';
-  $('avatar').textContent=(data.name||'?').trim().charAt(0);
+  $('avatar').textContent=((data.name||'').match(/[\p{L}]/u)||['?'])[0];
   document.querySelectorAll('.yr').forEach(e=>e.textContent=data.year);
   render();
 }
@@ -230,7 +230,7 @@ async function submit(){
   if(r.ok){
     data.plan={choice1:c[0],choice2:c[1],choice3:c[2],assigned_month:c[0],status:'submitted',admin_note:''};
     renderView(data.plan);
-    alertBox('viewAlert','green','تم استلام خطتك ✓ وحجزنا لك خيارك الأول.');
+    alertBox('viewAlert','green','تم استلام خطتك ✓ وهي الحين قيد المراجعة والاعتماد.');
     window.scrollTo({top:0,behavior:'smooth'});
     return;
   }

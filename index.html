@@ -3325,7 +3325,7 @@ function renderAll(){
 /* ===== Annual leave plan (admin) — employees pick 3 months via personal links ===== */
 const LP_MONTHS_AR=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const LP_MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const LP_STATUS={none:['لم يسلّم','b-neutral'],submitted:['بانتظار الاعتماد','b-yellow'],approved:['معتمدة','b-green'],rejected:['مرفوضة','b-red']};
+const LP_STATUS={none:['لم يسلّم','b-neutral'],submitted:['قيد المراجعة','b-yellow'],approved:['معتمدة','b-green'],rejected:['مرفوضة','b-red']};
 let lpState={year:null,settings:null,links:[],plans:[],filter:'all',loaded:false};
 function lpEl(id){return document.getElementById(id)}
 function lpDefaultYear(){const d=new Date();return d.getMonth()>=9?d.getFullYear()+1:d.getFullYear()}
@@ -3438,7 +3438,7 @@ async function lpApproveAll(){
     lpState.plans.forEach(p=>{if(p.status==='submitted'){p.status='approved';p.admin_note=''}});lpRender();lpStatusMsg(`تم اعتماد ${n} خطة ✓`);
   }catch(e){lpStatusMsg(lpFriendlyError(e),true)}
 }
-function lpMessage(r){return `السلام عليكم ${r.name}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والخيار الأول يُحجز لأول من يرسل.\n${lpLinkUrl(r.link.token)}\nالرابط خاص فيك، لا تشاركه.`}
+function lpMessage(r){return `السلام عليكم ${r.name}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والمشرف يراجع الخطط ويعتمدها.\n${lpLinkUrl(r.link.token)}\nالرابط خاص فيك، لا تشاركه.`}
 async function lpCopyText(text,okMsg){
   try{await navigator.clipboard.writeText(text);lpStatusMsg(okMsg)}
   catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');lpStatusMsg(okMsg)}catch{prompt('انسخ النص:',text)}ta.remove()}
@@ -3447,7 +3447,7 @@ function lpCopyOne(id){const r=lpRows().find(x=>x.id===id);if(r?.link)lpCopyText
 function lpCopyLinks(all){
   const rows=lpRows().filter(r=>r.link&&(all||!r.plan));
   if(!rows.length){alert(all?'جهّز الروابط أولًا':'كل الموظفين سلّموا خططهم ✓');return}
-  const text=`روابط خطة الإجازة السنوية ${lpState.year}\nكل موظف يفتح رابطه ويختار 3 أشهر بالترتيب. الخيار الأول يُحجز لأول من يرسل.\n\n`+rows.map(r=>`${r.name} (${r.badge}):\n${lpLinkUrl(r.link.token)}`).join('\n\n');
+  const text=`روابط خطة الإجازة السنوية ${lpState.year}\nكل موظف يفتح رابطه ويختار 3 أشهر بالترتيب. المشرف يراجع الخطط ويعتمدها.\n\n`+rows.map(r=>`${r.name} (${r.badge}):\n${lpLinkUrl(r.link.token)}`).join('\n\n');
   lpCopyText(text,`تم نسخ ${rows.length} رابط ✓`);
 }
 function lpWhatsApp(id){
