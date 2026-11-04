@@ -3527,20 +3527,21 @@ function lpExport(){
     const p=r.plan,st=p?.status||'none',z=i%2===1,b=z?'zebra':'body',bc=z?'zebraC':'bodyC';
     const ch=k=>({v:p?m(p[k]):'—',s:p&&p.status!=='rejected'&&p.assigned_month===p[k]?'assigned':bc});
     return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:LP_STATUS[st][0],s:statusStyle[st]},ch('choice1'),ch('choice2'),ch('choice3'),
-      {v:p&&p.status!=='rejected'?m(p.assigned_month):'—',s:p&&p.status==='approved'?'approved':bc},{v:p?.admin_note||'',s:z?'zebraWrap':'wrap'},{v:p?.submitted_at?String(p.submitted_at).slice(0,10):'—',s:bc}]};
+      {v:p&&p.status==='approved'?m(p.assigned_month):p&&p.status==='submitted'?'لم يُعتمد بعد':'—',s:p&&p.status==='approved'?'approved':bc},{v:p?.admin_note||'',s:z?'zebraWrap':'wrap'},{v:p?.submitted_at?String(p.submitted_at).slice(0,10):'—',s:bc}]};
   });
   const last=3+body.length;
   const sheet1={name:`خطة الإجازة ${year}`,cols:[5,30,13,18,16,16,16,18,28,15],freeze:3,filter:`A3:J${last}`,merges:['A1:J1','A2:J2'],
     rows:[{height:34,cells:[{v:`خطة الإجازة السنوية ${year} · Group A`,s:'title'},...Array(9).fill({v:'',s:'title'})]},
-      {height:22,cells:[{v:`تاريخ التصدير ${dstr}   ·   سلّموا ${sent} من ${rows.length}   ·   الحد في الشهر ${max}   ·   الخانة البرتقالية = الشهر المحجوز`,s:'sub'},...Array(9).fill({v:'',s:'sub'})]},
+      {height:22,cells:[{v:`تاريخ التصدير ${dstr}   ·   سلّموا ${sent} من ${rows.length}   ·   الحد في الشهر ${max}   ·   البرتقالي = الشهر المرشّح له، ويصير معتمد بعد اعتماد المشرف`,s:'sub'},...Array(9).fill({v:'',s:'sub'})]},
       {height:26,cells:head.map(v=>({v,s:'head'}))},...body]};
   const byMonth=Array.from({length:12},()=>[]);
-  rows.forEach(r=>{if(r.plan&&r.plan.status!=='rejected')byMonth[r.plan.assigned_month-1].push(r.name+(r.plan.status==='approved'?' ✓':''))});
-  const mrows=byMonth.map((names,i)=>{const n=names.length,z=i%2===1;return {height:Math.max(22,16*Math.ceil(Math.max(1,names.length)/2)),cells:[{v:`${LP_MONTHS_AR[i]} · ${LP_MONTHS_EN[i]}`,s:z?'zebra':'body'},{v:n,s:n>=max?'full':n>=max-1?'near':'ok'},{v:max,s:z?'zebraC':'bodyC'},{v:Math.max(0,max-n),s:z?'zebraC':'bodyC'},{v:names.join('، '),s:z?'zebraWrap':'wrap'}]}});
-  const sheet2={name:'ملخص الأشهر',cols:[22,12,10,10,70],freeze:3,merges:['A1:E1','A2:E2'],
-    rows:[{height:34,cells:[{v:`توزيع الإجازات على الأشهر ${year}`,s:'title'},...Array(4).fill({v:'',s:'title'})]},
-      {height:22,cells:[{v:'أخضر = متاح · أصفر = قارب يمتلئ · أحمر = ممتلئ   ·   ✓ = معتمد',s:'sub'},...Array(4).fill({v:'',s:'sub'})]},
-      {height:26,cells:['الشهر','المحجوز','الحد','المتبقي','الموظفين'].map(v=>({v,s:'head'}))},...mrows]};
+  const apprBy=Array(12).fill(0),pendBy=Array(12).fill(0);
+  rows.forEach(r=>{if(r.plan&&r.plan.status!=='rejected'){const k=r.plan.assigned_month-1;byMonth[k].push(r.name+(r.plan.status==='approved'?' ✓':''));if(r.plan.status==='approved')apprBy[k]++;else pendBy[k]++}});
+  const mrows=byMonth.map((names,i)=>{const n=names.length,z=i%2===1;return {height:Math.max(22,16*Math.ceil(Math.max(1,names.length)/2)),cells:[{v:`${LP_MONTHS_AR[i]} · ${LP_MONTHS_EN[i]}`,s:z?'zebra':'body'},{v:apprBy[i],s:z?'zebraC':'bodyC'},{v:pendBy[i],s:z?'zebraC':'bodyC'},{v:n,s:n>=max?'full':n>=max-1?'near':'ok'},{v:max,s:z?'zebraC':'bodyC'},{v:Math.max(0,max-n),s:z?'zebraC':'bodyC'},{v:names.join('، '),s:z?'zebraWrap':'wrap'}]}});
+  const sheet2={name:'ملخص الأشهر',cols:[22,11,13,11,9,10,62],freeze:3,merges:['A1:G1','A2:G2'],
+    rows:[{height:34,cells:[{v:`توزيع الإجازات على الأشهر ${year}`,s:'title'},...Array(6).fill({v:'',s:'title'})]},
+      {height:22,cells:[{v:'المجموع = المعتمد + قيد المراجعة   ·   أخضر متاح · أصفر قارب يمتلئ · أحمر ممتلئ   ·   ✓ = معتمد',s:'sub'},...Array(6).fill({v:'',s:'sub'})]},
+      {height:26,cells:['الشهر','معتمد','قيد المراجعة','المجموع','الحد','المتبقي','الموظفين'].map(v=>({v,s:'head'}))},...mrows]};
   lpxDownload(lpxWorkbook([sheet1,sheet2]),`Group_A_Annual_Leave_Plan_${year}.xlsx`);
 }
 function showView(id,btn){
