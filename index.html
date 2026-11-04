@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#12162a" />
+  <meta name="theme-color" content="#f3f5f9" />
   <title>Shift Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -729,8 +729,8 @@
        والبروز، والباقي مسطّح بحد فاصل رفيع بدل ظل وتدرّج على كل شي.
        ========================================================= */
     :root{
-      --bg:#0c121c;--card:#141c29;--card2:#182233;--ink:#0a0f17;
-      --text:#eef1f6;--muted:#93a0b3;--line:#232e40;
+      --bg:#f3f5f9;--card:#ffffff;--card2:#f6f8fb;--ink:#0a0f17;
+      --text:#1a2233;--muted:#5d6b80;--line:#e2e7ef;
       --primary:#f0a020;--primary2:#c77d22;
       --green:#2fb872;--yellow:#e8a83c;--red:#e0475a;--blue:#3f8cf3;
       --shadow:0 10px 26px rgba(16,22,31,.08);--shadow-lg:0 20px 44px rgba(12,18,30,.22);
@@ -742,12 +742,12 @@
     .stat .num,.dashboard-shift-code,.marine-row .marine-date,.report-summary strong,.roster-summary strong{font-family:var(--mono)!important;font-variant-numeric:tabular-nums}
 
     /* الشريط العلوي — لون واحد ثابت (ink)، بدون فقاعة توهج متكررة */
-    .topbar{background:var(--ink)!important;border:0!important;border-radius:0 0 20px 20px!important;box-shadow:0 12px 26px rgba(16,22,31,.18)!important;position:sticky!important;overflow:visible!important}
+    .topbar{background:var(--card)!important;border:1px solid var(--line)!important;border-top:0!important;border-radius:0 0 20px 20px!important;box-shadow:0 8px 22px rgba(16,22,31,.06)!important;position:sticky!important;overflow:visible!important}
     .topbar::after{display:none!important}
-    .title h1{color:#fff!important}.title p{color:#9aa5b6!important}
+    .title h1{color:var(--text)!important}.title p{color:var(--muted)!important}
     .brand-mark,.auth-logo{background:var(--ink)!important;border:1px solid rgba(255,255,255,.16)!important;box-shadow:none!important;color:#5fd6d2!important}
     .iconbtn{box-shadow:none!important}
-    .iconbtn:hover{background:rgba(255,255,255,.14)!important;border-color:rgba(255,255,255,.22)!important;transform:translateY(-1px)}
+    .iconbtn:hover{background:#eaeef4!important;border-color:#d3dae4!important;transform:translateY(-1px)}
 
     /* الإدخالات */
     .global-search input{box-shadow:none!important}
@@ -760,11 +760,11 @@
     .stat:hover{border-color:#c7d0da!important;transform:none!important}
     .stat:nth-child(1){background:var(--card2)!important}
     .stat:nth-child(2){background:linear-gradient(135deg,rgba(47,184,114,.16) 0%,var(--card) 75%)!important;border-color:rgba(47,184,114,.4)!important}
-    .stat:nth-child(2) .num{color:#5dd9a0!important}
+    .stat:nth-child(2) .num{color:#1f9a5e!important}
     .stat:nth-child(3){background:linear-gradient(135deg,rgba(139,124,246,.16) 0%,var(--card) 75%)!important;border-color:rgba(139,124,246,.4)!important}
-    .stat:nth-child(3) .num{color:#b3a8f9!important}
+    .stat:nth-child(3) .num{color:#6a5bd8!important}
     .stat:nth-child(4){background:linear-gradient(135deg,rgba(224,71,90,.16) 0%,var(--card) 75%)!important;border-color:rgba(224,71,90,.4)!important}
-    .stat:nth-child(4) .num{color:#f28a97!important}
+    .stat:nth-child(4) .num{color:#c93448!important}
     .stat .num,.stat .label{color:var(--text)!important}.stat .label{opacity:1;color:var(--muted)!important}
     .stat::after{display:none!important}
     .stat-icon,.stat:nth-child(1) .stat-icon,.stat:nth-child(2) .stat-icon,.stat:nth-child(3) .stat-icon,.stat:nth-child(4) .stat-icon{
@@ -818,8 +818,8 @@
     .whatsapp-btn{background:#25d366!important;border-color:#1fb858!important}
 
     /* التنقل السفلي + الزر العائم */
-    .bottom-nav{background:var(--ink)!important;border-color:rgba(255,255,255,.08)!important;box-shadow:0 12px 28px rgba(16,22,31,.24)!important}
-    .navbtn{color:#8f9aac!important}
+    .bottom-nav{background:var(--card)!important;border-color:var(--line)!important;box-shadow:0 12px 28px rgba(16,22,31,.10)!important}
+    .navbtn{color:var(--muted)!important}
     .navbtn.active{background:var(--primary)!important;color:#fff!important;box-shadow:none!important}
     .fab{background:var(--primary)!important;color:#fff!important;box-shadow:0 14px 28px rgba(15,139,140,.3)!important;border-radius:16px!important}
 
@@ -836,7 +836,7 @@
     #employeesList .leave-table{width:100%!important;table-layout:auto!important}
     #employeesList .leave-table th{background:var(--card2)!important;color:var(--muted)!important}
     #employeesList .leave-table td{background:transparent!important;color:var(--text)!important}
-    #employeesList .leave-table tr:hover td{background:rgba(255,255,255,.03)!important}
+    #employeesList .leave-table tr:hover td{background:rgba(15,23,42,.035)!important}
     .leave-table th,.calendar-weekday,.monthly-roster-table th{background:var(--card2)!important;color:var(--muted)!important}
     .leave-table td,.calendar-day,.monthly-roster-table td{color:var(--text)!important}
     .leave-table td{background:transparent!important}
@@ -854,6 +854,7 @@
     .schedule-day{background:transparent!important;border-color:var(--line)!important}
     .marine-row{background:var(--card2)!important;border-color:var(--line)!important}
     .report-choice{background:var(--card2)!important;color:var(--text)!important;border-color:var(--line)!important}
+    .report-choice.active small{color:var(--muted)!important}
     .shift-date-day{background:var(--card2)!important;color:var(--text)!important}
     .navbtn span{background:var(--card2)!important}
     .roster-check{background:var(--card2)!important;border-color:var(--line)!important}
@@ -887,9 +888,9 @@
     #leaveList .row.leave-ended,#employeeLeavesList .row.leave-ended{background:linear-gradient(90deg,rgba(224,71,90,.18),rgba(224,71,90,.06))!important;border-color:rgba(224,71,90,.52)!important;box-shadow:inset -4px 0 #e0475a!important}
     #leaveList .row.leave-upcoming,#employeeLeavesList .row.leave-upcoming{background:linear-gradient(90deg,rgba(232,168,60,.20),rgba(232,168,60,.06))!important;border-color:rgba(232,168,60,.55)!important;box-shadow:inset -4px 0 #e8a83c!important}
     #leaveList .row.leave-active,#employeeLeavesList .row.leave-active{background:linear-gradient(90deg,rgba(47,184,114,.20),rgba(47,184,114,.06))!important;border-color:rgba(47,184,114,.55)!important;box-shadow:inset -4px 0 #2fb872!important}
-    .badge.leave-ended{background:#f8ebec!important;color:#f28a97!important;border-color:rgba(224,71,90,.55)!important}
-    .badge.leave-upcoming{background:#faf1e2!important;color:#f2c56f!important;border-color:rgba(232,168,60,.55)!important}
-    .badge.leave-active{background:#eaf5f0!important;color:#5dd9a0!important;border-color:rgba(47,184,114,.55)!important}
+    .badge.leave-ended{background:#f8ebec!important;color:#b3263a!important;border-color:rgba(224,71,90,.55)!important}
+    .badge.leave-upcoming{background:#faf1e2!important;color:#9a6a10!important;border-color:rgba(232,168,60,.55)!important}
+    .badge.leave-active{background:#eaf5f0!important;color:#1f7a4d!important;border-color:rgba(47,184,114,.55)!important}
 
     /* Smart assistant */
     .ai-fab{position:fixed;bottom:88px;left:calc(50% - 140px);transform:translateX(-50%);width:54px;height:54px;border:0;border-radius:18px;background:linear-gradient(135deg,#6d5bf7,#0ea5b7);color:#fff;font-size:23px;box-shadow:0 16px 32px rgba(79,70,229,.34);cursor:pointer;z-index:36}
