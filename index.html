@@ -921,6 +921,37 @@
     .accident-actions{position:sticky;bottom:8px;z-index:3;display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding:10px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:15px;backdrop-filter:blur(12px)}
     @media(max-width:900px){.accident-layout{grid-template-columns:1fr}.accident-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.accident-records-panel{order:2}.signature-grid{grid-template-columns:1fr}.sketch-canvas{height:360px}}
     @media(max-width:520px){.accident-grid,.accident-grid.two{grid-template-columns:1fr}.accident-field.wide{grid-column:auto}.sketch-toolbar{overflow-x:auto;flex-wrap:nowrap}.sketch-toolbar button,.sketch-toolbar select{white-space:nowrap}.signature-canvas{height:150px}}
+    /* Annual leave plan (admin) */
+    .lp-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+    .lp-controls label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:800;color:var(--muted)}
+    .lp-controls input[type=number]{width:110px}
+    .lp-controls .lp-check{flex-direction:row;align-items:center;gap:6px;font-size:12px;color:var(--text);padding-bottom:10px}
+    .lp-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+    .lp-stat{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+    .lp-stat b{display:block;font-size:20px;font-family:var(--mono)!important}.lp-stat span{font-size:11px;color:var(--muted)}
+    .lp-months{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:6px 0 12px}
+    .lp-month{border:1px solid var(--line);border-radius:10px;padding:7px 6px;background:var(--card);text-align:center;font-size:11px}
+    .lp-month b{display:block;font-size:12px}.lp-month .bar{height:5px;border-radius:9px;background:var(--line);margin-top:5px;overflow:hidden}
+    .lp-month .bar i{display:block;height:100%;background:var(--green)}
+    .lp-month.full{border-color:#e9c9cb;background:#fbf1f2}.lp-month.full .bar i{background:var(--red)}
+    .lp-month.near .bar i{background:var(--yellow)}
+    .lp-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+    .lp-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+    .lp-filter button{padding:6px 12px;font-size:11px;border-radius:999px!important}
+    .lp-filter button.on{background:var(--ink)!important;color:#fff!important;border-color:var(--ink)!important}
+    #lpList{display:flex!important;flex-direction:column;gap:8px;grid-template-columns:none!important}
+    #lpList .lp-row{padding:10px 12px!important;min-height:0!important;height:auto!important;overflow:visible!important}
+    .lp-who b{display:block;line-height:1.5;white-space:normal;font-size:14px;font-weight:800;color:var(--text)}
+    .lp-who small{line-height:1.4}.lp-who>small:last-child{display:block;margin-top:3px}
+    .lp-row{display:grid!important;grid-template-columns:minmax(0,1.3fr) minmax(0,1.6fr) auto;gap:10px;align-items:center}
+    .lp-row .lp-who small{display:block;color:var(--muted);font-size:11px}
+    .lp-choices{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+    .lp-chip{border:1px solid var(--line);border-radius:999px;padding:2px 9px;font-size:11px;background:var(--card);cursor:pointer;white-space:nowrap}
+    .lp-chip.assigned{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:800}
+    .lp-chip .n{opacity:.7;margin-left:3px}
+    .lp-row-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+    .lp-row-actions button{padding:6px 9px;font-size:11px}
+    @media(max-width:700px){.lp-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.lp-months{grid-template-columns:repeat(4,minmax(0,1fr))}.lp-row{grid-template-columns:1fr}.lp-row-actions{justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -1156,6 +1187,27 @@
         </div>
         <div class="section-head"><span class="small-note" id="leaveMonthTitle">جميع الإجازات</span><span class="chip" id="leaveMonthCount">0 موظف</span></div>
         <div class="list" id="leaveList"></div>
+      </div>
+      <div class="section lp-section" id="leavePlanSection" style="margin-top:16px">
+        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد</div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">↻ تحديث</button></div>
+        <div class="lp-controls">
+          <label>السنة<input type="number" id="lpYear" min="2025" max="2100" onchange="lpLoad()"></label>
+          <label>الحد في الشهر<input type="number" id="lpMax" min="1" max="60" value="6"></label>
+          <label class="lp-check"><input type="checkbox" id="lpOpen" checked> الاستقبال مفتوح</label>
+          <button class="secondary" onclick="lpSaveSettings()">حفظ الإعدادات</button>
+        </div>
+        <div id="lpStatus" class="small-note" style="margin:8px 0"></div>
+        <div class="lp-stats" id="lpStats"></div>
+        <div class="lp-months" id="lpMonths"></div>
+        <div class="lp-actions">
+          <button class="primary" onclick="lpGenerateLinks()">🔗 تجهيز روابط الموظفين</button>
+          <button class="secondary" onclick="lpCopyLinks(false)">نسخ روابط اللي ما سلّموا</button>
+          <button class="secondary" onclick="lpCopyLinks(true)">نسخ كل الروابط</button>
+          <button class="secondary" onclick="lpApproveAll()">✓ اعتماد كل الخطط المرسلة</button>
+          <button class="secondary" onclick="lpExport()">⬇ Export Excel</button>
+        </div>
+        <div class="lp-filter" id="lpFilter"></div>
+        <div class="list" id="lpList"></div>
       </div>
     </section>
 
@@ -3270,6 +3322,147 @@ function renderAll(){
   renderAccessCards();renderStats(); renderInsightsDashboard(); renderLeaveBalanceInsights(); renderDashboardShift();renderMarineAlert(); renderCurrentLeaveTable(); renderPersonalNotes(); renderUpdates(); renderForms(); renderAccidentReports(); renderAlerts(); renderNotificationBadge(); renderEmployees(); renderLeaves(); renderLeaveCalendar(); renderShiftSchedule(); renderMonthlyRoster(); renderShift(); refreshSelects(); renderShiftPreview(); if(selectedEmployeeId)renderEmployeeProfile();applyRoleUI();
 }
 
+/* ===== Annual leave plan (admin) — employees pick 3 months via personal links ===== */
+const LP_MONTHS_AR=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const LP_MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const LP_STATUS={none:['لم يسلّم','b-neutral'],submitted:['بانتظار الاعتماد','b-yellow'],approved:['معتمدة','b-green'],rejected:['مرفوضة','b-red']};
+let lpState={year:null,settings:null,links:[],plans:[],filter:'all',loaded:false};
+function lpEl(id){return document.getElementById(id)}
+function lpDefaultYear(){const d=new Date();return d.getMonth()>=9?d.getFullYear()+1:d.getFullYear()}
+function lpMax(){return Number(lpState.settings?.max_per_month)||6}
+function lpLinkUrl(token){return new URL('leave-plan.html?t='+token,location.href).href}
+function lpStatusMsg(text,error=false){const el=lpEl('lpStatus');if(!el)return;el.textContent=text||'';el.style.color=error?'var(--red)':''}
+async function lpApi(path,options={}){
+  let res=await supabaseFetch(path,options);
+  if(res.status===401&&await refreshSession())res=await supabaseFetch(path,options);
+  if(!res.ok){let msg='';try{const j=await res.json();msg=j.message||j.hint||''}catch{}throw new Error(msg||('HTTP '+res.status))}
+  if(res.status===204)return null;
+  const text=await res.text();return text?JSON.parse(text):null;
+}
+function lpFriendlyError(e){
+  const m=String(e?.message||'');
+  if(/leave_plan|does not exist|schema cache|relation/i.test(m))return 'جداول خطة الإجازة غير موجودة في قاعدة البيانات. شغّل ملف supabase/annual_leave_plan.sql في Supabase أولًا.';
+  return 'تعذر الاتصال بقاعدة البيانات: '+m;
+}
+function lpInit(){
+  const sec=lpEl('leavePlanSection');if(!sec)return;
+  if(!isAdmin()){sec.style.display='none';return}
+  sec.style.display='';
+  const y=lpEl('lpYear');if(!y.value)y.value=lpDefaultYear();
+  if(!lpState.loaded||lpState.year!==Number(y.value))lpLoad();
+}
+async function lpLoad(){
+  if(!isAdmin())return;
+  const year=Number(lpEl('lpYear').value)||lpDefaultYear();lpEl('lpYear').value=year;
+  lpStatusMsg('جاري التحميل…');
+  try{
+    const [settings,links,plans]=await Promise.all([
+      lpApi(`/rest/v1/leave_plan_settings?year=eq.${year}&select=*`),
+      lpApi(`/rest/v1/leave_plan_links?year=eq.${year}&select=token,employee_id,badge,name`),
+      lpApi(`/rest/v1/leave_plans?year=eq.${year}&select=*`)
+    ]);
+    lpState={...lpState,year,settings:settings?.[0]||null,links:links||[],plans:plans||[],loaded:true};
+    lpEl('lpMax').value=lpMax();lpEl('lpOpen').checked=lpState.settings?lpState.settings.is_open:true;
+    lpStatusMsg(lpState.links.length?'':'ما تم تجهيز روابط لهذه السنة بعد. اضغط «تجهيز روابط الموظفين».');
+    lpRender();
+  }catch(e){lpState.loaded=false;lpStatusMsg(lpFriendlyError(e),true);lpEl('lpList').innerHTML='';lpEl('lpStats').innerHTML='';lpEl('lpMonths').innerHTML=''}
+}
+async function lpSaveSettings(silent=false){
+  const year=Number(lpEl('lpYear').value),max=Math.max(1,Math.min(60,Number(lpEl('lpMax').value)||6)),open=lpEl('lpOpen').checked;
+  try{
+    await lpApi('/rest/v1/leave_plan_settings?on_conflict=year',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({year,max_per_month:max,is_open:open,updated_at:new Date().toISOString()})});
+    lpState.settings={year,max_per_month:max,is_open:open};lpRender();if(!silent)lpStatusMsg('تم حفظ الإعدادات ✓');
+  }catch(e){lpStatusMsg(lpFriendlyError(e),true)}
+}
+async function lpGenerateLinks(){
+  const year=Number(lpEl('lpYear').value);const emps=state.employees||[];
+  if(!emps.length){alert('لا يوجد موظفين');return}
+  if(!confirm(`تجهيز روابط لـ ${emps.length} موظف لسنة ${year}؟\nالروابط الموجودة ما تتغير، وبس تنضاف روابط للموظفين الجدد.`))return;
+  lpStatusMsg('جاري تجهيز الروابط…');
+  try{
+    if(!lpState.settings)await lpSaveSettings(true);
+    const rows=emps.map(e=>({year,employee_id:String(e.id),badge:String(e.empId||''),name:rosterEmployeeName(e)||e.name||''}));
+    await lpApi('/rest/v1/leave_plan_links?on_conflict=year,employee_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(rows)});
+    await lpLoad();lpStatusMsg(`تم تجهيز ${rows.length} رابط ✓ الحين انسخها وأرسلها، أو أرسل لكل موظف من زر واتساب.`);
+  }catch(e){lpStatusMsg(lpFriendlyError(e),true)}
+}
+function lpRows(){
+  const plans=new Map(lpState.plans.map(p=>[String(p.employee_id),p])),links=new Map(lpState.links.map(l=>[String(l.employee_id),l]));
+  const rows=(state.employees||[]).map(e=>{const id=String(e.id);return {id,name:rosterEmployeeName(e)||e.name||links.get(id)?.name||'',badge:String(e.empId||links.get(id)?.badge||''),employee:e,link:links.get(id),plan:plans.get(id)}});
+  lpState.links.forEach(l=>{if(!rows.some(r=>r.id===String(l.employee_id)))rows.push({id:String(l.employee_id),name:l.name,badge:l.badge,employee:null,link:l,plan:plans.get(String(l.employee_id))})});
+  return rows.sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
+}
+function lpMonthCounts(excludeId=''){const c=Array(13).fill(0);lpState.plans.forEach(p=>{if(p.status!=='rejected'&&String(p.employee_id)!==excludeId)c[p.assigned_month]++});return c}
+function lpRender(){
+  const rows=lpRows(),counts=lpMonthCounts(),max=lpMax();
+  const st=k=>rows.filter(r=>(r.plan?.status||'none')===k).length;
+  const sent=rows.filter(r=>r.plan).length;
+  lpEl('lpStats').innerHTML=[[sent,'سلّموا'],[rows.length-sent,'لم يسلّموا'],[st('submitted'),'بانتظار الاعتماد'],[st('approved'),'معتمدة']].map(([n,l])=>`<div class="lp-stat"><b>${n}</b><span>${l}</span></div>`).join('');
+  lpEl('lpMonths').innerHTML=LP_MONTHS_AR.map((m,i)=>{const n=counts[i+1],pct=Math.min(100,Math.round(n/max*100));return `<div class="lp-month ${n>=max?'full':n>=max-1?'near':''}" title="${LP_MONTHS_EN[i]}"><b>${m}</b>${n} / ${max}<div class="bar"><i style="width:${pct}%"></i></div></div>`}).join('');
+  const filters=[['all','الكل',rows.length],['none','لم يسلّم',st('none')],['submitted','بانتظار',st('submitted')],['approved','معتمدة',st('approved')],['rejected','مرفوضة',st('rejected')]];
+  lpEl('lpFilter').innerHTML=filters.map(([k,l,n])=>`<button class="secondary ${lpState.filter===k?'on':''}" onclick="lpState.filter='${k}';lpRender()">${l} (${n})</button>`).join('');
+  const shown=rows.filter(r=>lpState.filter==='all'||(r.plan?.status||'none')===lpState.filter);
+  lpEl('lpList').innerHTML=shown.length?shown.map(lpRowHtml).join(''):`<div class="small-note" style="padding:12px">لا يوجد موظفين في هذا التصنيف</div>`;
+}
+function lpRowHtml(r){
+  const p=r.plan,[label,cls]=LP_STATUS[p?.status||'none'];
+  const choices=p?[p.choice1,p.choice2,p.choice3].map((m,i)=>`<span class="lp-chip ${p.assigned_month===m?'assigned':''}" title="اضغط لتحويل الحجز لهذا الشهر" onclick="lpAssign('${esc(r.id)}',${m})"><span class="n">${i+1}</span>${LP_MONTHS_AR[m-1]}</span>`).join(''):'<span class="small-note">—</span>';
+  const id=esc(r.id),acts=[];
+  if(p?.status==='submitted')acts.push(`<button class="primary" onclick="lpSetStatus('${id}','approved')">اعتماد</button>`,`<button class="danger" onclick="lpReject('${id}')">رفض</button>`);
+  if(p&&p.status!=='submitted')acts.push(`<button class="secondary" onclick="lpSetStatus('${id}','submitted')">إرجاع للانتظار</button>`);
+  if(r.link)acts.push(`<button class="secondary" onclick="lpCopyOne('${id}')">نسخ الرابط</button>`,`<button class="whatsapp-btn" style="color:#fff;border:1px solid;border-radius:12px" onclick="lpWhatsApp('${id}')">واتساب</button>`);
+  const note=p?.admin_note?`<small style="color:var(--red)">${esc(p.admin_note)}</small>`:'';
+  return `<div class="row lp-row"><div class="lp-who"><b>${esc(r.name)}</b><small>رقم الباج ${esc(r.badge)}</small><span class="badge ${cls}" style="display:inline-block;margin-top:5px">${label}</span>${note}</div><div class="lp-choices">${choices}</div><div class="lp-row-actions">${acts.join('')}</div></div>`;
+}
+async function lpPatch(id,patch){
+  await lpApi(`/rest/v1/leave_plans?year=eq.${lpState.year}&employee_id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({...patch,updated_at:new Date().toISOString()})});
+  const p=lpState.plans.find(x=>String(x.employee_id)===id);if(p)Object.assign(p,patch);lpRender();
+}
+async function lpSetStatus(id,status){try{await lpPatch(id,{status,...(status!=='rejected'?{admin_note:''}:{})})}catch(e){alert(lpFriendlyError(e))}}
+async function lpReject(id){
+  const note=prompt('سبب الرفض (يظهر للموظف، اختياري):','');if(note===null)return;
+  try{await lpPatch(id,{status:'rejected',admin_note:note.trim()})}catch(e){alert(lpFriendlyError(e))}
+}
+async function lpAssign(id,month){
+  const p=lpState.plans.find(x=>String(x.employee_id)===id);if(!p||p.assigned_month===month)return;
+  const n=lpMonthCounts(id)[month];
+  if(n>=lpMax()&&!confirm(`شهر ${LP_MONTHS_AR[month-1]} فيه ${n} موظفين (الحد ${lpMax()}). تبغى تحوله له رغم ذلك؟`))return;
+  if(!confirm(`تحويل حجز ${p.name} إلى شهر ${LP_MONTHS_AR[month-1]}؟`))return;
+  try{await lpPatch(id,{assigned_month:month})}catch(e){alert(lpFriendlyError(e))}
+}
+async function lpApproveAll(){
+  const n=lpState.plans.filter(p=>p.status==='submitted').length;if(!n){alert('ما فيه خطط بانتظار الاعتماد');return}
+  if(!confirm(`اعتماد ${n} خطة مرسلة دفعة وحدة؟`))return;
+  try{
+    await lpApi(`/rest/v1/leave_plans?year=eq.${lpState.year}&status=eq.submitted`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({status:'approved',admin_note:'',updated_at:new Date().toISOString()})});
+    lpState.plans.forEach(p=>{if(p.status==='submitted'){p.status='approved';p.admin_note=''}});lpRender();lpStatusMsg(`تم اعتماد ${n} خطة ✓`);
+  }catch(e){lpStatusMsg(lpFriendlyError(e),true)}
+}
+function lpMessage(r){return `السلام عليكم ${r.name}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والخيار الأول يُحجز لأول من يرسل.\n${lpLinkUrl(r.link.token)}\nالرابط خاص فيك، لا تشاركه.`}
+async function lpCopyText(text,okMsg){
+  try{await navigator.clipboard.writeText(text);lpStatusMsg(okMsg)}
+  catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');lpStatusMsg(okMsg)}catch{prompt('انسخ النص:',text)}ta.remove()}
+}
+function lpCopyOne(id){const r=lpRows().find(x=>x.id===id);if(r?.link)lpCopyText(lpMessage(r),`تم نسخ رابط ${r.name} ✓`)}
+function lpCopyLinks(all){
+  const rows=lpRows().filter(r=>r.link&&(all||!r.plan));
+  if(!rows.length){alert(all?'جهّز الروابط أولًا':'كل الموظفين سلّموا خططهم ✓');return}
+  const text=`روابط خطة الإجازة السنوية ${lpState.year}\nكل موظف يفتح رابطه ويختار 3 أشهر بالترتيب. الخيار الأول يُحجز لأول من يرسل.\n\n`+rows.map(r=>`${r.name} (${r.badge}):\n${lpLinkUrl(r.link.token)}`).join('\n\n');
+  lpCopyText(text,`تم نسخ ${rows.length} رابط ✓`);
+}
+function lpWhatsApp(id){
+  const r=lpRows().find(x=>x.id===id);if(!r?.link)return;
+  const phone=normalizeSaudiPhone(r.employee?.phone);
+  const url=phone?`https://wa.me/${phone}?text=${encodeURIComponent(lpMessage(r))}`:`https://wa.me/?text=${encodeURIComponent(lpMessage(r))}`;
+  const opened=window.open(url,'_blank');if(!opened)window.location.href=url;
+}
+function lpExport(){
+  const rows=lpRows();if(!rows.length){alert('لا يوجد بيانات');return}
+  const m=x=>x?`${LP_MONTHS_EN[x-1]} / ${LP_MONTHS_AR[x-1]}`:'';
+  downloadCsv(`Group_A_Annual_Leave_Plan_${lpState.year}.csv`,
+    ['Employee Name / اسم الموظف','Badge Number / رقم الباج','Status / الحالة','1st Choice / الخيار الأول','2nd Choice / الخيار الثاني','3rd Choice / الخيار الثالث','Assigned Month / الشهر المحجوز','Note / ملاحظة','Submitted / تاريخ الإرسال'],
+    rows.map(r=>{const p=r.plan;return [r.name,r.badge,LP_STATUS[p?.status||'none'][0],m(p?.choice1),m(p?.choice2),m(p?.choice3),p&&p.status!=='rejected'?m(p.assigned_month):'',p?.admin_note||'',p?.submitted_at?String(p.submitted_at).slice(0,10):'']}));
+}
 function showView(id,btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -3280,6 +3473,7 @@ function showView(id,btn){
     if(month&&!month.value)month.value=currentMonthValue();if(year&&!year.value)year.value=new Date().getFullYear();refreshSelects();selectReportType('balances');
   }
   if(id==='accidentView')setTimeout(initAccidentCanvases,40);
+  if(id==='leaveView')lpInit();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function openEmployeeModal(id=''){
