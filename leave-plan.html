@@ -318,9 +318,12 @@ function blockLoad(b){let n=0;for(let i=0;i<7;i++)n=Math.max(n,dayLoad(b.start+i
 function capOf(code){return (data.caps&&data.caps[code])||(code==='N'?6:5)}
 function reqOf(p){return {min:p.required_shifts||(p.assigned_month<=3?2:3),max:p.max_shifts||3}}
 function reqText(q){return q.min===q.max?`${q.min} شفتات`:`${q.min===2?'شفتين':q.min+' شفتات'} على الأقل، والحد الأعلى ${q.max}`}
+/* الفترة تشمل أيام الراحة اللي بعد آخر شفت، ويباشر أول يوم في الشفت اللي بعدها */
+function nextWorkDay(t){let d=t+DAY;for(let i=0;i<5&&!blockOf(d);i++)d+=DAY;return d}
 function groupPeriods(starts){
   const out=[];[...starts].sort((a,b)=>a-b).forEach(s=>{const e=s+6*DAY,last=out[out.length-1];
-    if(last&&s-last.end<=4*DAY){last.end=e;last.blocks++}else out.push({start:s,end:e,blocks:1})});
+    if(last&&s-last.blockEnd<=4*DAY){last.blockEnd=e;last.blocks++}else out.push({start:s,blockEnd:e,blocks:1})});
+  out.forEach(g=>{g.end=nextWorkDay(g.blockEnd)-DAY});
   return out;
 }
 function periodsFromServer(p){return (p.periods||[]).map(x=>({start:utc(x.start),end:utc(x.end)}))}
@@ -344,7 +347,7 @@ function renderDates(p){
   show('datesEdit',ds==='submitted'&&!datesEditing);
   if(picking){
     if(!picked.size)picked=blocksFromPeriods(periodsFromServer(p));
-    $('datesRule').innerHTML=`اختر <b>${reqText(req)}</b>. كل شفت 7 أيام، اضغط على أي يوم فيه ويتحدد كله.<br>الشفت الممتلئ (6 مجازين في الليلي، 5 في الصباحي والمسائي) ما يقبل أحد زيادة.<br>تقدر تقسمها لـ <b>فترتين</b> بالحد الأعلى، وأول شفت لازم يبدأ في <b>${MONTHS_AR[p.assigned_month-1]}</b>.`;
+    $('datesRule').innerHTML=`اختر <b>${reqText(req)}</b>. كل شفت 7 أيام، اضغط على أي يوم فيه ويتحدد كله.<br>أيام الراحة اللي بعد آخر شفت تنحسب من الإجازة، وتباشر أول يوم في الشفت اللي بعدها.<br>الشفت الممتلئ (6 مجازين في الليلي، 5 في الصباحي والمسائي) ما يقبل أحد زيادة.<br>تقدر تقسمها لـ <b>فترتين</b> بالحد الأعلى، وأول شفت لازم يبدأ في <b>${MONTHS_AR[p.assigned_month-1]}</b>.`;
     drawCals(p,req);
   }else{
     const list=periodsFromServer(p);
@@ -353,7 +356,7 @@ function renderDates(p){
   $('datesErr').style.display='none';
 }
 function periodLi(x,i,n){const days=Math.round((x.end-x.start)/DAY)+1,blocks=blocksFromPeriods([x]).size;
-  return `<li><b>${n>1?`الفترة ${i===0?'الأولى':'الثانية'}`:'الفترة'} · ${blocks===1?'شفت واحد':blocks===2?'شفتين':blocks+' شفتات'} · ${days} ${days>=3&&days<=10?'أيام':'يوم'}</b>من ${longDate(x.start)} إلى ${longDate(x.end)}</li>`}
+  return `<li><b>${n>1?`الفترة ${i===0?'الأولى':'الثانية'}`:'الفترة'} · ${blocks===1?'شفت واحد':blocks===2?'شفتين':blocks+' شفتات'} · ${days} ${days>=3&&days<=10?'أيام':'يوم'}</b>من ${longDate(x.start)} إلى ${longDate(x.end)}<br><span style="color:var(--green);font-size:13px">يباشر ${longDate(x.end+DAY)} (${(blockOf(x.end+DAY)||{}).ar||''})</span></li>`}
 
 function drawCals(p,req){
   const w=monthWindow(p),months=[[data.year,p.assigned_month-1],[new Date(w.limit).getUTCFullYear(),new Date(w.limit).getUTCMonth()]];

@@ -3440,7 +3440,8 @@ function lpShiftsOfPeriod(x){
     const key=sh.code+shiftPeriodStart(d,sh.code);
     if(cur&&cur.key===key)cur.days++;else{cur={key,code:sh.code,days:1};parts.push(cur)}
   }
-  return parts.map(p=>LP_SHIFT_WORD[p.code]+(p.days<7?` (${p.days} ${p.days<=10&&p.days>=3?'أيام':'يوم'})`:'')).join(' - ');
+  const back=firstWorkDayAfterLeave(x.end);
+  return parts.map(p=>LP_SHIFT_WORD[p.code]+(p.days<7?` (${p.days} ${p.days<=10&&p.days>=3?'أيام':'يوم'})`:'')).join(' - ')+(back?` · يباشر ${lpFmtDay(back.date)} ${LP_SHIFT_WORD[back.code]||''}`:'');
 }
 function lpShiftsText(p,sep=' | '){return (p?.periods||[]).map(lpShiftsOfPeriod).filter(Boolean).join(sep)}
 function lpRowHtml(r){
@@ -3553,7 +3554,7 @@ function lpEditDates(id){
     <div id="lpEdShift" class="small-note" style="margin-bottom:10px"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end"><button class="secondary" onclick="document.getElementById('lpDatesEditor').remove()">إلغاء</button><button class="primary" onclick="lpSaveDates('${esc(id)}')">حفظ</button></div></div>`;
   document.body.appendChild(box);
-  const hint=()=>{const t=[0,1].map(i=>{const s=document.getElementById('lpEdS'+i).value,e=document.getElementById('lpEdE'+i).value;return s&&e?`الفترة ${i+1}: تبدأ ${groupShiftForDate(s).arabic} وتنتهي ${groupShiftForDate(e).arabic}`:''}).filter(Boolean);document.getElementById('lpEdShift').textContent=t.join(' · ')};
+  const hint=()=>{const t=[0,1].map(i=>{const s=document.getElementById('lpEdS'+i).value,e=document.getElementById('lpEdE'+i).value;if(!s||!e)return '';const back=firstWorkDayAfterLeave(e);return `الفترة ${i+1}: تبدأ ${groupShiftForDate(s).arabic} وتنتهي ${groupShiftForDate(e).arabic}${back?` · يباشر ${lpFmtDay(back.date)} ${groupShiftForDate(back.date).arabic}`:''}`}).filter(Boolean);document.getElementById('lpEdShift').textContent=t.join(' · ')};
   box.querySelectorAll('input').forEach(i=>i.addEventListener('change',hint));hint();
 }
 async function lpSaveDates(id){
