@@ -942,7 +942,7 @@
     #lpList{display:flex!important;flex-direction:column;gap:8px;grid-template-columns:none!important}
     #lpList .lp-row{padding:10px 12px!important;min-height:0!important;height:auto!important;overflow:visible!important}
     .lp-who b{display:block;line-height:1.5;white-space:normal;font-size:14px;font-weight:800;color:var(--text)}
-    .lp-who small{line-height:1.4}.lp-who>small:last-child{display:block;margin-top:3px}
+    .lp-who small{line-height:1.4}.lp-who .lp-prev{display:block;color:var(--blue,#2c527d);margin-top:2px}.lp-who>small:last-child{display:block;margin-top:3px}
     .lp-row{display:grid!important;grid-template-columns:minmax(0,1.3fr) minmax(0,1.6fr) auto;gap:10px;align-items:center}
     .lp-row .lp-who small{display:block;color:var(--muted);font-size:11px}
     .lp-choices{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
@@ -3404,6 +3404,20 @@ function lpRender(){
   const shown=rows.filter(r=>lpState.filter==='all'||(r.plan?.status||'none')===lpState.filter);
   lpEl('lpList').innerHTML=shown.length?shown.map(lpRowHtml).join(''):`<div class="small-note" style="padding:12px">لا يوجد موظفين في هذا التصنيف</div>`;
 }
+/* Previous-year leave per employee (from leaves already entered in the app). Courses are not counted as leave. */
+const LP_NOT_LEAVE=/cour|coure|دورة|تدريب|training/i;
+function lpPrev(id,year){
+  const days=Array(13).fill(0);
+  (state.leaves||[]).forEach(l=>{
+    if(String(l.employeeId)!==String(id)||LP_NOT_LEAVE.test(l.note||''))return;
+    const s=/^(\d{4})-(\d{2})-(\d{2})$/.exec(l.start||''),e=/^(\d{4})-(\d{2})-(\d{2})$/.exec(l.end||'');if(!s||!e)return;
+    let d=Date.UTC(+s[1],+s[2]-1,+s[3]);const end=Date.UTC(+e[1],+e[2]-1,+e[3]);
+    for(let guard=0;d<=end&&guard<400;d+=86400000,guard++){const x=new Date(d);if(x.getUTCFullYear()===year)days[x.getUTCMonth()+1]++}
+  });
+  const months=[];for(let m=1;m<=12;m++)if(days[m])months.push({m,days:days[m]});
+  return {months,main:new Set(months.filter(x=>x.days>=7).map(x=>x.m))};
+}
+function lpRepeat(r){const p=r.plan;if(!p||p.status==='rejected')return false;return lpPrev(r.id,lpState.year-1).main.has(p.assigned_month)}
 function lpRowHtml(r){
   const p=r.plan,[label,cls]=LP_STATUS[p?.status||'none'];
   const choices=p?[p.choice1,p.choice2,p.choice3].map((m,i)=>`<span class="lp-chip ${p.assigned_month===m?'assigned':''}" title="اضغط لتحويل الحجز لهذا الشهر" onclick="lpAssign('${esc(r.id)}',${m})"><span class="n">${i+1}</span>${LP_MONTHS_AR[m-1]}</span>`).join(''):'<span class="small-note">—</span>';
@@ -3412,7 +3426,10 @@ function lpRowHtml(r){
   if(p&&p.status!=='submitted')acts.push(`<button class="secondary" onclick="lpSetStatus('${id}','submitted')">إرجاع للانتظار</button>`);
   if(r.link)acts.push(`<button class="secondary" onclick="lpCopyOne('${id}')">نسخ الرابط</button>`,`<button class="whatsapp-btn" style="color:#fff;border:1px solid;border-radius:12px" onclick="lpWhatsApp('${id}')">واتساب</button>`);
   const note=p?.admin_note?`<small style="color:var(--red)">${esc(p.admin_note)}</small>`:'';
-  return `<div class="row lp-row"><div class="lp-who"><b>${esc(r.name)}</b><small>رقم الباج ${esc(r.badge)}</small><span class="badge ${cls}" style="display:inline-block;margin-top:5px">${label}</span>${note}</div><div class="lp-choices">${choices}</div><div class="lp-row-actions">${acts.join('')}</div></div>`;
+  const py=lpState.year-1,prev=lpPrev(r.id,py),rep=lpRepeat(r);
+  const prevLine=`<small class="lp-prev">إجازة ${py}: ${prev.months.length?prev.months.map(x=>`${LP_MONTHS_AR[x.m-1]} (${x.days})`).join('، '):'لا يوجد'}</small>`;
+  const repTag=rep?`<span class="badge b-red" style="display:inline-block;margin-top:5px;margin-right:4px">⚠ نفس شهر ${py}</span>`:'';
+  return `<div class="row lp-row"><div class="lp-who"><b>${esc(r.name)}</b><small>رقم الباج ${esc(r.badge)}</small>${prevLine}<span class="badge ${cls}" style="display:inline-block;margin-top:5px">${label}</span>${repTag}${note}</div><div class="lp-choices">${choices}</div><div class="lp-row-actions">${acts.join('')}</div></div>`;
 }
 async function lpPatch(id,patch){
   await lpApi(`/rest/v1/leave_plans?year=eq.${lpState.year}&employee_id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({...patch,updated_at:new Date().toISOString()})});
@@ -3473,7 +3490,7 @@ function lpxZip(files){
   const end=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSize),...u32(offset),...u16(0)]);
   return new Blob([...parts,...central,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 }
-const LPX_STYLE={default:0,title:1,sub:2,head:3,body:4,bodyC:5,zebra:6,zebraC:7,approved:8,submitted:9,rejected:10,none:11,assigned:12,wrap:13,full:14,near:15,ok:16,zebraWrap:17,num:18};
+const LPX_STYLE={default:0,title:1,sub:2,head:3,body:4,bodyC:5,zebra:6,zebraC:7,approved:8,submitted:9,rejected:10,none:11,assigned:12,wrap:13,full:14,near:15,ok:16,zebraWrap:17,num:18,prev:19,prevZ:20,prevWarn:21};
 function lpxStyles(){
   const font=(sz,color,b)=>`<font>${b?'<b/>':''}<sz val="${sz}"/><color rgb="FF${color}"/><name val="Arial"/></font>`;
   const fonts=[font(11,'1A2233'),font(16,'FFFFFF',1),font(10,'5D6B80'),font(11,'FFFFFF',1),font(11,'1F7A4D',1),font(11,'8F5C14',1),font(11,'B3263A',1),font(11,'5D6B80'),font(11,'FFFFFF',1),font(11,'1A2233',1)];
@@ -3483,7 +3500,7 @@ function lpxStyles(){
   const borders=['<border><left/><right/><top/><bottom/><diagonal/></border>',`<border>${side}<diagonal/></border>`];
   const xf=(f,fi,b,h,wrap)=>`<xf numFmtId="0" fontId="${f}" fillId="${fi}" borderId="${b}" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${h}" vertical="center" readingOrder="2"${h==='right'?' indent="1"':''}${wrap?' wrapText="1"':''}/></xf>`;
   const xfs=[xf(0,0,0,'general'),xf(1,2,0,'center'),xf(2,3,0,'center'),xf(3,4,1,'center',1),xf(0,0,1,'right'),xf(0,0,1,'center'),xf(0,5,1,'right'),xf(0,5,1,'center'),
-    xf(4,6,1,'center'),xf(5,7,1,'center'),xf(6,8,1,'center'),xf(7,9,1,'center'),xf(8,10,1,'center'),xf(0,0,1,'right',1),xf(6,8,1,'center'),xf(5,7,1,'center'),xf(4,6,1,'center'),xf(0,5,1,'right',1),xf(9,0,1,'center')];
+    xf(4,6,1,'center'),xf(5,7,1,'center'),xf(6,8,1,'center'),xf(7,9,1,'center'),xf(8,10,1,'center'),xf(0,0,1,'right',1),xf(6,8,1,'center'),xf(5,7,1,'center'),xf(4,6,1,'center'),xf(0,5,1,'right',1),xf(9,0,1,'center'),xf(0,0,1,'center',1),xf(0,5,1,'center',1),xf(6,8,1,'center',1)];
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="${fonts.length}">${fonts.join('')}</fonts><fills count="${fills.length}">${fills.join('')}</fills><borders count="${borders.length}">${borders.join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
 }
 function lpxCol(i){let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s}
@@ -3519,20 +3536,22 @@ function lpExport(){
   const year=lpState.year,max=lpMax(),m=x=>x?`${LP_MONTHS_AR[x-1]} · ${LP_MONTHS_EN[x-1].slice(0,3)}`:'';
   const sent=rows.filter(r=>r.plan).length,today=new Date();
   const dstr=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
-  const head=['#','اسم الموظف','رقم الباج','الحالة','الخيار الأول','الخيار الثاني','الخيار الثالث','الشهر المعتمد','ملاحظة','تاريخ الإرسال'];
+  const py=year-1;
+  const head=['#','اسم الموظف','رقم الباج','الحالة',`إجازة ${py} (الأيام)`,'الخيار الأول','الخيار الثاني','الخيار الثالث','الشهر المعتمد','ملاحظة','تاريخ الإرسال'];
   const statusStyle={approved:'approved',submitted:'submitted',rejected:'rejected',none:'none'};
   const order={approved:0,submitted:1,rejected:2,none:3};
   const sorted=[...rows].sort((a,b)=>(order[a.plan?.status||'none']-order[b.plan?.status||'none'])||(a.plan&&b.plan?a.plan.assigned_month-b.plan.assigned_month:0)||String(a.name).localeCompare(String(b.name),'ar'));
   const body=sorted.map((r,i)=>{
     const p=r.plan,st=p?.status||'none',z=i%2===1,b=z?'zebra':'body',bc=z?'zebraC':'bodyC';
     const ch=k=>({v:p?m(p[k]):'—',s:p&&p.status!=='rejected'&&p.assigned_month===p[k]?'assigned':bc});
-    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:LP_STATUS[st][0],s:statusStyle[st]},ch('choice1'),ch('choice2'),ch('choice3'),
+    const pv=lpPrev(r.id,py),pvText=pv.months.length?pv.months.map(x=>`${LP_MONTHS_AR[x.m-1]} (${x.days})`).join('، '):'لا يوجد',rep=lpRepeat(r);
+    return {height:pv.months.length>2?34:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:LP_STATUS[st][0],s:statusStyle[st]},{v:rep?pvText+'  ⚠ تكرار':pvText,s:rep?'prevWarn':z?'prevZ':'prev'},ch('choice1'),ch('choice2'),ch('choice3'),
       {v:p&&p.status==='approved'?m(p.assigned_month):p&&p.status==='submitted'?'لم يُعتمد بعد':'—',s:p&&p.status==='approved'?'approved':bc},{v:p?.admin_note||'',s:z?'zebraWrap':'wrap'},{v:p?.submitted_at?String(p.submitted_at).slice(0,10):'—',s:bc}]};
   });
   const last=3+body.length;
-  const sheet1={name:`خطة الإجازة ${year}`,cols:[5,30,13,18,16,16,16,18,28,15],freeze:3,filter:`A3:J${last}`,merges:['A1:J1','A2:J2'],
-    rows:[{height:34,cells:[{v:`خطة الإجازة السنوية ${year} · Group A`,s:'title'},...Array(9).fill({v:'',s:'title'})]},
-      {height:22,cells:[{v:`تاريخ التصدير ${dstr}   ·   سلّموا ${sent} من ${rows.length}   ·   الحد في الشهر ${max}   ·   البرتقالي = الشهر المرشّح له، ويصير معتمد بعد اعتماد المشرف`,s:'sub'},...Array(9).fill({v:'',s:'sub'})]},
+  const sheet1={name:`خطة الإجازة ${year}`,cols:[5,30,12,17,24,16,16,16,18,26,14],freeze:3,filter:`A3:K${last}`,merges:['A1:K1','A2:K2'],
+    rows:[{height:34,cells:[{v:`خطة الإجازة السنوية ${year} · Group A`,s:'title'},...Array(10).fill({v:'',s:'title'})]},
+      {height:22,cells:[{v:`تاريخ التصدير ${dstr}   ·   سلّموا ${sent} من ${rows.length}   ·   الحد في الشهر ${max}   ·   البرتقالي = الشهر المرشّح له   ·   الأحمر = نفس شهر إجازة ${py}`,s:'sub'},...Array(10).fill({v:'',s:'sub'})]},
       {height:26,cells:head.map(v=>({v,s:'head'}))},...body]};
   const byMonth=Array.from({length:12},()=>[]);
   const apprBy=Array(12).fill(0),pendBy=Array(12).fill(0);
