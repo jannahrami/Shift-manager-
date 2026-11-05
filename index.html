@@ -3586,7 +3586,7 @@ function lpMessage(r){
   const url=lpLinkUrl(r.link.token),p=r.plan;
   if(p?.status==='rejected'){
     const why=p.admin_note?`\nالسبب: ${p.admin_note}`:'';
-    return `السلام عليكم ${r.name}\nنعتذر، ما تيسّر اعتماد خطة إجازتك لسنة ${lpState.year} (الخيار: ${LP_MONTHS_AR[p.choice1-1]}).${why}\nالرجاء الدخول على الرابط واختيار أشهر جديدة، ثم الإرسال مرة ثانية:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+    return `السلام عليكم ${r.name}\nنعتذر، لم يتم اعتماد خطة إجازتك لسنة ${lpState.year} (الخيار: ${LP_MONTHS_AR[p.choice1-1]}).${why}\nالرجاء الدخول على الرابط واختيار أشهر جديدة، ثم الإرسال مرة ثانية:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
   }
   if(p?.status==='approved'&&p.dates_status==='rejected'){
     const why=p.dates_note?`\nالسبب: ${p.dates_note}`:'';
