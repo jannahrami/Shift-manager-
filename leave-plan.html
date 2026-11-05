@@ -228,9 +228,9 @@ function renderView(p){
   else if(p.status==='rejected')msg=['red',`رفض المشرف هذه الخطة${p.admin_note?`: ${esc(p.admin_note)}`:''}. عدّلها وأرسلها مرة ثانية.`];
   else if(p.assigned_month!==p.choice1)msg=['amber',`المشرف نقلك لشهر <b>${monthLabel(p.assigned_month)}</b>.`];
   alertBox('viewAlert',msg[0],msg[1]||'');
-  const canEdit=p.status!=='approved'&&data.is_open;
+  const canEdit=p.status!=='approved'&&(data.is_open||p.status==='rejected');
   show('editBtn',canEdit);
-  if(!data.is_open&&p.status!=='approved')alertBox('viewAlert','amber','استقبال الخطط مقفل حاليًا.');
+  if(!data.is_open&&p.status==='submitted')alertBox('viewAlert','amber','استقبال الخطط مقفل حاليًا.');
 }
 
 function fillSelects(c1,c2,c3){
@@ -262,7 +262,7 @@ function syncDisabled(){
 function renderForm(p){
   show('viewCard',false);show('formCard');
   alertBox('formAlert','','');
-  if(!data.is_open){alertBox('formAlert','amber','استقبال الخطط مقفل حاليًا. تواصل مع المشرف.');$('submitBtn').disabled=true}
+  if(!data.is_open&&p?.status!=='rejected'){alertBox('formAlert','amber','استقبال الخطط مقفل حاليًا. تواصل مع المشرف.');$('submitBtn').disabled=true}
   fillSelects(p?.choice1,p?.choice2,p?.choice3);
   show('cancelBtn',!!p);
 }

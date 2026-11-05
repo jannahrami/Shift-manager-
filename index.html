@@ -1207,6 +1207,7 @@
           <button class="secondary" onclick="lpCopyLinks(true)">نسخ كل الروابط</button>
           <button class="secondary" onclick="lpApproveAll()">✓ اعتماد كل الخطط المرسلة</button>
           <button class="secondary" onclick="lpCopyDatesMessages()">📅 نسخ رسائل تحديد الفترة</button>
+          <button class="secondary" onclick="lpCopyRejectedMessages()">↩ نسخ رسائل المرفوضين</button>
           <button class="secondary" onclick="lpExport()">⬇ Export Excel</button>
         </div>
         <div class="lp-filter" id="lpFilter"></div>
@@ -3480,7 +3481,8 @@ async function lpSetStatus(id,status){
 }
 async function lpReject(id){
   const note=prompt('سبب الرفض (يظهر للموظف، اختياري):','');if(note===null)return;
-  try{await lpPatch(id,{status:'rejected',admin_note:note.trim()})}catch(e){alert(lpFriendlyError(e))}
+  try{await lpPatch(id,{status:'rejected',admin_note:note.trim()})}catch(e){alert(lpFriendlyError(e));return}
+  lpOfferWhatsApp(id);
 }
 async function lpAssign(id,month){
   const p=lpPlan(id);if(!p||p.assigned_month===month)return;
@@ -3542,8 +3544,10 @@ async function lpUnapproveDates(id){
 }
 async function lpRejectDates(id){
   const note=prompt('سبب رفض التواريخ (يظهر للموظف ويختار من جديد):','');if(note===null)return;
-  try{await lpPatch(id,{dates_status:'rejected',dates_note:note.trim()})}catch(e){alert(lpFriendlyError(e))}
+  try{await lpPatch(id,{dates_status:'rejected',dates_note:note.trim()})}catch(e){alert(lpFriendlyError(e));return}
+  lpOfferWhatsApp(id);
 }
+function lpOfferWhatsApp(id){const r=lpRows().find(x=>x.id===id);if(r?.link&&confirm(`تم الرفض. ترسل لـ ${r.name} رسالة واتساب فيها السبب وطلب إعادة الاختيار؟`))lpWhatsApp(id)}
 function lpEditDates(id){
   const p=lpPlan(id);if(!p)return;document.getElementById('lpDatesEditor')?.remove();
   const per=[...(p.periods||[]),{},{}].slice(0,2);
@@ -3580,6 +3584,14 @@ async function lpSaveDates(id){
 function lpPhase(r){const p=r.plan;if(p?.status==='approved'&&(!p.dates_status||p.dates_status==='rejected'))return 'dates';return 'months'}
 function lpMessage(r){
   const url=lpLinkUrl(r.link.token),p=r.plan;
+  if(p?.status==='rejected'){
+    const why=p.admin_note?`\nالسبب: ${p.admin_note}`:'';
+    return `السلام عليكم ${r.name}\nنعتذر، ما تيسّر اعتماد خطة إجازتك لسنة ${lpState.year} (الخيار: ${LP_MONTHS_AR[p.choice1-1]}).${why}\nالرجاء الدخول على الرابط واختيار أشهر جديدة، ثم الإرسال مرة ثانية:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  }
+  if(p?.status==='approved'&&p.dates_status==='rejected'){
+    const why=p.dates_note?`\nالسبب: ${p.dates_note}`:'';
+    return `السلام عليكم ${r.name}\nشهر إجازتك (${LP_MONTHS_AR[p.assigned_month-1]}) معتمد ✓، بس التواريخ اللي اخترتها تحتاج تعديل.${why}\nالرجاء الدخول على الرابط واختيار فترة جديدة من التقويم:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  }
   if(lpPhase(r)==='dates')return `السلام عليكم ${r.name}\nتم اعتماد إجازتك السنوية لسنة ${lpState.year} في شهر ${LP_MONTHS_AR[p.assigned_month-1]} ✓\nالرجاء الدخول على الرابط وتحديد فترة الإجازة (${lpReqText(p.assigned_month)}) من التقويم:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
   return `السلام عليكم ${r.name}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والمشرف يراجع الخطط ويعتمدها.\n${url}\nالرابط خاص فيك، لا تشاركه.`;
 }
@@ -3596,6 +3608,11 @@ async function lpCopyText(text,okMsg){
   catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');lpStatusMsg(okMsg)}catch{prompt('انسخ النص:',text)}ta.remove()}
 }
 function lpCopyOne(id){const r=lpRows().find(x=>x.id===id);if(r?.link)lpCopyText(lpMessage(r),`تم نسخ رابط ${r.name} ✓`)}
+function lpCopyRejectedMessages(){
+  const rows=lpRows().filter(r=>r.link&&(r.plan?.status==='rejected'||(r.plan?.status==='approved'&&r.plan.dates_status==='rejected')));
+  if(!rows.length){alert('ما فيه خطط مرفوضة');return}
+  lpCopyText(rows.map(lpMessage).join('\n\n— — —\n\n'),`تم نسخ ${rows.length} رسالة رفض ✓`);
+}
 function lpCopyDatesMessages(){
   const rows=lpRows().filter(r=>r.link&&lpPhase(r)==='dates');
   if(!rows.length){alert('ما فيه أحد بانتظار تحديد التواريخ');return}
