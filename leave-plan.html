@@ -62,6 +62,35 @@
   .center .big{font-size:40px;line-height:1;margin-bottom:10px}
   .spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--primary);animation:spin 1s linear infinite;margin:0 auto 12px}
   @keyframes spin{to{transform:rotate(360deg)}}
+  /* Phase 2: shift calendar */
+  .rule{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.8;margin-bottom:12px}
+  .counter{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 10px;font-size:14px;font-weight:700}
+  .counter .n{background:var(--ink);color:#fff;border-radius:999px;padding:2px 12px;font-size:13px}
+  .counter .n.done{background:var(--green)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--muted);margin-bottom:8px}
+  .legend span{display:inline-flex;align-items:center;gap:4px}
+  .legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+  .cal{margin-bottom:14px}
+  .cal h3{font-size:15px;margin:0 0 8px;text-align:center}
+  .cal .wd,.cal .grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .cal .wd div{font-size:9.5px;color:var(--muted);text-align:center;padding:2px 0}
+  .day{border:1px solid var(--line);border-radius:9px;min-height:56px;padding:3px 2px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;background:#fff;font-size:13px;font-weight:700;position:relative;cursor:default;user-select:none;-webkit-tap-highlight-color:transparent}
+  .day.empty{border:0;background:transparent}
+  .day .tag{font-size:9.5px;font-weight:800;border-radius:5px;padding:0 4px;line-height:1.6}
+  .day.N .tag{background:#e6e9f7;color:#3a3f8f}.day.A .tag{background:#fdebd5;color:#9a5a0e}.day.M .tag{background:#e2f2ea;color:#1f7a4d}.day.OFF .tag{background:#eef0f3;color:#8a94a6}
+  .day.OFF{background:#fafbfc;color:#a3acba}
+  .day.pick{cursor:pointer}
+  .day.pick:active{transform:scale(.97)}
+  .day.locked{opacity:.38}
+  .day.sel{background:var(--primary);border-color:var(--primary);color:#fff}
+  .day.sel .tag{background:rgba(255,255,255,.25);color:#fff}
+  .day.selOff{background:#fff1d6;border-color:#f3d79d;color:#c77d22}
+  .day .busy{font-size:9px;font-weight:800;color:var(--muted);line-height:1.2}
+  .day.sel .busy{color:#fff}
+  .day .busy.hot{color:var(--red)}
+  .periods{list-style:none;margin:0 0 12px;padding:0}
+  .periods li{border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin-bottom:6px;font-size:14px;line-height:1.7;background:var(--card2)}
+  .periods li b{display:block;font-size:12px;color:var(--muted)}
   .foot{text-align:center;color:var(--muted);font-size:11.5px;margin-top:18px}
   .hidden{display:none!important}
 </style>
@@ -97,6 +126,26 @@
       <button class="btn ghost" id="editBtn" type="button">تعديل الخطة</button>
     </div>
 
+
+    <!-- المرحلة الثانية: تحديد التواريخ -->
+    <div id="datesCard" class="card hidden">
+      <span id="datesPill" class="status"></span>
+      <h1 id="datesTitle"></h1>
+      <div id="datesAlert"></div>
+      <div id="datesPicker">
+        <div class="rule" id="datesRule"></div>
+        <div class="counter"><span>الشفتات المختارة</span><span class="n" id="datesCount"></span></div>
+        <div class="legend"><span><i style="background:#e6e9f7"></i>ليلي N</span><span><i style="background:#fdebd5"></i>مسائي A</span><span><i style="background:#e2f2ea"></i>صباحي M</span><span><i style="background:var(--primary)"></i>اختيارك</span><span>👥 = زملاء مجازين</span></div>
+        <div id="cals"></div>
+      </div>
+      <ul class="periods" id="periodsList"></ul>
+      <div class="err" id="datesErr"></div>
+      <div style="height:6px"></div>
+      <button class="btn" id="datesSubmit" type="button">إرسال التواريخ</button>
+      <button class="btn ghost hidden" id="datesEdit" type="button">تعديل التواريخ</button>
+      <button class="btn ghost hidden" id="datesCancel" type="button" style="margin-top:8px">إلغاء</button>
+      <details style="margin-top:14px;font-size:13px;color:var(--muted)"><summary>اختياراتك للأشهر</summary><ul class="summary" id="summary2" style="margin-top:6px"></ul></details>
+    </div>
     <!-- النموذج -->
     <div id="formCard" class="card hidden">
       <h1>اختر أشهر إجازتك لسنة <span class="yr"></span></h1>
@@ -163,7 +212,7 @@ async function load(){
 
 function render(){
   const p=data.plan;
-  if(p)renderView(p);else renderForm(null);
+  if(p&&p.status==='approved')renderDates(p);else if(p)renderView(p);else renderForm(null);
 }
 
 function renderView(p){
@@ -249,6 +298,103 @@ async function submit(){
 $('submitBtn').addEventListener('click',submit);
 $('editBtn').addEventListener('click',()=>renderForm(data.plan));
 $('cancelBtn').addEventListener('click',()=>renderView(data.plan));
+
+/* ===== المرحلة الثانية: اختيار الشفتات من تقويم الشفت ===== */
+const SHIFT_ANCHOR_UTC=Date.UTC(2026,7,30);           // نفس SHIFT_ANCHOR في التطبيق
+const BLOCKS=[{base:0,code:'N',ar:'ليلي'},{base:9,code:'A',ar:'مسائي'},{base:18,code:'M',ar:'صباحي'}];
+const DAY=86400000,WEEK_AR=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+let picked=new Set(),datesEditing=false;
+const iso=t=>new Date(t).toISOString().slice(0,10);
+const utc=d=>{const [y,m,dd]=d.split('-').map(Number);return Date.UTC(y,m-1,dd)};
+const sIdx=t=>((Math.round((t-SHIFT_ANCHOR_UTC)/DAY)%28)+28)%28;
+function blockOf(t){const i=sIdx(t),b=BLOCKS.find(b=>i>=b.base&&i<=b.base+6);return b?{...b,start:t-(i-b.base)*DAY,end:t-(i-b.base)*DAY+6*DAY}:null}
+function longDate(t){const d=new Date(t);return `${WEEK_AR[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS_AR[d.getUTCMonth()]}`}
+function monthWindow(p){const y=data.year,m=p.assigned_month;return {mstart:Date.UTC(y,m-1,1),mend:Date.UTC(y,m,0),limit:Date.UTC(y,m+1,0)}}
+function takenCount(b){return (data.taken||[]).filter(x=>utc(x.start)<=b.end&&utc(x.end)>=b.start).length}
+function groupPeriods(starts){
+  const out=[];[...starts].sort((a,b)=>a-b).forEach(s=>{const e=s+6*DAY,last=out[out.length-1];
+    if(last&&s-last.end<=4*DAY){last.end=e;last.blocks++}else out.push({start:s,end:e,blocks:1})});
+  return out;
+}
+function periodsFromServer(p){return (p.periods||[]).map(x=>({start:utc(x.start),end:utc(x.end)}))}
+function blocksFromPeriods(list){const s=new Set();list.forEach(x=>{for(let t=x.start;t<=x.end;t+=DAY){const b=blockOf(t);if(b&&b.start>=x.start)s.add(b.start)}});return s}
+
+function renderDates(p){
+  show('viewCard',false);show('formCard',false);show('datesCard');
+  const req=p.required_shifts||(p.assigned_month<=4?2:3),ds=p.dates_status,ml=monthLabel(p.assigned_month);
+  $('summary2').innerHTML=[p.choice1,p.choice2,p.choice3].map((m,i)=>`<li><span class="rank">${i+1}</span><span class="m">${MONTHS_AR[m-1]}</span><span class="en">${MONTHS_EN[m-1]}</span></li>`).join('');
+  const pill={submitted:['التواريخ قيد المراجعة والاعتماد','st-submitted'],approved:['إجازتك معتمدة ✓','st-approved'],rejected:['التواريخ تحتاج تعديل','st-rejected']}[ds]||['تم اعتماد الشهر ✓','st-approved'];
+  $('datesPill').className='status '+pill[1];$('datesPill').textContent=pill[0];
+  const picking=!ds||ds==='rejected'||datesEditing;
+  $('datesTitle').textContent=ds==='approved'?`إجازتك لسنة ${data.year}`:picking?'حدد فترة إجازتك':'تواريخك المرسلة';
+  let alert='';
+  if(!ds)alert=['green',`تم اعتماد إجازتك في شهر <b>${ml}</b>. الحين اختر الشفتات من التقويم.`];
+  else if(ds==='rejected')alert=['red',`المشرف طلب تعديل التواريخ${p.dates_note?`: ${esc(p.dates_note)}`:''}. اختر من جديد وأرسل.`];
+  else if(ds==='approved')alert=['green','اعتمد المشرف تواريخ إجازتك. إجازة سعيدة 🌴'];
+  else if(!datesEditing)alert=['amber','استلمنا تواريخك وهي الحين قيد المراجعة والاعتماد.'];
+  alertBox('datesAlert',alert[0]||'',alert[1]||'');
+  show('datesPicker',picking);show('datesSubmit',picking);show('datesCancel',picking&&!!ds&&ds!=='rejected');
+  show('datesEdit',ds==='submitted'&&!datesEditing);
+  if(picking){
+    if(!picked.size)picked=blocksFromPeriods(periodsFromServer(p));
+    $('datesRule').innerHTML=`اختر <b>${req} شفتات</b> كاملة (كل شفت 7 أيام). اضغط على أي يوم في الشفت ويتحدد الشفت كله.<br>تقدر تقسمها لـ <b>فترتين</b> بالحد الأعلى، وأول شفت لازم يبدأ في <b>${MONTHS_AR[p.assigned_month-1]}</b>.`;
+    drawCals(p,req);
+  }else{
+    const list=periodsFromServer(p);
+    $('periodsList').innerHTML=list.map((x,i)=>periodLi(x,i,list.length)).join('');
+  }
+  $('datesErr').style.display='none';
+}
+function periodLi(x,i,n){const days=Math.round((x.end-x.start)/DAY)+1,blocks=blocksFromPeriods([x]).size;
+  return `<li><b>${n>1?`الفترة ${i===0?'الأولى':'الثانية'}`:'الفترة'} · ${blocks===1?'شفت واحد':blocks===2?'شفتين':blocks+' شفتات'} · ${days} ${days>=3&&days<=10?'أيام':'يوم'}</b>من ${longDate(x.start)} إلى ${longDate(x.end)}</li>`}
+
+function drawCals(p,req){
+  const w=monthWindow(p),months=[[data.year,p.assigned_month-1],[new Date(w.limit).getUTCFullYear(),new Date(w.limit).getUTCMonth()]];
+  const selDays=new Set();picked.forEach(s=>{for(let i=0;i<7;i++)selDays.add(s+i*DAY)});
+  const groups=groupPeriods(picked),offSel=new Set();
+  groups.forEach(g=>{for(let t=g.start;t<=g.end;t+=DAY)if(!selDays.has(t))offSel.add(t)});
+  $('cals').innerHTML=months.map(([y,m])=>{
+    const first=new Date(Date.UTC(y,m,1)).getUTCDay(),dim=new Date(Date.UTC(y,m+1,0)).getUTCDate();
+    let cells='';for(let i=0;i<first;i++)cells+='<div class="day empty"></div>';
+    for(let d=1;d<=dim;d++){
+      const t=Date.UTC(y,m,d),b=blockOf(t);
+      if(!b){cells+=`<div class="day OFF ${offSel.has(t)?'selOff':''}">${d}<span class="tag">راحة</span></div>`;continue}
+      const ok=b.start>=w.mstart&&b.start<=w.limit,first=t===b.start||d===1;
+      const n=ok&&first?takenCount(b):0,busy=n?`<span dir="ltr" class="busy ${n>=6?'hot':''}">👥${n}</span>`:'';
+      cells+=`<div class="day ${b.code} ${ok?'pick':'locked'} ${selDays.has(t)?'sel':''}" ${ok?`data-b="${b.start}"`:''}>${d}<span class="tag">${b.code}</span>${busy}</div>`;
+    }
+    return `<div class="cal"><h3>${MONTHS_AR[m]} ${y}</h3><div class="wd">${['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'].map(x=>`<div>${x}</div>`).join('')}</div><div class="grid">${cells}</div></div>`;
+  }).join('');
+  const c=$('datesCount');c.textContent=`${picked.size} / ${req}`;c.classList.toggle('done',picked.size===req);
+  $('periodsList').innerHTML=groups.map((g,i)=>periodLi(g,i,groups.length)).join('');
+}
+function datesValidate(p,req){
+  const w=monthWindow(p),g=groupPeriods(picked),starts=[...picked].sort((a,b)=>a-b);
+  if(picked.size!==req)return `لازم تختار ${req} شفتات بالضبط. اخترت ${picked.size}.`;
+  if(g.length>2)return 'تقدر تقسم إجازتك لفترتين بس. خلّ الشفتات متتالية أكثر.';
+  if(starts[0]<w.mstart||starts[0]>w.mend)return `أول شفت لازم يبدأ في ${MONTHS_AR[p.assigned_month-1]}.`;
+  return '';
+}
+function datesError(t){const e=$('datesErr');e.textContent=t;e.style.display='block'}
+$('cals').addEventListener('click',ev=>{
+  const el=ev.target.closest('.day.pick');if(!el)return;const s=Number(el.dataset.b),p=data.plan,req=p.required_shifts||(p.assigned_month<=4?2:3);
+  if(picked.has(s))picked.delete(s);else{if(picked.size>=req){datesError(`اخترت ${req} شفتات. شيل واحد قبل ما تضيف غيره.`);return}picked.add(s)}
+  $('datesErr').style.display='none';drawCals(p,req);
+});
+$('datesSubmit').addEventListener('click',async()=>{
+  const p=data.plan,req=p.required_shifts||(p.assigned_month<=4?2:3),err=datesValidate(p,req);if(err)return datesError(err);
+  const periods=groupPeriods(picked).map(g=>({start:iso(g.start),end:iso(g.end)}));
+  const btn=$('datesSubmit');btn.disabled=true;btn.textContent='جاري الإرسال…';
+  let r;try{r=await rpc('lp_submit_dates',{p_token:token,p_periods:periods})}catch{r=null}
+  btn.disabled=false;btn.textContent='إرسال التواريخ';
+  if(!r)return datesError('تعذر الإرسال. تأكد من الإنترنت وحاول مرة ثانية.');
+  if(r.ok){p.periods=r.periods;p.dates_status='submitted';p.dates_note='';datesEditing=false;picked=new Set();renderDates(p);
+    alertBox('datesAlert','green','تم استلام تواريخك ✓ وهي الحين قيد المراجعة والاعتماد.');window.scrollTo({top:0,behavior:'smooth'});return}
+  const msgs={wrong_count:`لازم تختار ${r.required} شفتات بالضبط.`,bad_month:`أول شفت لازم يبدأ في ${MONTHS_AR[p.assigned_month-1]}، والباقي ما يتعدى الشهر اللي بعده.`,overlap:'فيه فترات متداخلة.',not_shift_aligned:'لازم تختار شفتات كاملة.',already_approved:'تواريخك معتمدة ولا يمكن تعديلها. تواصل مع المشرف.',not_approved:'شهرك ما انعتمد بعد.'};
+  datesError(msgs[r.error]||'صار خطأ. حاول مرة ثانية.');
+});
+$('datesEdit').addEventListener('click',()=>{datesEditing=true;picked=new Set();renderDates(data.plan)});
+$('datesCancel').addEventListener('click',()=>{datesEditing=false;picked=new Set();renderDates(data.plan)});
 load();
 </script>
 </body>

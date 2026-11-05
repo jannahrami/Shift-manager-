@@ -949,6 +949,8 @@
     .lp-chip{border:1px solid var(--line);border-radius:999px;padding:2px 9px;font-size:11px;background:var(--card);cursor:pointer;white-space:nowrap}
     .lp-chip.assigned{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:800}
     .lp-chip .n{opacity:.7;margin-left:3px}
+    .lp-dates{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;font-size:11.5px}
+    .lp-dates-text{color:var(--text);font-weight:700}
     .lp-row-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
     .lp-row-actions button{padding:6px 9px;font-size:11px}
     @media(max-width:700px){.lp-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.lp-months{grid-template-columns:repeat(4,minmax(0,1fr))}.lp-row{grid-template-columns:1fr}.lp-row-actions{justify-content:flex-start}}
@@ -1204,6 +1206,7 @@
           <button class="secondary" onclick="lpCopyLinks(false)">نسخ روابط اللي ما سلّموا</button>
           <button class="secondary" onclick="lpCopyLinks(true)">نسخ كل الروابط</button>
           <button class="secondary" onclick="lpApproveAll()">✓ اعتماد كل الخطط المرسلة</button>
+          <button class="secondary" onclick="lpCopyDatesMessages()">📅 نسخ رسائل تحديد الفترة</button>
           <button class="secondary" onclick="lpExport()">⬇ Export Excel</button>
         </div>
         <div class="lp-filter" id="lpFilter"></div>
@@ -3399,9 +3402,10 @@ function lpRender(){
   const sent=rows.filter(r=>r.plan).length;
   lpEl('lpStats').innerHTML=[[sent,'سلّموا'],[rows.length-sent,'لم يسلّموا'],[st('submitted'),'بانتظار الاعتماد'],[st('approved'),'معتمدة']].map(([n,l])=>`<div class="lp-stat"><b>${n}</b><span>${l}</span></div>`).join('');
   lpEl('lpMonths').innerHTML=LP_MONTHS_AR.map((m,i)=>{const n=counts[i+1],pct=Math.min(100,Math.round(n/max*100));return `<div class="lp-month ${n>=max?'full':n>=max-1?'near':''}" title="${LP_MONTHS_EN[i]}"><b>${m}</b>${n} / ${max}<div class="bar"><i style="width:${pct}%"></i></div></div>`}).join('');
-  const filters=[['all','الكل',rows.length],['none','لم يسلّم',st('none')],['submitted','بانتظار',st('submitted')],['approved','معتمدة',st('approved')],['rejected','مرفوضة',st('rejected')]];
+  const dst=k=>rows.filter(r=>r.plan?.status==='approved'&&(r.plan.dates_status||'none')===k).length;
+  const filters=[['all','الكل',rows.length],['none','لم يسلّم',st('none')],['submitted','بانتظار',st('submitted')],['approved','معتمدة',st('approved')],['rejected','مرفوضة',st('rejected')],['d_none','لم يحدد التواريخ',dst('none')],['d_submitted','تواريخ للمراجعة',dst('submitted')],['d_approved','تواريخ معتمدة',dst('approved')]];
   lpEl('lpFilter').innerHTML=filters.map(([k,l,n])=>`<button class="secondary ${lpState.filter===k?'on':''}" onclick="lpState.filter='${k}';lpRender()">${l} (${n})</button>`).join('');
-  const shown=rows.filter(r=>lpState.filter==='all'||(r.plan?.status||'none')===lpState.filter);
+  const shown=rows.filter(r=>{const f=lpState.filter;if(f==='all')return true;if(f.startsWith('d_'))return r.plan?.status==='approved'&&(r.plan.dates_status||'none')===f.slice(2);return (r.plan?.status||'none')===f});
   lpEl('lpList').innerHTML=shown.length?shown.map(lpRowHtml).join(''):`<div class="small-note" style="padding:12px">لا يوجد موظفين في هذا التصنيف</div>`;
 }
 /* Previous-year leave per employee (from leaves already entered in the app). Courses are not counted as leave. */
@@ -3418,34 +3422,133 @@ function lpPrev(id,year){
   return {months,main:new Set(months.filter(x=>x.days>=7).map(x=>x.m))};
 }
 function lpRepeat(r){const p=r.plan;if(!p||p.status==='rejected')return false;return lpPrev(r.id,lpState.year-1).main.has(p.assigned_month)}
+const LP_DATES={none:['بانتظار تحديد التواريخ','b-neutral'],submitted:['التواريخ قيد المراجعة','b-yellow'],approved:['التواريخ معتمدة ✓','b-green'],rejected:['التواريخ مرفوضة','b-red']};
+function lpFmtDay(d){const [y,m,dd]=d.split('-').map(Number);return `${dd} ${LP_MONTHS_AR[m-1]}`}
+function lpPeriodsText(p,sep='  ·  '){return (p?.periods||[]).map(x=>`${lpFmtDay(x.start)} إلى ${lpFmtDay(x.end)} (${diffDays(x.end,x.start)+1} يوم)`).join(sep)}
 function lpRowHtml(r){
   const p=r.plan,[label,cls]=LP_STATUS[p?.status||'none'];
   const choices=p?[p.choice1,p.choice2,p.choice3].map((m,i)=>`<span class="lp-chip ${p.assigned_month===m?'assigned':''}" title="اضغط لتحويل الحجز لهذا الشهر" onclick="lpAssign('${esc(r.id)}',${m})"><span class="n">${i+1}</span>${LP_MONTHS_AR[m-1]}</span>`).join(''):'<span class="small-note">—</span>';
   const id=esc(r.id),acts=[];
-  if(p?.status==='submitted')acts.push(`<button class="primary" onclick="lpSetStatus('${id}','approved')">اعتماد</button>`,`<button class="danger" onclick="lpReject('${id}')">رفض</button>`);
-  if(p&&p.status!=='submitted')acts.push(`<button class="secondary" onclick="lpSetStatus('${id}','submitted')">إرجاع للانتظار</button>`);
-  if(r.link)acts.push(`<button class="secondary" onclick="lpCopyOne('${id}')">نسخ الرابط</button>`,`<button class="whatsapp-btn" style="color:#fff;border:1px solid;border-radius:12px" onclick="lpWhatsApp('${id}')">واتساب</button>`);
+  if(p?.status==='submitted')acts.push(`<button class="primary" onclick="lpSetStatus('${id}','approved')">اعتماد الشهر</button>`,`<button class="danger" onclick="lpReject('${id}')">رفض</button>`);
+  if(p&&p.status!=='submitted'&&p.dates_status!=='approved')acts.push(`<button class="secondary" onclick="lpSetStatus('${id}','submitted')">إرجاع للانتظار</button>`);
+  let datesHtml='';
+  if(p?.status==='approved'){
+    const ds=p.dates_status||'none',[dl,dc]=LP_DATES[ds];
+    datesHtml=`<div class="lp-dates"><span class="badge ${dc}">${dl}</span>${p.periods?.length?`<span class="lp-dates-text">${esc(lpPeriodsText(p))}</span>`:''}${p.dates_note&&ds==='rejected'?`<small style="color:var(--red)">${esc(p.dates_note)}</small>`:''}</div>`;
+    if(ds==='submitted')acts.push(`<button class="primary" onclick="lpApproveDates('${id}')">اعتماد التواريخ</button>`,`<button class="danger" onclick="lpRejectDates('${id}')">رفض التواريخ</button>`);
+    acts.push(`<button class="secondary" onclick="lpEditDates('${id}')">${p.periods?.length?'تعديل التواريخ':'إدخال التواريخ'}</button>`);
+    if(ds==='approved')acts.push(`<button class="secondary" onclick="lpUnapproveDates('${id}')">إلغاء اعتماد التواريخ</button>`);
+  }
+  if(r.link)acts.push(`<button class="secondary" onclick="lpCopyOne('${id}')">نسخ الرسالة</button>`,`<button class="whatsapp-btn" style="color:#fff;border:1px solid;border-radius:12px" onclick="lpWhatsApp('${id}')">واتساب</button>`);
   const note=p?.admin_note?`<small style="color:var(--red)">${esc(p.admin_note)}</small>`:'';
   const py=lpState.year-1,prev=lpPrev(r.id,py),rep=lpRepeat(r);
   const prevLine=`<small class="lp-prev">إجازة ${py}: ${prev.months.length?prev.months.map(x=>`${LP_MONTHS_AR[x.m-1]} (${x.days})`).join('، '):'لا يوجد'}</small>`;
   const repTag=rep?`<span class="badge b-red" style="display:inline-block;margin-top:5px;margin-right:4px">⚠ نفس شهر ${py}</span>`:'';
-  return `<div class="row lp-row"><div class="lp-who"><b>${esc(r.name)}</b><small>رقم الباج ${esc(r.badge)}</small>${prevLine}<span class="badge ${cls}" style="display:inline-block;margin-top:5px">${label}</span>${repTag}${note}</div><div class="lp-choices">${choices}</div><div class="lp-row-actions">${acts.join('')}</div></div>`;
+  return `<div class="row lp-row"><div class="lp-who"><b>${esc(r.name)}</b><small>رقم الباج ${esc(r.badge)}</small>${prevLine}<span class="badge ${cls}" style="display:inline-block;margin-top:5px">${label}</span>${repTag}${note}</div><div class="lp-choices">${choices}${datesHtml}</div><div class="lp-row-actions">${acts.join('')}</div></div>`;
 }
 async function lpPatch(id,patch){
   await lpApi(`/rest/v1/leave_plans?year=eq.${lpState.year}&employee_id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({...patch,updated_at:new Date().toISOString()})});
   const p=lpState.plans.find(x=>String(x.employee_id)===id);if(p)Object.assign(p,patch);lpRender();
 }
-async function lpSetStatus(id,status){try{await lpPatch(id,{status,...(status!=='rejected'?{admin_note:''}:{})})}catch(e){alert(lpFriendlyError(e))}}
+function lpPlan(id){return lpState.plans.find(x=>String(x.employee_id)===id)}
+const LP_CLEAR_DATES={periods:null,dates_status:null,dates_note:'',dates_submitted_at:null};
+async function lpSetStatus(id,status){
+  const p=lpPlan(id);
+  if(p?.dates_status==='approved'&&status!=='approved'){alert('تواريخ هذا الموظف معتمدة ومضافة للإجازات. ألغِ اعتماد التواريخ أولًا.');return}
+  const clear=p?.status==='approved'&&status!=='approved'&&p.periods?.length;
+  if(clear&&!confirm('الموظف محدد تواريخ. إرجاع الخطة بيمسح التواريخ. متأكد؟'))return;
+  try{await lpPatch(id,{status,...(status!=='rejected'?{admin_note:''}:{}),...(clear?LP_CLEAR_DATES:{})})}catch(e){alert(lpFriendlyError(e))}
+}
 async function lpReject(id){
   const note=prompt('سبب الرفض (يظهر للموظف، اختياري):','');if(note===null)return;
   try{await lpPatch(id,{status:'rejected',admin_note:note.trim()})}catch(e){alert(lpFriendlyError(e))}
 }
 async function lpAssign(id,month){
-  const p=lpState.plans.find(x=>String(x.employee_id)===id);if(!p||p.assigned_month===month)return;
+  const p=lpPlan(id);if(!p||p.assigned_month===month)return;
+  if(p.dates_status==='approved'){alert('تواريخ هذا الموظف معتمدة. ألغِ اعتماد التواريخ أولًا قبل تغيير الشهر.');return}
   const n=lpMonthCounts(id)[month];
   if(n>=lpMax()&&!confirm(`شهر ${LP_MONTHS_AR[month-1]} فيه ${n} موظفين (الحد ${lpMax()}). تبغى تحوله له رغم ذلك؟`))return;
-  if(!confirm(`تحويل حجز ${p.name} إلى شهر ${LP_MONTHS_AR[month-1]}؟`))return;
-  try{await lpPatch(id,{assigned_month:month})}catch(e){alert(lpFriendlyError(e))}
+  if(!confirm(`تحويل حجز ${p.name} إلى شهر ${LP_MONTHS_AR[month-1]}؟${p.periods?.length?'\nالتواريخ اللي حددها بتنمسح ويحددها من جديد.':''}`))return;
+  try{await lpPatch(id,{assigned_month:month,...(p.periods?.length||p.dates_status?LP_CLEAR_DATES:{})})}catch(e){alert(lpFriendlyError(e))}
+}
+/* ---- اعتماد التواريخ = إضافتها لقسم الإجازات وخصمها من الرصيد ---- */
+function lpRemoveLinkedLeaves(p){
+  const ids=new Set((p.leave_ids||[]).map(String));if(!ids.size)return 0;let n=0;
+  state.leaves=(state.leaves||[]).filter(l=>{if(!ids.has(String(l.id)))return true;const c=leaveChargedDays(l);if(c){const e=state.employees.find(x=>x.id===l.employeeId);if(e)e.leaveBalance=(Number(e.leaveBalance)||0)+c}n++;return false});
+  return n;
+}
+function lpBuildLeaves(p){
+  return (p.periods||[]).map(x=>({id:crypto.randomUUID(),employeeId:String(p.employee_id),start:x.start,end:x.end,note:`خطة الإجازة السنوية ${lpState.year}`,balanceDaysCharged:diffDays(x.end,x.start)+1}));
+}
+function lpCapacityWarnings(p,ignoreIds){
+  const msgs=[];
+  (p.periods||[]).forEach(x=>{
+    const saved=state.leaves;state.leaves=(state.leaves||[]).filter(l=>!ignoreIds.has(String(l.id)));
+    let c;try{c=checkLeaveCapacity(String(p.employee_id),x.start,x.end,null)}finally{state.leaves=saved}
+    if(c.employeeConflict)msgs.push(`عنده إجازة متداخلة من ${fmtDate(c.employeeConflict.start)} إلى ${fmtDate(c.employeeConflict.end)}`);
+    if(c.blocked.length)msgs.push(`${c.blocked.length} يوم فوق الحد الأعلى للمجازين (مثل ${fmtDate(c.blocked[0].date)}: ${c.blocked[0].total} موظفين)`);
+  });
+  return msgs;
+}
+async function lpApproveDates(id){
+  const p=lpPlan(id);if(!p?.periods?.length){alert('ما فيه تواريخ');return}
+  const old=new Set((p.leave_ids||[]).map(String)),warn=lpCapacityWarnings(p,old);
+  if(!confirm(`اعتماد تواريخ ${p.name}؟\n${lpPeriodsText(p,'\n')}\n\nبتنضاف لقسم الإجازات وتنخصم من رصيده.${warn.length?'\n\n⚠ '+warn.join('\n⚠ '):''}`))return;
+  const leaves=lpBuildLeaves(p);
+  try{await lpPatch(id,{dates_status:'approved',dates_note:'',leave_ids:leaves.map(l=>l.id)})}catch(e){alert(lpFriendlyError(e));return}
+  lpRemoveLinkedLeaves({leave_ids:[...old]});
+  leaves.forEach(l=>{state.leaves.push(l);const e=state.employees.find(x=>x.id===l.employeeId);if(e)e.leaveBalance=(Number(e.leaveBalance)||0)-l.balanceDaysCharged});
+  save();lpStatusMsg(`تم اعتماد تواريخ ${p.name} وإضافتها للإجازات ✓`);
+}
+async function lpUnapproveDates(id){
+  const p=lpPlan(id);if(!p)return;
+  if(!confirm(`إلغاء اعتماد تواريخ ${p.name}؟\nبتنحذف من قسم الإجازات ويرجع الرصيد، وترجع التواريخ للمراجعة.`))return;
+  const ids=[...(p.leave_ids||[])];
+  try{await lpPatch(id,{dates_status:'submitted',leave_ids:[]})}catch(e){alert(lpFriendlyError(e));return}
+  lpRemoveLinkedLeaves({leave_ids:ids});save();lpStatusMsg('تم إلغاء اعتماد التواريخ');
+}
+async function lpRejectDates(id){
+  const note=prompt('سبب رفض التواريخ (يظهر للموظف ويختار من جديد):','');if(note===null)return;
+  try{await lpPatch(id,{dates_status:'rejected',dates_note:note.trim()})}catch(e){alert(lpFriendlyError(e))}
+}
+function lpEditDates(id){
+  const p=lpPlan(id);if(!p)return;document.getElementById('lpDatesEditor')?.remove();
+  const per=[...(p.periods||[]),{},{}].slice(0,2),req=p.assigned_month<=4?2:3;
+  const box=document.createElement('div');box.id='lpDatesEditor';box.className='modal show';
+  box.innerHTML=`<div class="sheet" style="max-width:460px"><h3 style="margin:0 0 4px">تواريخ ${esc(p.name)}</h3>
+    <p class="small-note" style="margin:0 0 12px">الشهر المعتمد: ${LP_MONTHS_AR[p.assigned_month-1]} · المطلوب ${req===2?'شفتين':'3 شفتات'}. الفترة الثانية اختيارية.${p.dates_status==='approved'?' التعديل بيحدّث الإجازة في قسم الإجازات والرصيد مباشرة.':''}</p>
+    ${per.map((x,i)=>`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><label class="small-note">الفترة ${i+1} من<input type="date" id="lpEdS${i}" value="${x.start||''}"></label><label class="small-note">إلى<input type="date" id="lpEdE${i}" value="${x.end||''}"></label></div>`).join('')}
+    <div id="lpEdShift" class="small-note" style="margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="secondary" onclick="document.getElementById('lpDatesEditor').remove()">إلغاء</button><button class="primary" onclick="lpSaveDates('${esc(id)}')">حفظ</button></div></div>`;
+  document.body.appendChild(box);
+  const hint=()=>{const t=[0,1].map(i=>{const s=document.getElementById('lpEdS'+i).value,e=document.getElementById('lpEdE'+i).value;return s&&e?`الفترة ${i+1}: تبدأ ${groupShiftForDate(s).arabic} وتنتهي ${groupShiftForDate(e).arabic}`:''}).filter(Boolean);document.getElementById('lpEdShift').textContent=t.join(' · ')};
+  box.querySelectorAll('input').forEach(i=>i.addEventListener('change',hint));hint();
+}
+async function lpSaveDates(id){
+  const p=lpPlan(id);if(!p)return;const periods=[];
+  for(const i of [0,1]){const s=document.getElementById('lpEdS'+i).value,e=document.getElementById('lpEdE'+i).value;
+    if(!s&&!e)continue;if(!s||!e){alert(`أكمل تاريخ البداية والنهاية للفترة ${i+1}`);return}if(e<s){alert(`نهاية الفترة ${i+1} قبل بدايتها`);return}periods.push({start:s,end:e})}
+  if(!periods.length){alert('أدخل فترة وحدة على الأقل');return}
+  periods.sort((a,b)=>a.start.localeCompare(b.start));
+  if(periods[1]&&periods[1].start<=periods[0].end){alert('الفترتين متداخلتين');return}
+  const approved=p.dates_status==='approved';
+  if(approved){
+    const tmp={...p,periods},warn=lpCapacityWarnings(tmp,new Set((p.leave_ids||[]).map(String)));
+    if(warn.length&&!confirm('⚠ '+warn.join('\n⚠ ')+'\n\nتبغى تحفظ رغم ذلك؟'))return;
+    const leaves=lpBuildLeaves(tmp),old=[...(p.leave_ids||[])];
+    try{await lpPatch(id,{periods,leave_ids:leaves.map(l=>l.id)})}catch(e){alert(lpFriendlyError(e));return}
+    lpRemoveLinkedLeaves({leave_ids:old});
+    leaves.forEach(l=>{state.leaves.push(l);const e=state.employees.find(x=>x.id===l.employeeId);if(e)e.leaveBalance=(Number(e.leaveBalance)||0)-l.balanceDaysCharged});save();
+  }else{
+    try{await lpPatch(id,{periods,dates_status:'submitted',dates_note:'',dates_submitted_at:p.dates_submitted_at||new Date().toISOString()})}catch(e){alert(lpFriendlyError(e));return}
+  }
+  document.getElementById('lpDatesEditor')?.remove();lpStatusMsg(`تم حفظ تواريخ ${p.name} ✓`);
+}
+function lpPhase(r){const p=r.plan;if(p?.status==='approved'&&(!p.dates_status||p.dates_status==='rejected'))return 'dates';return 'months'}
+function lpMessage(r){
+  const url=lpLinkUrl(r.link.token),p=r.plan;
+  if(lpPhase(r)==='dates')return `السلام عليكم ${r.name}\nتم اعتماد إجازتك السنوية لسنة ${lpState.year} في شهر ${LP_MONTHS_AR[p.assigned_month-1]} ✓\nالرجاء الدخول على الرابط وتحديد فترة الإجازة (${p.assigned_month<=4?'شفتين':'3 شفتات'}) من التقويم:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  return `السلام عليكم ${r.name}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والمشرف يراجع الخطط ويعتمدها.\n${url}\nالرابط خاص فيك، لا تشاركه.`;
 }
 async function lpApproveAll(){
   const n=lpState.plans.filter(p=>p.status==='submitted').length;if(!n){alert('ما فيه خطط بانتظار الاعتماد');return}
@@ -3455,12 +3558,17 @@ async function lpApproveAll(){
     lpState.plans.forEach(p=>{if(p.status==='submitted'){p.status='approved';p.admin_note=''}});lpRender();lpStatusMsg(`تم اعتماد ${n} خطة ✓`);
   }catch(e){lpStatusMsg(lpFriendlyError(e),true)}
 }
-function lpMessage(r){return `السلام عليكم ${r.name}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والمشرف يراجع الخطط ويعتمدها.\n${lpLinkUrl(r.link.token)}\nالرابط خاص فيك، لا تشاركه.`}
 async function lpCopyText(text,okMsg){
   try{await navigator.clipboard.writeText(text);lpStatusMsg(okMsg)}
   catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');lpStatusMsg(okMsg)}catch{prompt('انسخ النص:',text)}ta.remove()}
 }
 function lpCopyOne(id){const r=lpRows().find(x=>x.id===id);if(r?.link)lpCopyText(lpMessage(r),`تم نسخ رابط ${r.name} ✓`)}
+function lpCopyDatesMessages(){
+  const rows=lpRows().filter(r=>r.link&&lpPhase(r)==='dates');
+  if(!rows.length){alert('ما فيه أحد بانتظار تحديد التواريخ');return}
+  const text=`تم اعتماد أشهر الإجازة السنوية ${lpState.year} ✓\nالرجاء من كل موظف الدخول على رابطه وتحديد فترة الإجازة من التقويم.\n\n`+rows.map(r=>`${r.name} · ${LP_MONTHS_AR[r.plan.assigned_month-1]}:\n${lpLinkUrl(r.link.token)}`).join('\n\n');
+  lpCopyText(text,`تم نسخ ${rows.length} رسالة ✓`);
+}
 function lpCopyLinks(all){
   const rows=lpRows().filter(r=>r.link&&(all||!r.plan));
   if(!rows.length){alert(all?'جهّز الروابط أولًا':'كل الموظفين سلّموا خططهم ✓');return}
@@ -3537,7 +3645,7 @@ function lpExport(){
   const sent=rows.filter(r=>r.plan).length,today=new Date();
   const dstr=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
   const py=year-1;
-  const head=['#','اسم الموظف','رقم الباج','الحالة',`إجازة ${py} (الأيام)`,'الخيار الأول','الخيار الثاني','الخيار الثالث','الشهر المعتمد','ملاحظة','تاريخ الإرسال'];
+  const head=['#','اسم الموظف','رقم الباج','الحالة',`إجازة ${py} (الأيام)`,'الخيار الأول','الخيار الثاني','الخيار الثالث','الشهر المعتمد','تواريخ الإجازة','حالة التواريخ','ملاحظة','تاريخ الإرسال'];
   const statusStyle={approved:'approved',submitted:'submitted',rejected:'rejected',none:'none'};
   const order={approved:0,submitted:1,rejected:2,none:3};
   const sorted=[...rows].sort((a,b)=>(order[a.plan?.status||'none']-order[b.plan?.status||'none'])||(a.plan&&b.plan?a.plan.assigned_month-b.plan.assigned_month:0)||String(a.name).localeCompare(String(b.name),'ar'));
@@ -3545,13 +3653,13 @@ function lpExport(){
     const p=r.plan,st=p?.status||'none',z=i%2===1,b=z?'zebra':'body',bc=z?'zebraC':'bodyC';
     const ch=k=>({v:p?m(p[k]):'—',s:p&&p.status!=='rejected'&&p.assigned_month===p[k]?'assigned':bc});
     const pv=lpPrev(r.id,py),pvText=pv.months.length?pv.months.map(x=>`${LP_MONTHS_AR[x.m-1]} (${x.days})`).join('، '):'لا يوجد',rep=lpRepeat(r);
-    return {height:pv.months.length>2?34:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:LP_STATUS[st][0],s:statusStyle[st]},{v:rep?pvText+'  ⚠ تكرار':pvText,s:rep?'prevWarn':z?'prevZ':'prev'},ch('choice1'),ch('choice2'),ch('choice3'),
-      {v:p&&p.status==='approved'?m(p.assigned_month):p&&p.status==='submitted'?'لم يُعتمد بعد':'—',s:p&&p.status==='approved'?'approved':bc},{v:p?.admin_note||'',s:z?'zebraWrap':'wrap'},{v:p?.submitted_at?String(p.submitted_at).slice(0,10):'—',s:bc}]};
+    return {height:pv.months.length>2||(p?.periods?.length>1)?36:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:LP_STATUS[st][0],s:statusStyle[st]},{v:rep?pvText+'  ⚠ تكرار':pvText,s:rep?'prevWarn':z?'prevZ':'prev'},ch('choice1'),ch('choice2'),ch('choice3'),
+      {v:p&&p.status==='approved'?m(p.assigned_month):p&&p.status==='submitted'?'لم يُعتمد بعد':'—',s:p&&p.status==='approved'?'approved':bc},{v:p?.periods?.length?lpPeriodsText(p,'\n'):'—',s:z?'prevZ':'prev'},{v:p?.status==='approved'?LP_DATES[p.dates_status||'none'][0]:'—',s:p?.status!=='approved'?bc:p.dates_status==='approved'?'approved':p.dates_status==='submitted'?'submitted':p.dates_status==='rejected'?'rejected':'none'},{v:[p?.admin_note,p?.dates_status==='rejected'?p.dates_note:''].filter(Boolean).join(' · '),s:z?'zebraWrap':'wrap'},{v:p?.submitted_at?String(p.submitted_at).slice(0,10):'—',s:bc}]};
   });
   const last=3+body.length;
-  const sheet1={name:`خطة الإجازة ${year}`,cols:[5,30,12,17,24,16,16,16,18,26,14],freeze:3,filter:`A3:K${last}`,merges:['A1:K1','A2:K2'],
-    rows:[{height:34,cells:[{v:`خطة الإجازة السنوية ${year} · Group A`,s:'title'},...Array(10).fill({v:'',s:'title'})]},
-      {height:22,cells:[{v:`تاريخ التصدير ${dstr}   ·   سلّموا ${sent} من ${rows.length}   ·   الحد في الشهر ${max}   ·   البرتقالي = الشهر المرشّح له   ·   الأحمر = نفس شهر إجازة ${py}`,s:'sub'},...Array(10).fill({v:'',s:'sub'})]},
+  const sheet1={name:`خطة الإجازة ${year}`,cols:[5,30,12,17,24,16,16,16,18,30,22,24,14],freeze:3,filter:`A3:M${last}`,merges:['A1:M1','A2:M2'],
+    rows:[{height:34,cells:[{v:`خطة الإجازة السنوية ${year} · Group A`,s:'title'},...Array(12).fill({v:'',s:'title'})]},
+      {height:22,cells:[{v:`تاريخ التصدير ${dstr}   ·   سلّموا ${sent} من ${rows.length}   ·   الحد في الشهر ${max}   ·   البرتقالي = الشهر المرشّح له   ·   الأحمر = نفس شهر إجازة ${py}`,s:'sub'},...Array(12).fill({v:'',s:'sub'})]},
       {height:26,cells:head.map(v=>({v,s:'head'}))},...body]};
   const byMonth=Array.from({length:12},()=>[]);
   const apprBy=Array(12).fill(0),pendBy=Array(12).fill(0);
