@@ -3431,6 +3431,18 @@ function lpRepeat(r){const p=r.plan;if(!p||p.status==='rejected')return false;re
 const LP_DATES={none:['بانتظار تحديد التواريخ','b-neutral'],submitted:['التواريخ قيد المراجعة','b-yellow'],approved:['التواريخ معتمدة ✓','b-green'],rejected:['التواريخ مرفوضة','b-red']};
 function lpFmtDay(d){const [y,m,dd]=d.split('-').map(Number);return `${dd} ${LP_MONTHS_AR[m-1]}`}
 function lpPeriodsText(p,sep='  ·  '){return (p?.periods||[]).map(x=>`${lpFmtDay(x.start)} إلى ${lpFmtDay(x.end)} (${diffDays(x.end,x.start)+1} يوم)`).join(sep)}
+const LP_SHIFT_WORD={N:'ليل',A:'مساء',M:'صباح'};
+/* الشفتات اللي تغطيها الإجازة، مثل: مساء - صباح - ليل (3 أيام) */
+function lpShiftsOfPeriod(x){
+  const parts=[];let cur=null;
+  for(let d=x.start;d<=x.end;d=addDaysISO(d,1)){
+    const sh=groupShiftForDate(d);if(!LP_SHIFT_WORD[sh.code])continue;
+    const key=sh.code+shiftPeriodStart(d,sh.code);
+    if(cur&&cur.key===key)cur.days++;else{cur={key,code:sh.code,days:1};parts.push(cur)}
+  }
+  return parts.map(p=>LP_SHIFT_WORD[p.code]+(p.days<7?` (${p.days} ${p.days<=10&&p.days>=3?'أيام':'يوم'})`:'')).join(' - ');
+}
+function lpShiftsText(p,sep=' | '){return (p?.periods||[]).map(lpShiftsOfPeriod).filter(Boolean).join(sep)}
 function lpRowHtml(r){
   const p=r.plan,[label,cls]=LP_STATUS[p?.status||'none'];
   const choices=p?[p.choice1,p.choice2,p.choice3].map((m,i)=>`<span class="lp-chip ${p.assigned_month===m?'assigned':''}" title="اضغط لتحويل الحجز لهذا الشهر" onclick="lpAssign('${esc(r.id)}',${m})"><span class="n">${i+1}</span>${LP_MONTHS_AR[m-1]}</span>`).join(''):'<span class="small-note">—</span>';
@@ -3440,7 +3452,7 @@ function lpRowHtml(r){
   let datesHtml='';
   if(p?.status==='approved'){
     const ds=p.dates_status||'none',[dl,dc]=LP_DATES[ds];
-    datesHtml=`<div class="lp-dates"><span class="badge ${dc}">${dl}</span>${p.periods?.length?`<span class="lp-dates-text">${esc(lpPeriodsText(p))}</span>`:''}${p.dates_note&&ds==='rejected'?`<small style="color:var(--red)">${esc(p.dates_note)}</small>`:''}</div>`;
+    datesHtml=`<div class="lp-dates"><span class="badge ${dc}">${dl}</span>${p.periods?.length?`<span class="lp-dates-text">${esc(lpPeriodsText(p))}</span><span class="small-note">${esc(lpShiftsText(p))}</span>`:''}${p.dates_note&&ds==='rejected'?`<small style="color:var(--red)">${esc(p.dates_note)}</small>`:''}</div>`;
     if(ds==='submitted')acts.push(`<button class="primary" onclick="lpApproveDates('${id}')">اعتماد التواريخ</button>`,`<button class="danger" onclick="lpRejectDates('${id}')">رفض التواريخ</button>`);
     acts.push(`<button class="secondary" onclick="lpEditDates('${id}')">${p.periods?.length?'تعديل التواريخ':'إدخال التواريخ'}</button>`);
     if(ds==='approved')acts.push(`<button class="secondary" onclick="lpUnapproveDates('${id}')">إلغاء اعتماد التواريخ</button>`);
@@ -3673,8 +3685,9 @@ function lpExport(){
     const p=r.plan,st=p?.status||'none',z=i%2===1,b=z?'zebra':'body',bc=z?'zebraC':'bodyC';
     const ch=k=>({v:p?m(p[k]):'—',s:p&&p.status!=='rejected'&&p.assigned_month===p[k]?'assigned':bc});
     const pv=lpPrev(r.id,py),pvText=pv.months.length?pv.months.map(x=>`${LP_MONTHS_AR[x.m-1]} (${x.days})`).join('، '):'لا يوجد',rep=lpRepeat(r);
-    return {height:pv.months.length>2||(p?.periods?.length>1)?36:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:LP_STATUS[st][0],s:statusStyle[st]},{v:rep?pvText+'  ⚠ تكرار':pvText,s:rep?'prevWarn':z?'prevZ':'prev'},ch('choice1'),ch('choice2'),ch('choice3'),
-      {v:p&&p.status==='approved'?m(p.assigned_month):p&&p.status==='submitted'?'لم يُعتمد بعد':'—',s:p&&p.status==='approved'?'approved':bc},{v:p?.periods?.length?lpPeriodsText(p,'\n'):'—',s:z?'prevZ':'prev'},{v:p?.status==='approved'?LP_DATES[p.dates_status||'none'][0]:'—',s:p?.status!=='approved'?bc:p.dates_status==='approved'?'approved':p.dates_status==='submitted'?'submitted':p.dates_status==='rejected'?'rejected':'none'},{v:[p?.admin_note,p?.dates_status==='rejected'?p.dates_note:''].filter(Boolean).join(' · '),s:z?'zebraWrap':'wrap'},{v:p?.submitted_at?String(p.submitted_at).slice(0,10):'—',s:bc}]};
+    const noteLines=(p?.periods?.length||0)+(p?.admin_note?1:0)+(p?.dates_status==='rejected'&&p.dates_note?1:0);
+    return {height:Math.max(22,17*Math.max(pv.months.length>2?2:1,p?.periods?.length||1,noteLines)+6),cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:LP_STATUS[st][0],s:statusStyle[st]},{v:rep?pvText+'  ⚠ تكرار':pvText,s:rep?'prevWarn':z?'prevZ':'prev'},ch('choice1'),ch('choice2'),ch('choice3'),
+      {v:p&&p.status==='approved'?m(p.assigned_month):p&&p.status==='submitted'?'لم يُعتمد بعد':'—',s:p&&p.status==='approved'?'approved':bc},{v:p?.periods?.length?lpPeriodsText(p,'\n'):'—',s:z?'prevZ':'prev'},{v:p?.status==='approved'?LP_DATES[p.dates_status||'none'][0]:'—',s:p?.status!=='approved'?bc:p.dates_status==='approved'?'approved':p.dates_status==='submitted'?'submitted':p.dates_status==='rejected'?'rejected':'none'},{v:[lpShiftsText(p,'\n'),p?.admin_note,p?.dates_status==='rejected'?p.dates_note:''].filter(Boolean).join('\n'),s:z?'zebraWrap':'wrap'},{v:p?.submitted_at?String(p.submitted_at).slice(0,10):'—',s:bc}]};
   });
   const last=3+body.length;
   const sheet1={name:`خطة الإجازة ${year}`,cols:[5,30,12,17,24,16,16,16,18,30,22,24,14],freeze:3,filter:`A3:M${last}`,merges:['A1:M1','A2:M2'],
