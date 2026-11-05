@@ -3480,8 +3480,21 @@ function lpRemoveLinkedLeaves(p){
 function lpBuildLeaves(p){
   return (p.periods||[]).map(x=>({id:crypto.randomUUID(),employeeId:String(p.employee_id),start:x.start,end:x.end,note:`خطة الإجازة السنوية ${lpState.year}`,balanceDaysCharged:diffDays(x.end,x.start)+1}));
 }
+function lpReqText(m){return m<=3?'شفتين على الأقل':'3 شفتات'}
+const LP_SHIFT_CAP={N:6,A:5,M:5};
+function lpShiftCapWarnings(p,ignoreIds){
+  const out=[],emp=String(p.employee_id),seen=new Set();
+  (p.periods||[]).forEach(x=>{
+    for(let d=x.start;d<=x.end;d=addDaysISO(d,1)){
+      const sh=groupShiftForDate(d),cap=LP_SHIFT_CAP[sh.code];if(!cap)continue;
+      const who=new Set((state.leaves||[]).filter(l=>!ignoreIds.has(String(l.id))&&String(l.employeeId)!==emp&&l.start<=d&&l.end>=d).map(l=>String(l.employeeId)));
+      if(who.size+1>cap){const key=sh.code+shiftPeriodStart(d,sh.code);if(!seen.has(key)){seen.add(key);out.push(`شفت ${sh.arabic} ${fmtDate(d)}: بيصيرون ${who.size+1} مجازين والحد ${cap}`)}}
+    }
+  });
+  return out;
+}
 function lpCapacityWarnings(p,ignoreIds){
-  const msgs=[];
+  const msgs=lpShiftCapWarnings(p,ignoreIds);
   (p.periods||[]).forEach(x=>{
     const saved=state.leaves;state.leaves=(state.leaves||[]).filter(l=>!ignoreIds.has(String(l.id)));
     let c;try{c=checkLeaveCapacity(String(p.employee_id),x.start,x.end,null)}finally{state.leaves=saved}
@@ -3513,10 +3526,10 @@ async function lpRejectDates(id){
 }
 function lpEditDates(id){
   const p=lpPlan(id);if(!p)return;document.getElementById('lpDatesEditor')?.remove();
-  const per=[...(p.periods||[]),{},{}].slice(0,2),req=p.assigned_month<=4?2:3;
+  const per=[...(p.periods||[]),{},{}].slice(0,2);
   const box=document.createElement('div');box.id='lpDatesEditor';box.className='modal show';
   box.innerHTML=`<div class="sheet" style="max-width:460px"><h3 style="margin:0 0 4px">تواريخ ${esc(p.name)}</h3>
-    <p class="small-note" style="margin:0 0 12px">الشهر المعتمد: ${LP_MONTHS_AR[p.assigned_month-1]} · المطلوب ${req===2?'شفتين':'3 شفتات'}. الفترة الثانية اختيارية.${p.dates_status==='approved'?' التعديل بيحدّث الإجازة في قسم الإجازات والرصيد مباشرة.':''}</p>
+    <p class="small-note" style="margin:0 0 12px">الشهر المعتمد: ${LP_MONTHS_AR[p.assigned_month-1]} · المطلوب ${lpReqText(p.assigned_month)}. الحد: ليلي 6 · صباحي/مسائي 5. الفترة الثانية اختيارية.${p.dates_status==='approved'?' التعديل بيحدّث الإجازة في قسم الإجازات والرصيد مباشرة.':''}</p>
     ${per.map((x,i)=>`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><label class="small-note">الفترة ${i+1} من<input type="date" id="lpEdS${i}" value="${x.start||''}"></label><label class="small-note">إلى<input type="date" id="lpEdE${i}" value="${x.end||''}"></label></div>`).join('')}
     <div id="lpEdShift" class="small-note" style="margin-bottom:10px"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end"><button class="secondary" onclick="document.getElementById('lpDatesEditor').remove()">إلغاء</button><button class="primary" onclick="lpSaveDates('${esc(id)}')">حفظ</button></div></div>`;
@@ -3547,7 +3560,7 @@ async function lpSaveDates(id){
 function lpPhase(r){const p=r.plan;if(p?.status==='approved'&&(!p.dates_status||p.dates_status==='rejected'))return 'dates';return 'months'}
 function lpMessage(r){
   const url=lpLinkUrl(r.link.token),p=r.plan;
-  if(lpPhase(r)==='dates')return `السلام عليكم ${r.name}\nتم اعتماد إجازتك السنوية لسنة ${lpState.year} في شهر ${LP_MONTHS_AR[p.assigned_month-1]} ✓\nالرجاء الدخول على الرابط وتحديد فترة الإجازة (${p.assigned_month<=4?'شفتين':'3 شفتات'}) من التقويم:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  if(lpPhase(r)==='dates')return `السلام عليكم ${r.name}\nتم اعتماد إجازتك السنوية لسنة ${lpState.year} في شهر ${LP_MONTHS_AR[p.assigned_month-1]} ✓\nالرجاء الدخول على الرابط وتحديد فترة الإجازة (${lpReqText(p.assigned_month)}) من التقويم:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
   return `السلام عليكم ${r.name}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والمشرف يراجع الخطط ويعتمدها.\n${url}\nالرابط خاص فيك، لا تشاركه.`;
 }
 async function lpApproveAll(){
