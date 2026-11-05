@@ -1801,6 +1801,12 @@ function ensureAnnualLeaveCredit(){
       expiredDays+=Math.max(0,previous-carried);
       e.leaveBalance=carried+30;
     });
+    (state.leaves||[]).forEach(l=>{
+      if(Number(l.pendingChargeYear)!==year)return;
+      const d=Number(l.pendingChargeDays)||(diffDays(l.end,l.start)+1),e=state.employees.find(x=>x.id===l.employeeId);
+      if(e)e.leaveBalance=(Number(e.leaveBalance)||0)-d;
+      l.balanceDaysCharged=d;delete l.pendingChargeYear;delete l.pendingChargeDays;
+    });
     state.leaveBalanceHistory.push({id:`annual-credit-${year}`,year,days:30,maxCarryOver:9,expiredDays,appliedAt:new Date().toISOString(),employeeCount:state.employees.length});
   }
   state.leaveBalanceAccrualYear=currentYear;
@@ -3478,7 +3484,8 @@ function lpRemoveLinkedLeaves(p){
   return n;
 }
 function lpBuildLeaves(p){
-  return (p.periods||[]).map(x=>({id:crypto.randomUUID(),employeeId:String(p.employee_id),start:x.start,end:x.end,note:`خطة الإجازة السنوية ${lpState.year}`,balanceDaysCharged:diffDays(x.end,x.start)+1}));
+  const future=lpState.year>new Date().getFullYear();
+  return (p.periods||[]).map(x=>{const d=diffDays(x.end,x.start)+1;return {id:crypto.randomUUID(),employeeId:String(p.employee_id),start:x.start,end:x.end,note:`خطة الإجازة السنوية ${lpState.year}`,...(future?{balanceDaysCharged:0,pendingChargeYear:lpState.year,pendingChargeDays:d}:{balanceDaysCharged:d})}});
 }
 function lpReqText(m){return m<=3?'شفتين على الأقل':'3 شفتات'}
 const LP_SHIFT_CAP={N:6,A:5,M:5};
@@ -3506,7 +3513,7 @@ function lpCapacityWarnings(p,ignoreIds){
 async function lpApproveDates(id){
   const p=lpPlan(id);if(!p?.periods?.length){alert('ما فيه تواريخ');return}
   const old=new Set((p.leave_ids||[]).map(String)),warn=lpCapacityWarnings(p,old);
-  if(!confirm(`اعتماد تواريخ ${p.name}؟\n${lpPeriodsText(p,'\n')}\n\nبتنضاف لقسم الإجازات وتنخصم من رصيده.${warn.length?'\n\n⚠ '+warn.join('\n⚠ '):''}`))return;
+  if(!confirm(`اعتماد تواريخ ${p.name}؟\n${lpPeriodsText(p,'\n')}\n\nبتنضاف لقسم الإجازات، و${lpState.year>new Date().getFullYear()?`تنخصم من رصيد ${lpState.year} تلقائي أول يوم في السنة (بعد إضافة الـ 30 يوم)`:'تنخصم من رصيده'}.${warn.length?'\n\n⚠ '+warn.join('\n⚠ '):''}`))return;
   const leaves=lpBuildLeaves(p);
   try{await lpPatch(id,{dates_status:'approved',dates_note:'',leave_ids:leaves.map(l=>l.id)})}catch(e){alert(lpFriendlyError(e));return}
   lpRemoveLinkedLeaves({leave_ids:[...old]});
@@ -3776,6 +3783,7 @@ function checkLeaveCapacity(employeeId,start,end,excludeId=null){
 }
 function leaveChargedDays(leave){
   if(!leave)return 0;
+  if(leave.pendingChargeYear)return 0;
   const stored=Number(leave.balanceDaysCharged);
   if(Number.isFinite(stored)&&stored>0)return stored;
   if(/^\d{4}-\d{2}-\d{2}$/.test(leave.start||'')&&/^\d{4}-\d{2}-\d{2}$/.test(leave.end||'')&&leave.end>=leave.start)return diffDays(leave.end,leave.start)+1;
@@ -3795,15 +3803,16 @@ function saveLeave(){
     if(!confirm(`تنبيه: سيتجاوز عدد المجازين الحد الأعلى وهو 6.\n\nالأيام المتعارضة:\n${dates}${more}\n\nهل تريد الإضافة رغم ذلك؟`))return;
   }else if(check.full.length&&!confirm(`تنبيه: سيصل عدد المجازين إلى الحد الأعلى 6 موظفين خلال ${check.full.length} يوم. هل تريد المتابعة والإضافة؟`))return;
   const newDays=diffDays(end,start)+1;
+  const futureYear=Number(start.slice(0,4))>new Date().getFullYear()?Number(start.slice(0,4)):0;
   const oldLeave=editingLeaveId?state.leaves.find(l=>l.id===editingLeaveId):null;
   const oldCharged=leaveChargedDays(oldLeave);
   const oldEmployee=oldLeave?state.employees.find(e=>e.id===oldLeave.employeeId):null;
   const employee=state.employees.find(e=>e.id===employeeId);
   const available=(Number(employee?.leaveBalance)||0)+(oldLeave?.employeeId===employeeId?oldCharged:0);
-  if(newDays>available&&!confirm(`تنبيه: مدة الإجازة ${newDays} يوم بينما الرصيد المتاح ${formatDays(available)} يوم.\nسيصبح الرصيد سالبًا. هل تريد المتابعة؟`))return;
+  if(!futureYear&&newDays>available&&!confirm(`تنبيه: مدة الإجازة ${newDays} يوم بينما الرصيد المتاح ${formatDays(available)} يوم.\nسيصبح الرصيد سالبًا. هل تريد المتابعة؟`))return;
   if(oldLeave&&oldEmployee)oldEmployee.leaveBalance=(Number(oldEmployee.leaveBalance)||0)+oldCharged;
-  if(employee)employee.leaveBalance=(Number(employee.leaveBalance)||0)-newDays;
-  const leaveData={employeeId,start,end,note:document.getElementById('leaveNote').value.trim(),balanceDaysCharged:newDays};
+  if(employee&&!futureYear)employee.leaveBalance=(Number(employee.leaveBalance)||0)-newDays;
+  const leaveData={employeeId,start,end,note:document.getElementById('leaveNote').value.trim(),balanceDaysCharged:futureYear?0:newDays,...(futureYear?{pendingChargeYear:futureYear,pendingChargeDays:newDays}:{pendingChargeYear:undefined,pendingChargeDays:undefined})};
   if(editingLeaveId){
     const index=state.leaves.findIndex(l=>l.id===editingLeaveId);
     if(index>=0)state.leaves[index]={...state.leaves[index],...leaveData};
