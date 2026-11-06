@@ -1230,7 +1230,7 @@
 
     <section id="leavePlanView" class="view">
       <div class="section lp-section" id="leavePlanSection">
-        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد</div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">↻ تحديث</button></div>
+        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 6 نوفمبر ٢</span></div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">↻ تحديث</button></div>
         <div class="lp-controls">
           <label>السنة<input type="number" id="lpYear" min="2025" max="2100" onchange="lpLoad()"></label>
           <label>الحد في الشهر<input type="number" id="lpMax" min="1" max="60" value="6"></label>
@@ -3729,8 +3729,26 @@ async function lpApproveAll(){
   }catch(e){lpStatusMsg(lpFriendlyError(e),true)}
 }
 async function lpCopyText(text,okMsg){
-  try{await navigator.clipboard.writeText(text);lpStatusMsg(okMsg)}
-  catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');lpStatusMsg(okMsg)}catch{prompt('انسخ النص:',text)}ta.remove()}
+  let copied=false;
+  try{await navigator.clipboard.writeText(text);copied=true}
+  catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{copied=document.execCommand('copy')}catch{}ta.remove()}
+  lpStatusMsg(copied?okMsg:'');lpShowText(text,copied?okMsg:'انسخ النص من هنا');
+}
+/* يعرض الرسالة المنسوخة عشان تشوفها، مع زر نسخ وزر إرسال واتساب */
+function lpShowText(text,title){
+  document.getElementById('lpTextBox')?.remove();
+  const box=document.createElement('div');box.id='lpTextBox';box.className='modal show';
+  box.innerHTML=`<div class="sheet" style="max-width:560px"><h3 style="margin:0 0 4px">${esc(title)}</h3>
+    <p class="small-note" style="margin:0 0 8px">الرسالة انحفظت في الحافظة، الصقها في واتساب. أو اضغط «إرسال واتساب» واختر القروب أو الشخص.</p>
+    <textarea id="lpTextArea" readonly style="width:100%;height:46vh;font-size:13px;line-height:1.6;direction:rtl;white-space:pre-wrap"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap">
+      <button class="secondary" onclick="document.getElementById('lpTextBox').remove()">إغلاق</button>
+      <button class="secondary" id="lpTextCopy">📋 نسخ مرة ثانية</button>
+      <button class="primary" id="lpTextWa">إرسال واتساب</button></div></div>`;
+  document.body.appendChild(box);
+  const ta=document.getElementById('lpTextArea');ta.value=text;
+  document.getElementById('lpTextCopy').onclick=async()=>{ta.select();try{await navigator.clipboard.writeText(text)}catch{try{document.execCommand('copy')}catch{}}document.getElementById('lpTextCopy').textContent='✓ تم النسخ'};
+  document.getElementById('lpTextWa').onclick=()=>{const url=`https://wa.me/?text=${encodeURIComponent(text)}`;const w=window.open(url,'_blank');if(!w)location.href=url};
 }
 function lpCopyOne(id){const r=lpRows().find(x=>x.id===id);if(r?.link)lpCopyText(lpMessage(r),`تم نسخ رابط ${r.name} ✓`)}
 function lpCopyRejectedMessages(){
