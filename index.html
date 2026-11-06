@@ -3696,30 +3696,30 @@ function lpDistributionSheet(rows,year,max){
   const block=m=>{
     const list=rows.filter(r=>r.plan&&r.plan.status!=='rejected'&&r.plan.assigned_month===m)
       .sort((a,b)=>String(a.plan.periods?.[0]?.start||'9').localeCompare(String(b.plan.periods?.[0]?.start||'9'))||String(a.employee?.name||a.name).localeCompare(String(b.employee?.name||b.name)));
-    const out=[{height:26,title:true,cells:[E(`${LP_MONTHS_EN[m-1]} 1, ${year}`,'mTitle'),E('','mTitle'),E('','mTitle'),E('','mTitle')]},
-      {height:24,cells:['No.','Badge #','Name','Vacation'].map(v=>E(v,'dHead'))}];
+    const out=[{height:26,title:true,cells:[E(`${LP_MONTHS_EN[m-1]} 1, ${year}`,'mTitle'),E('','mTitle'),E('','mTitle'),E('','mTitle'),E('','mTitle')]},
+      {height:24,cells:['No.','Badge #','Name','Vacation',`Remaining ${year}`].map(v=>E(v,'dHead'))}];
     const n=Math.max(list.length,max);
     for(let i=0;i<n;i++){
       const r=list[i],p=r?.plan;
-      if(!r){out.push({height:22,cells:[E(i+1,'dBody'),E('','dBody'),E('','dBody'),E('','dBody')]});continue}
+      if(!r){out.push({height:22,cells:[E(i+1,'dBody'),E('','dBody'),E('','dBody'),E('','dBody'),E('','dBody')]});continue}
       const monthOk=p.status==='approved',ds=p.dates_status;
       const st=!monthOk?'dGray':ds==='approved'?'dGreen':ds==='submitted'?'dYellow':'dBody';
       const vac=p.periods?.length?p.periods.map(x=>`${md(x.start)} to ${md(x.end)}`).join('  /  '):(monthOk?'':'month pending');
-      out.push({height:p.periods?.length>1?36:22,cells:[E(i+1,st),E(r.badge,st),E(r.employee?.name||r.name,st),E(vac,st)]});
+      out.push({height:p.periods?.length>1?36:22,cells:[E(i+1,st),E(r.badge,st),E(r.employee?.name||r.name,st),E(vac,st),(()=>{const pb=lpProjectedBalance(r,year);return pb?E(pb.balance,st!=='dGray'&&pb.balance<0?'prevWarn':st):E('—',st)})()]});
     }
     return out;
   };
-  const side=ms=>ms.flatMap((m,i)=>[...(i?[{height:10,cells:[null,null,null,null]}]:[]),...block(m)]);
-  const L=side([1,2,3,4,5,6]),R=side([7,8,9,10,11,12]),top=3,out=[],merges=['A1:I1','A2:I2'];
-  out.push({height:32,cells:[E(`Group-A  ·  Annual Leave Plan ${year}`,'gTitle'),...Array(8).fill(E('','gTitle'))]});
-  out.push({height:20,cells:[E('Green = dates approved   ·   Yellow = dates under review   ·   White = month approved, dates not set   ·   Grey = month under review','dLegend'),...Array(8).fill(E('','dLegend'))]});
+  const side=ms=>ms.flatMap((m,i)=>[...(i?[{height:10,cells:[null,null,null,null,null]}]:[]),...block(m)]);
+  const L=side([1,2,3,4,5,6]),R=side([7,8,9,10,11,12]),top=3,out=[],merges=['A1:K1','A2:K2'];
+  out.push({height:32,cells:[E(`Group-A  ·  Annual Leave Plan ${year}`,'gTitle'),...Array(10).fill(E('','gTitle'))]});
+  out.push({height:20,cells:[E(`Green = dates approved   ·   Yellow = dates under review   ·   White = month approved, dates not set   ·   Grey = month under review   ·   Remaining ${year} = ${year-1} balance (max 9 carried) + 30 − leave days`,'dLegend'),...Array(10).fill(E('','dLegend'))]});
   out.push({height:8,cells:[]});
   for(let i=0;i<Math.max(L.length,R.length);i++){
-    const l=L[i]||{height:0,cells:[null,null,null,null]},r=R[i]||{height:0,cells:[null,null,null,null]},row=top+i+1;
-    if(l.title)merges.push(`A${row}:D${row}`);if(r.title)merges.push(`F${row}:I${row}`);
+    const l=L[i]||{height:0,cells:[null,null,null,null,null]},r=R[i]||{height:0,cells:[null,null,null,null,null]},row=top+i+1;
+    if(l.title)merges.push(`A${row}:E${row}`);if(r.title)merges.push(`G${row}:K${row}`);
     out.push({height:Math.max(l.height,r.height)||20,cells:[...l.cells,null,...r.cells]});
   }
-  return {name:'التوزيع',ltr:true,cols:[6,11,38,24,4,6,11,38,24],merges,rows:out};
+  return {name:'التوزيع',ltr:true,cols:[6,11,36,27,15,4,6,11,36,27,15],merges,rows:out};
 }
 /* رصيد السنة القادمة المتوقع: نفس قاعدة التطبيق (ترحيل 9 أيام بالحد الأعلى + 30) ناقص إجازاتها */
 function lpProjectedBalance(r,year){
