@@ -27,17 +27,62 @@ function renderInsightsDashboard(){
   const total=state.employees.length;
   const inLeave=state.employees.filter(e=>employeeStatus(e).text==='إجازة').length;
   const working=total-inLeave,workingPct=total?Math.round(working/total*100):0;
-  const overTen=state.employees.filter(e=>(Number(e.leaveBalance)||0)>9),overTenPct=total?Math.round(overTen.length/total*100):0;
+  const overCarry=state.employees.filter(e=>(Number(e.leaveBalance)||0)>9),overPct=total?Math.round(overCarry.length/total*100):0;
   const expiredCards=state.employees.filter(e=>marineStatus(e).kind==='expired'),expiredPct=total?Math.round(expiredCards.length/total*100):0;
-  const today=todayISO(),year=today.slice(0,4),yearStart=year+'-01-01',yearEnd=year+'-12-31';
-  const yearLeaves=state.leaves.filter(l=>l.start<=yearEnd&&l.end>=yearStart);
-  const takenLeaves=yearLeaves.filter(l=>l.start<=today);
-  const completionPct=yearLeaves.length?Math.round(takenLeaves.length/yearLeaves.length*100):0;
+  const ye=insYearEnd(),lostPct=total?Math.round(ye.needs.length/total*100):0;
   box.innerHTML=`
     <div class="metric-card success"><div class="insight-donut" style="--pct:${workingPct};--color:#2dd4a3"><strong>${workingPct}%</strong></div><div class="insight-copy"><h3>على رأس العمل</h3><p>الموظفون الحاضرون اليوم من إجمالي القوة</p><b>${working} من ${total} موظف</b></div></div>
-    <div class="metric-card warning"><div class="insight-donut" style="--pct:${overTenPct};--color:#f59e0b"><strong>${overTenPct}%</strong></div><div class="insight-copy"><h3>رصيد فوق 10 أيام</h3><p>موظفون رصيد إجازتهم يتجاوز 10 أيام</p><b>${overTen.length} من ${total} موظف</b></div></div>
+    <div class="metric-card warning"><div class="insight-donut" style="--pct:${overPct};--color:#f59e0b"><strong>${overPct}%</strong></div><div class="insight-copy"><h3>رصيد فوق حد الترحيل</h3><p>رصيدهم أكثر من 9 أيام (الحد اللي يترحّل للسنة الجاية)</p><b>${overCarry.length} من ${total} موظف</b></div></div>
     <div class="metric-card danger"><div class="insight-donut" style="--pct:${expiredPct};--color:#ef4444"><strong>${expiredPct}%</strong></div><div class="insight-copy"><h3>بطاقات منتهية</h3><p>بطاقات Marine ID منتهية الصلاحية حاليًا</p><b>${expiredCards.length} من ${total} موظف</b></div></div>
-    <div class="metric-card info"><div class="insight-donut" style="--pct:${completionPct};--color:#315fe7"><strong>${completionPct}%</strong></div><div class="insight-copy"><h3>نسبة الإنجاز بالإجازات السنوية</h3><p>الإجازات التي بدأ الموظفون فيها من إجمالي الإجازات المدخلة</p><b>${takenLeaves.length} من ${yearLeaves.length} إجازة</b></div></div>`;
+    <div class="metric-card ${ye.excessTotal?'danger':'success'}"><div class="insight-donut" style="--pct:${lostPct};--color:${ye.excessTotal?'#ef4444':'#2dd4a3'}"><strong>${formatDays(ye.excessTotal)}</strong></div><div class="insight-copy"><h3>أيام بتضيع 31 ديسمبر</h3><p>الرصيد الزايد عن 9 أيام وما له إجازة مجدولة. باقي ${ye.daysLeft} يوم على نهاية السنة</p><b>${ye.needs.length} موظف</b></div></div>`;
+  renderInsightsShiftLoad();renderInsightsYearEnd(ye);
+}
+/* ضغط الإجازات على كل شفت (7 أيام) خلال الأسابيع الجاية، مقابل الحد */
+const INS_CAP={N:6,A:5,M:5},INS_WORD={N:'ليل',A:'مساء',M:'صباح'};
+function insShiftBlocks(weeks=8){
+  const today=todayISO(),end=addDaysISO(today,weeks*7),blocks=new Map();
+  const emps=new Map(state.employees.map(e=>[e.id,e]));
+  const leaves=(state.leaves||[]).filter(l=>emps.has(l.employeeId)&&l.end>=today&&l.start<=end);
+  for(let d=today;d<=end;d=addDaysISO(d,1)){
+    const sh=groupShiftForDate(d);if(!INS_CAP[sh.code])continue;
+    const idx=((diffDays(d,SHIFT_ANCHOR)%28)+28)%28,start=addDaysISO(d,-(idx-sh.from));
+    const key=sh.code+start;
+    if(!blocks.has(key))blocks.set(key,{code:sh.code,start,end:addDaysISO(start,sh.to-sh.from),max:0,who:new Map()});
+    const b=blocks.get(key),on=leaves.filter(l=>l.start<=d&&l.end>=d);
+    b.max=Math.max(b.max,on.length);on.forEach(l=>b.who.set(l.employeeId,l));
+  }
+  return [...blocks.values()];
+}
+function renderInsightsShiftLoad(){
+  const box=document.getElementById('insightsShiftLoad');if(!box)return;
+  const today=todayISO(),rows=insShiftBlocks(8);
+  if(!rows.length){box.innerHTML='<div class="empty">لا توجد شفتات</div>';return}
+  const sd=d=>{const x=new Date(d+'T12:00:00');return `${x.getDate()} ${['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'][x.getMonth()]}`};
+  box.innerHTML=rows.map(b=>{
+    const cap=INS_CAP[b.code],cls=b.max>=cap?'full':b.max>=cap-1?'near':'',pct=Math.min(100,Math.round(b.max/cap*100));
+    const names=[...b.who.values()].map(l=>{const e=state.employees.find(x=>x.id===l.employeeId);return `<span>${esc(rosterEmployeeName(e)||e?.name||'')}</span>`}).join('');
+    return `<div class="ins-row ${cls} ${b.start<=today&&b.end>=today?'now':''}"><div class="lbl"><b>${INS_WORD[b.code]}${b.start<=today&&b.end>=today?' · الحين':''}</b><small>${sd(b.start)} – ${sd(b.end)}</small></div><div class="bar"><i style="width:${pct}%"></i></div><div class="n">${b.max} / ${cap}</div>${b.who.size?`<details><summary>${b.who.size} مجاز${b.max>=cap?' — الشفت ممتلئ':b.max>=cap-1?' — باقي مكان واحد':''}</summary><div class="who">${names}</div></details>`:''}</div>`;
+  }).join('');
+}
+/* تصفية الأرصدة قبل 31 ديسمبر. الرصيد ينخصم وقت إدخال الإجازة، فالزايد عن 9 هو اللي بيضيع إذا ما انجدول. */
+function insYearEnd(){
+  const today=todayISO(),year=today.slice(0,4),yearEnd=year+'-12-31',daysLeft=diffDays(yearEnd,today)+1;
+  const rows=state.employees.map(e=>{
+    const bal=Number(e.leaveBalance)||0,excess=Math.max(0,bal-9);
+    const upcoming=(state.leaves||[]).filter(l=>l.employeeId===e.id&&l.end>=today&&l.start<=yearEnd&&!l.pendingChargeYear);
+    const upDays=upcoming.reduce((s,l)=>s+diffDays(l.end>yearEnd?yearEnd:l.end,l.start>today?l.start:today)+1,0);
+    return {e,bal,excess,upcoming,upDays};
+  });
+  const needs=rows.filter(r=>r.excess>0).sort((a,b)=>b.excess-a.excess);
+  return {year,daysLeft,rows,needs,excessTotal:needs.reduce((s,r)=>s+r.excess,0),upcomingDays:rows.reduce((s,r)=>s+r.upDays,0),scheduledPeople:rows.filter(r=>r.upDays>0).length};
+}
+function renderInsightsYearEnd(ye=insYearEnd()){
+  const box=document.getElementById('insightsYearEnd');if(!box)return;
+  const k=document.getElementById('insightsYearEndKicker');if(k)k.textContent=`باقي ${ye.daysLeft} يوم على 31 ديسمبر ${ye.year}`;
+  const list=ye.needs.map(r=>`<div class="ye-r"><div><b>${esc(rosterEmployeeName(r.e)||r.e.name)}</b><small>#${esc(r.e.empId||'-')} · الرصيد ${formatDays(r.bal)} يوم${r.upDays?` · عنده ${r.upDays} يوم إجازة مجدولة قبل نهاية السنة`:''}</small></div><span class="tag lose">يحتاج ${formatDays(r.excess)} يوم قبل 31 ديسمبر</span></div>`).join('');
+  box.innerHTML=`<div class="ins-ye-top"><div class="${ye.excessTotal?'bad':''}"><b>${formatDays(ye.excessTotal)}</b><span>يوم بتضيع لو ما انجدول</span></div><div><b>${ye.needs.length}</b><span>موظف رصيده فوق 9</span></div><div><b>${ye.upcomingDays}</b><span>يوم إجازة مجدولة لين نهاية السنة</span></div><div><b>${ye.daysLeft}</b><span>يوم باقي على نهاية السنة</span></div></div>
+  <div class="ins-ye-list">${list||'<div class="empty">كل الأرصدة ضمن حد الترحيل 👌 ما فيه شي بيضيع</div>'}</div>
+  <p class="small-note" style="margin-top:8px">الرصيد ينخصم وقت إدخال الإجازة، فالرقم هنا هو اللي يبقى زايد بعد الإجازات المجدولة. أول يناير يترحّل 9 أيام بحد أقصى وتنضاف 30.</p>`;
 }
 
 function renderLeaveBalanceInsights(){
