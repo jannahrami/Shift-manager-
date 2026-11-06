@@ -936,6 +936,11 @@
     .lp-month.full{border-color:#e9c9cb;background:#fbf1f2}.lp-month.full .bar i{background:var(--red)}
     .lp-month.near .bar i{background:var(--yellow)}
     .lp-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+    .lp-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+    .lp-group{border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;background:var(--card2)}
+    .lp-gt{flex-basis:100%;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:2px}
+    .lp-group button{font-size:12px;padding:8px 10px}
+    @media(max-width:900px){.lp-groups{grid-template-columns:1fr}}
     .lp-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
     .lp-filter button{padding:6px 12px;font-size:11px;border-radius:999px!important}
     .lp-filter button.on{background:var(--ink)!important;color:#fff!important;border-color:var(--ink)!important}
@@ -1001,6 +1006,7 @@
     <button class="navbtn" data-view="homeView" onclick="showView('homeView',this)"><span>⌂</span>الرئيسية</button>
     <button class="navbtn" data-view="employeesView" onclick="showView('employeesView',this)"><span>👥</span>الموظفون</button>
     <button class="navbtn" data-view="leaveView" onclick="showView('leaveView',this)"><span>🗓️</span>الإجازات</button>
+<button class="navbtn" id="lpNavBtn" data-view="leavePlanView" onclick="showView('leavePlanView',this)"><span>🗳️</span>خطة الإجازة</button>
     <button class="navbtn" data-view="calendarView" onclick="showView('calendarView',this)"><span>▦</span>التقويم</button>
     <button class="navbtn" data-view="shiftView" onclick="showView('shiftView',this)"><span>🛡️</span>الشفت</button>
     <button class="navbtn" data-view="reportsView" onclick="showView('reportsView',this)"><span>📊</span>التقارير</button>
@@ -1190,29 +1196,7 @@
         <div class="section-head"><span class="small-note" id="leaveMonthTitle">جميع الإجازات</span><span class="chip" id="leaveMonthCount">0 موظف</span></div>
         <div class="list" id="leaveList"></div>
       </div>
-      <div class="section lp-section" id="leavePlanSection" style="margin-top:16px">
-        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد</div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">↻ تحديث</button></div>
-        <div class="lp-controls">
-          <label>السنة<input type="number" id="lpYear" min="2025" max="2100" onchange="lpLoad()"></label>
-          <label>الحد في الشهر<input type="number" id="lpMax" min="1" max="60" value="6"></label>
-          <label class="lp-check"><input type="checkbox" id="lpOpen" checked> الاستقبال مفتوح</label>
-          <button class="secondary" onclick="lpSaveSettings()">حفظ الإعدادات</button>
-        </div>
-        <div id="lpStatus" class="small-note" style="margin:8px 0"></div>
-        <div class="lp-stats" id="lpStats"></div>
-        <div class="lp-months" id="lpMonths"></div>
-        <div class="lp-actions">
-          <button class="primary" onclick="lpGenerateLinks()">🔗 تجهيز روابط الموظفين</button>
-          <button class="secondary" onclick="lpCopyLinks(false)">نسخ روابط اللي ما سلّموا</button>
-          <button class="secondary" onclick="lpCopyLinks(true)">نسخ كل الروابط</button>
-          <button class="secondary" onclick="lpApproveAll()">✓ اعتماد كل الخطط المرسلة</button>
-          <button class="secondary" onclick="lpCopyDatesMessages()">📅 نسخ رسائل تحديد الفترة</button>
-          <button class="secondary" onclick="lpCopyRejectedMessages()">↩ نسخ رسائل المرفوضين</button>
-          <button class="secondary" onclick="lpExport()">⬇ Export Excel</button>
-        </div>
-        <div class="lp-filter" id="lpFilter"></div>
-        <div class="list" id="lpList"></div>
-      </div>
+
     </section>
 
     <section id="gateCoverageView" class="view">
@@ -1235,6 +1219,39 @@
       <div class="section">
         <div class="section-head"><div><span class="section-kicker">🚓</span><h2>Patrol Coverage</h2></div></div>
         <div id="gateCoveragePatrols" class="access-cards" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div>
+      </div>
+    </section>
+
+    <section id="leavePlanView" class="view">
+      <div class="section lp-section" id="leavePlanSection">
+        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد</div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">↻ تحديث</button></div>
+        <div class="lp-controls">
+          <label>السنة<input type="number" id="lpYear" min="2025" max="2100" onchange="lpLoad()"></label>
+          <label>الحد في الشهر<input type="number" id="lpMax" min="1" max="60" value="6"></label>
+          <label class="lp-check"><input type="checkbox" id="lpOpen" checked> الاستقبال مفتوح</label>
+          <button class="secondary" onclick="lpSaveSettings()">حفظ الإعدادات</button>
+        </div>
+        <div id="lpStatus" class="small-note" style="margin:8px 0"></div>
+        <div class="lp-stats" id="lpStats"></div>
+        <div class="lp-months" id="lpMonths"></div>
+        <div class="lp-groups">
+          <div class="lp-group"><div class="lp-gt">١ · الروابط والرسائل</div>
+            <button class="primary" onclick="lpGenerateLinks()">🔗 تجهيز روابط الموظفين</button>
+            <button class="secondary" onclick="lpCopyLinks(false)">📨 روابط اللي ما سلّموا</button>
+            <button class="secondary" onclick="lpCopyLinks(true)">نسخ كل الروابط</button>
+            <button class="secondary" onclick="lpCopyDatesMessages()">📅 رسائل تحديد الفترة</button>
+            <button class="secondary" onclick="lpCopyRejectedMessages()">↩ رسائل المرفوضين</button>
+          </div>
+          <div class="lp-group"><div class="lp-gt">٢ · الاعتماد</div>
+            <button class="secondary" onclick="lpApproveAll()">✓ اعتماد كل الأشهر المرسلة</button>
+            <button class="secondary" onclick="lpApproveAllDates()">✓ اعتماد كل التواريخ المرسلة</button>
+          </div>
+          <div class="lp-group"><div class="lp-gt">٣ · التصدير</div>
+            <button class="secondary" onclick="lpExport()">⬇ Export Excel</button>
+          </div>
+        </div>
+        <div class="lp-filter" id="lpFilter"></div>
+        <div class="list" id="lpList"></div>
       </div>
     </section>
 
@@ -1308,6 +1325,12 @@
           <button class="secondary" onclick="printReport('achievementsReportBox','تقرير إنجازات الموظفين')">🖨 طباعة / PDF</button>
         </div>
         <div id="achievementsReportBox"></div>
+      </div>
+      <div class="section" id="smBackupSection" style="margin-top:16px">
+        <div class="section-head"><div><div class="section-kicker">تنحفظ تلقائياً قبل أي تعديل · كل النسخ لآخر 7 أيام، ونسخة لكل يوم لين 4 شهور</div><h2>💾 النسخ الاحتياطية</h2></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="secondary" onclick="smBackupNow()">💾 نسخة الآن</button><button class="secondary" onclick="smBackupsLoad()">↻ تحديث</button></div></div>
+        <div id="smBackupStatus" class="small-note" style="margin:6px 0"></div>
+        <div class="list" id="smBackupList"></div>
       </div>
     </section>
 
@@ -1869,7 +1892,7 @@ function persistAuth(){
 function applyRoleUI(){
   document.querySelectorAll('.admin-only').forEach(el=>{el.classList.remove('admin-only');el.removeAttribute('aria-hidden')});
   document.querySelectorAll('.employee-role-select,.roster-required').forEach(el=>{el.disabled=false;el.removeAttribute('title')});
-  document.body.classList.toggle('guest-mode',!isAdmin());const badge=document.getElementById('currentRoleBadge');if(badge)badge.textContent=isAdmin()?'Admin':'Guest · عرض فقط';
+  document.body.classList.toggle('guest-mode',!isAdmin());{const nb=document.getElementById('lpNavBtn');if(nb)nb.style.display=isAdmin()?'':'none'}document.getElementById('smBackupSection')?.classList.toggle('hidden',!isAdmin());const badge=document.getElementById('currentRoleBadge');if(badge)badge.textContent=isAdmin()?'Admin':'Guest · عرض فقط';
   if(isAdmin())return;
   const blocked=/^(openEmployeeModal|openLeaveModal|openShiftModal|openPersonalNoteModal|saveEmployeeRecord|saveEmployeeAchievement|editEmployeeAchievement|deleteEmployeeAchievement|deleteEmployeeRecord|editLeaveBalance|editEmployeeDutyRole|updateEmployeeDutyRole|saveMonthlyRosterPeriod|cancelMonthlyRoster|previewAutoMonthlyRoster|confirmAutoMonthlyRoster|openMonthlyRosterModal|saveMonthlyRosterAssignment|clearMonthlyRosterAssignment|saveEmployee|saveLeave|saveShift|savePersonalNote|deletePersonalNote|deleteEmployee|deleteLeave|deleteShift)/;
   document.querySelectorAll('[onclick]').forEach(el=>{const code=el.getAttribute('onclick')||'';if(blocked.test(code)){el.classList.add('admin-only');el.setAttribute('aria-hidden','true')}});
@@ -3535,6 +3558,22 @@ async function lpApproveDates(id){
   leaves.forEach(l=>{state.leaves.push(l);const e=state.employees.find(x=>x.id===l.employeeId);if(e)e.leaveBalance=(Number(e.leaveBalance)||0)-l.balanceDaysCharged});
   save();lpStatusMsg(`تم اعتماد تواريخ ${p.name} وإضافتها للإجازات ✓`);
 }
+async function lpApproveAllDates(){
+  const list=lpState.plans.filter(p=>p.status==='approved'&&p.dates_status==='submitted'&&p.periods?.length);
+  if(!list.length){alert('ما فيه تواريخ بانتظار الاعتماد');return}
+  const warns=[];list.forEach(p=>{const w=lpCapacityWarnings(p,new Set((p.leave_ids||[]).map(String)));if(w.length)warns.push(`• ${p.name}: ${w[0]}`)});
+  if(!confirm(`اعتماد تواريخ ${list.length} موظف دفعة وحدة؟\nبتنضاف لقسم الإجازات${lpState.year>new Date().getFullYear()?` وتنخصم من رصيد ${lpState.year} أول السنة`:' وتنخصم من الأرصدة'}.${warns.length?`\n\n⚠ تنبيهات (${warns.length}):\n`+warns.slice(0,8).join('\n')+(warns.length>8?'\n…':''):''}`))return;
+  let done=0,failed=0;
+  for(const p of list){
+    const id=String(p.employee_id),old=[...(p.leave_ids||[])],leaves=lpBuildLeaves(p);
+    try{await lpPatch(id,{dates_status:'approved',dates_note:'',leave_ids:leaves.map(l=>l.id)})}catch(e){failed++;continue}
+    lpRemoveLinkedLeaves({leave_ids:old});
+    leaves.forEach(l=>{state.leaves.push(l);const e=state.employees.find(x=>x.id===l.employeeId);if(e)e.leaveBalance=(Number(e.leaveBalance)||0)-l.balanceDaysCharged});
+    done++;lpStatusMsg(`جاري الاعتماد… ${done} / ${list.length}`);
+  }
+  if(done)save();
+  lpStatusMsg(`تم اعتماد تواريخ ${done} موظف ✓${failed?` · تعذر ${failed}`:''}`,!!failed);
+}
 async function lpUnapproveDates(id){
   const p=lpPlan(id);if(!p)return;
   if(!confirm(`إلغاء اعتماد تواريخ ${p.name}؟\nبتنحذف من قسم الإجازات ويرجع الرصيد، وترجع التواريخ للمراجعة.`))return;
@@ -3764,6 +3803,41 @@ function lpExport(){
       {height:26,cells:['الشهر','معتمد','قيد المراجعة','المجموع','الحد','المتبقي','الموظفين'].map(v=>({v,s:'head'}))},...mrows]};
   lpxDownload(lpxWorkbook([sheet1,sheet2,lpDistributionSheet(rows,year,max)]),`Group_A_Annual_Leave_Plan_${year}.xlsx`);
 }
+/* ===== النسخ الاحتياطية ===== */
+const SM_REASON={auto:'تلقائية',manual:'يدوية',before_restore:'قبل الاسترجاع',initial:'أول نسخة'};
+function smFmt(ts){const d=new Date(ts);return d.toLocaleString('ar-SA-u-nu-latn-ca-gregory',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}
+function smStatus(t,err=false){const el=document.getElementById('smBackupStatus');if(el){el.textContent=t||'';el.style.color=err?'var(--red)':''}}
+function smBackupsInit(){const sec=document.getElementById('smBackupSection');if(!sec)return;if(!isAdmin()){sec.classList.add('hidden');return}sec.classList.remove('hidden');smBackupsLoad()}
+async function smBackupsLoad(){
+  smStatus('جاري التحميل…');
+  try{
+    const rows=await lpApi('/rest/v1/shift_manager_backups?select=id,created_at,reason&order=created_at.desc&limit=60');
+    smStatus(rows?.length?`${rows.length} نسخة محفوظة · آخر نسخة: ${smFmt(rows[0].created_at)}`:'ما فيه نسخ محفوظة بعد');
+    document.getElementById('smBackupList').innerHTML=(rows||[]).map(r=>`<div class="row" style="display:flex;align-items:center;gap:10px;justify-content:space-between"><div><b class="name" style="font-size:13px">${esc(smFmt(r.created_at))}</b><small style="display:block;color:var(--muted)">نسخة ${SM_REASON[r.reason]||esc(r.reason)}</small></div><div style="display:flex;gap:6px"><button class="secondary" onclick="smDownload(${Number(r.id)})">⬇ تنزيل</button><button class="danger" onclick="smRestore(${Number(r.id)})">↺ استرجاع</button></div></div>`).join('');
+  }catch(e){smStatus(/shift_manager_backups|does not exist|schema cache/i.test(String(e.message))?'جدول النسخ الاحتياطية غير موجود. شغّل ملف supabase/backups.sql.':'تعذر التحميل: '+e.message,true)}
+}
+async function smBackupNow(){
+  try{await lpApi('/rest/v1/rpc/sm_backup_now',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});smStatus('تم حفظ نسخة ✓');smBackupsLoad()}catch(e){smStatus('تعذر الحفظ: '+e.message,true)}
+}
+async function smDownload(id){
+  try{
+    const rows=await lpApi(`/rest/v1/shift_manager_backups?id=eq.${Number(id)}&select=*`);const b=rows?.[0];if(!b)return;
+    const d=new Date(b.created_at),pad=n=>String(n).padStart(2,'0');
+    const name=`Shift-Manager_backup_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+    lpxDownload(new Blob([JSON.stringify({exported_at:new Date().toISOString(),backup_created_at:b.created_at,reason:b.reason,shift_manager_state:[{id:'main',data:b.state}],leave_plans:b.leave_plans},null,1)],{type:'application/json'}),name);
+  }catch(e){smStatus('تعذر التنزيل: '+e.message,true)}
+}
+async function smRestore(id){
+  const rows=await lpApi(`/rest/v1/shift_manager_backups?id=eq.${Number(id)}&select=created_at`).catch(()=>null);const when=rows?.[0]?smFmt(rows[0].created_at):'';
+  const typed=prompt(`⚠ استرجاع نسخة ${when}\nكل البيانات الحالية بترجع لحالتها في ذاك الوقت (الموظفين، الإجازات، الأرصدة…).\nقبل الاسترجاع تنحفظ نسخة من الوضع الحالي، فتقدر ترجع لها.\n\nللتأكيد اكتب: استرجاع`,'');
+  if(typed===null)return;if(typed.trim()!=='استرجاع'){alert('ما تم الاسترجاع.');return}
+  const withPlans=confirm('ترجّع خطط الإجازة السنوية بعد لنفس الوقت؟\nموافق = نعم · إلغاء = لا، خلّ خطط الإجازة مثل ما هي');
+  try{
+    const r=await lpApi('/rest/v1/rpc/sm_restore_backup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_id:Number(id),p_with_plans:withPlans})});
+    if(!r?.ok){alert('تعذر الاسترجاع');return}
+    alert('تم الاسترجاع ✓ الصفحة بتتحدث الحين.');location.reload();
+  }catch(e){alert('تعذر الاسترجاع: '+e.message)}
+}
 function showView(id,btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -3774,7 +3848,8 @@ function showView(id,btn){
     if(month&&!month.value)month.value=currentMonthValue();if(year&&!year.value)year.value=new Date().getFullYear();refreshSelects();selectReportType('balances');
   }
   if(id==='accidentView')setTimeout(initAccidentCanvases,40);
-  if(id==='leaveView')lpInit();
+  if(id==='leavePlanView')lpInit();
+  if(id==='reportsView')smBackupsInit();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function openEmployeeModal(id=''){
