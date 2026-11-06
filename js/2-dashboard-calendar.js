@@ -34,7 +34,7 @@ function renderInsightsDashboard(){
     <div class="metric-card success"><div class="insight-donut" style="--pct:${workingPct};--color:#2dd4a3"><strong>${workingPct}%</strong></div><div class="insight-copy"><h3>على رأس العمل</h3><p>الموظفون الحاضرون اليوم من إجمالي القوة</p><b>${working} من ${total} موظف</b></div></div>
     <div class="metric-card warning"><div class="insight-donut" style="--pct:${overPct};--color:#f59e0b"><strong>${overPct}%</strong></div><div class="insight-copy"><h3>رصيد فوق حد الترحيل</h3><p>رصيدهم أكثر من 9 أيام (الحد اللي يترحّل للسنة الجاية)</p><b>${overCarry.length} من ${total} موظف</b></div></div>
     <div class="metric-card danger"><div class="insight-donut" style="--pct:${expiredPct};--color:#ef4444"><strong>${expiredPct}%</strong></div><div class="insight-copy"><h3>بطاقات منتهية</h3><p>بطاقات Marine ID منتهية الصلاحية حاليًا</p><b>${expiredCards.length} من ${total} موظف</b></div></div>
-    <div class="metric-card ${ye.excessTotal?'danger':'success'}"><div class="insight-donut" style="--pct:${lostPct};--color:${ye.excessTotal?'#ef4444':'#2dd4a3'}"><strong>${formatDays(ye.excessTotal)}</strong></div><div class="insight-copy"><h3>أيام بتضيع 31 ديسمبر</h3><p>الرصيد الزايد عن 9 أيام وما له إجازة مجدولة. باقي ${ye.daysLeft} يوم على نهاية السنة</p><b>${ye.needs.length} موظف</b></div></div>`;
+    <div class="metric-card ${ye.excessTotal?'danger':'success'}"><div class="insight-donut" style="--pct:${lostPct};--color:${ye.excessTotal?'#ef4444':'#2dd4a3'}"><strong>${formatDays(ye.excessTotal)}</strong></div><div class="insight-copy"><h3>أيام لازم تنصرف قبل 31 ديسمبر</h3><p>الرصيد الزايد عن 9 أيام ما يترحّل حسب نظام الشركة، ولازم ينصرف إجازة. باقي ${ye.daysLeft} يوم على نهاية السنة</p><b>${ye.needs.length} موظف</b></div></div>`;
   renderInsightsShiftLoad();renderInsightsYearEnd(ye);
 }
 /* ضغط الإجازات على كل شفت (7 أيام) خلال الأسابيع الجاية، مقابل الحد */
@@ -64,7 +64,7 @@ function renderInsightsShiftLoad(){
     return `<div class="ins-row ${cls} ${b.start<=today&&b.end>=today?'now':''}"><div class="lbl"><b>${INS_WORD[b.code]}${b.start<=today&&b.end>=today?' · الحين':''}</b><small>${sd(b.start)} – ${sd(b.end)}</small></div><div class="bar"><i style="width:${pct}%"></i></div><div class="n">${b.max} / ${cap}</div>${b.who.size?`<details><summary>${b.who.size} مجاز${b.max>=cap?' — الشفت ممتلئ':b.max>=cap-1?' — باقي مكان واحد':''}</summary><div class="who">${names}</div></details>`:''}</div>`;
   }).join('');
 }
-/* تصفية الأرصدة قبل 31 ديسمبر. الرصيد ينخصم وقت إدخال الإجازة، فالزايد عن 9 هو اللي بيضيع إذا ما انجدول. */
+/* تصفية الأرصدة قبل 31 ديسمبر. الرصيد ينخصم وقت إدخال الإجازة، فالزايد عن 9 هو اللي لازم ينصرف قبل نهاية السنة (ما يترحّل). */
 function insYearEnd(){
   const today=todayISO(),year=today.slice(0,4),yearEnd=year+'-12-31',daysLeft=diffDays(yearEnd,today)+1;
   const rows=state.employees.map(e=>{
@@ -80,9 +80,9 @@ function renderInsightsYearEnd(ye=insYearEnd()){
   const box=document.getElementById('insightsYearEnd');if(!box)return;
   const k=document.getElementById('insightsYearEndKicker');if(k)k.textContent=`باقي ${ye.daysLeft} يوم على 31 ديسمبر ${ye.year}`;
   const list=ye.needs.map(r=>`<div class="ye-r"><div><b>${esc(rosterEmployeeName(r.e)||r.e.name)}</b><small>#${esc(r.e.empId||'-')} · الرصيد ${formatDays(r.bal)} يوم${r.upDays?` · عنده ${r.upDays} يوم إجازة مجدولة قبل نهاية السنة`:''}</small></div><span class="tag lose">يحتاج ${formatDays(r.excess)} يوم قبل 31 ديسمبر</span></div>`).join('');
-  box.innerHTML=`<div class="ins-ye-top"><div class="${ye.excessTotal?'bad':''}"><b>${formatDays(ye.excessTotal)}</b><span>يوم بتضيع لو ما انجدول</span></div><div><b>${ye.needs.length}</b><span>موظف رصيده فوق 9</span></div><div><b>${ye.upcomingDays}</b><span>يوم إجازة مجدولة لين نهاية السنة</span></div><div><b>${ye.daysLeft}</b><span>يوم باقي على نهاية السنة</span></div></div>
-  <div class="ins-ye-list">${list||'<div class="empty">كل الأرصدة ضمن حد الترحيل 👌 ما فيه شي بيضيع</div>'}</div>
-  <p class="small-note" style="margin-top:8px">الرصيد ينخصم وقت إدخال الإجازة، فالرقم هنا هو اللي يبقى زايد بعد الإجازات المجدولة. أول يناير يترحّل 9 أيام بحد أقصى وتنضاف 30.</p>`;
+  box.innerHTML=`<div class="ins-ye-top"><div class="${ye.excessTotal?'bad':''}"><b>${formatDays(ye.excessTotal)}</b><span>يوم لازم تنصرف قبل نهاية السنة</span></div><div><b>${ye.needs.length}</b><span>موظف رصيده فوق 9</span></div><div><b>${ye.upcomingDays}</b><span>يوم إجازة مجدولة لين نهاية السنة</span></div><div><b>${ye.daysLeft}</b><span>يوم باقي على نهاية السنة</span></div></div>
+  <div class="ins-ye-list">${list||'<div class="empty">كل الأرصدة ضمن حد الترحيل 👌 ما فيه أحد يحتاج يصرف رصيد</div>'}</div>
+  <p class="small-note" style="margin-top:8px">نظام الشركة ما يرحّل أكثر من 9 أيام، فالزايد لازم يتجدول إجازة قبل 31 ديسمبر. الرصيد ينخصم وقت إدخال الإجازة، فالرقم هنا هو الباقي بعد الإجازات المدخلة.</p>`;
 }
 
 function renderLeaveBalanceInsights(){
