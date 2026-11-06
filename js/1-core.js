@@ -34,15 +34,20 @@ const GUEST_EMAIL='guest@shiftmanager.app';
 const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
 const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
 const SOON_DAYS=3;
-const MARINE_ID_EXPIRY_BY_BADGE={
-  '000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01','000000':'2000-01-01'
-};
-const ACCESS_GROUPS=[
-  {id:'industrial',title:'Information Office Industrial',icon:'🏭',badges:['000000','000000','000000'],names:{'000000':'EMPLOYEE','000000':'EMPLOYEE','000000':'EMPLOYEE'}},
-  {id:'community',title:'Information Office Community',icon:'🏘️',badges:['000000','000000','000000','000000'],names:{'000000':'EMPLOYEE','000000':'EMPLOYEE','000000':'EMPLOYEE','000000':'EMPLOYEE'}},
-  {id:'ecc',title:'ECC Room Access',icon:'🖥️',badges:['000000','000000','000000','000000','000000'],names:{'000000':'EMPLOYEE','000000':'EMPLOYEE','000000':'EMPLOYEE','000000':'EMPLOYEE','000000':'EMPLOYEE'}},
-  {id:'patrols',title:'PRC Patrols',icon:'🚓',countLabel:'12 رقم تاج للدوريات',tagPrefix:'',badges:['PRC-338','PRC-335','PRC-334','PRC-337','PRC-270','PRC-332','PRC-313','PRC-314','PRC-312','PRC-333','PRC-315','PRC-336'],names:{'PRC-338':'Shift Chief (01)','PRC-335':'Shift Chief Assistant (02)','PRC-334':'Community Group Leader','PRC-337':'Patrol-05','PRC-270':'Patrol-06','PRC-332':'Patrol-07','PRC-313':'Patrol-08','PRC-314':'Patrol-09','PRC-312':'Patrol-010','PRC-333':'Patrol-011','PRC-315':'Patrol-012','PRC-336':'Patrol-013'}}
-];
+/* بيانات الموظفين الحساسة (تواريخ Marine ID وقوائم الصلاحيات) محفوظة في جدول shift_manager_config
+   في Supabase، وتنقرأ بعد تسجيل الدخول — عشان ما تكون ظاهرة في الكود العام. */
+let MARINE_ID_EXPIRY_BY_BADGE={};
+let ACCESS_GROUPS=[];
+async function loadAppConfig(){
+  try{
+    const res=await supabaseFetch('/rest/v1/shift_manager_config?select=key,value');
+    if(!res.ok)return;
+    (await res.json()).forEach(r=>{
+      if(r.key==='marine_id_expiry'&&r.value&&typeof r.value==='object')MARINE_ID_EXPIRY_BY_BADGE=r.value;
+      if(r.key==='access_groups'&&Array.isArray(r.value))ACCESS_GROUPS=r.value;
+    });
+  }catch(e){console.warn('config load failed',e)}
+}
 function emptyState(){return {employees:[],leaves:[],shifts:[],records:[],achievements:[],personalNotes:[],updates:[],forms:[],accidentReports:[],monthlySchedules:{},monthlyScheduleRequirements:{},monthlySchedulePeriods:{},leaveBalanceHistory:[],locationHistory:{}}}
 let state=emptyState();
 
@@ -223,6 +228,7 @@ async function loadCloudState(){
     if(res.status===401){if(await refreshSession())return loadCloudState();throw new Error('انتهت جلسة الدخول')}
     if(!res.ok)throw new Error('تعذر قراءة البيانات السحابية');
     const rows=await res.json();
+    await loadAppConfig();
     if(rows.length&&rows[0].data&&Object.keys(rows[0].data).length){
       state=rows[0].data;
     }else{
