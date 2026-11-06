@@ -3695,7 +3695,7 @@ function lpExport(){
   const sent=rows.filter(r=>r.plan).length,today=new Date();
   const dstr=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
   const py=year-1;
-  const head=['#','اسم الموظف','رقم الباج','الحالة',`إجازة ${py} (الأيام)`,'الخيار الأول','الخيار الثاني','الخيار الثالث','الشهر المعتمد','تواريخ الإجازة','حالة التواريخ','ملاحظة','تاريخ الإرسال'];
+  const head=['#','اسم الموظف','رقم الباج','الحالة',`إجازة ${py} (الأيام)`,'الخيار الأول','الخيار الثاني','الخيار الثالث','الشهر المعتمد','تواريخ الإجازة','حالة التواريخ','ملاحظة','الرصيد المتبقي'];
   const statusStyle={approved:'approved',submitted:'submitted',rejected:'rejected',none:'none'};
   const order={approved:0,submitted:1,rejected:2,none:3};
   const sorted=[...rows].sort((a,b)=>(order[a.plan?.status||'none']-order[b.plan?.status||'none'])||(a.plan&&b.plan?a.plan.assigned_month-b.plan.assigned_month:0)||String(a.name).localeCompare(String(b.name),'ar'));
@@ -3705,10 +3705,10 @@ function lpExport(){
     const pv=lpPrev(r.id,py),pvText=pv.months.length?pv.months.map(x=>`${LP_MONTHS_AR[x.m-1]} (${x.days})`).join('، '):'لا يوجد',rep=lpRepeat(r);
     const noteLines=(p?.periods?.length||0)+(p?.admin_note?1:0)+(p?.dates_status==='rejected'&&p.dates_note?1:0);
     return {height:Math.max(22,17*Math.max(pv.months.length>2?2:1,p?.periods?.length||1,noteLines)+6),cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:LP_STATUS[st][0],s:statusStyle[st]},{v:rep?pvText+'  ⚠ تكرار':pvText,s:rep?'prevWarn':z?'prevZ':'prev'},ch('choice1'),ch('choice2'),ch('choice3'),
-      {v:p&&p.status==='approved'?m(p.assigned_month):p&&p.status==='submitted'?'لم يُعتمد بعد':'—',s:p&&p.status==='approved'?'approved':bc},{v:p?.periods?.length?lpPeriodsText(p,'\n'):'—',s:z?'prevZ':'prev'},{v:p?.status==='approved'?LP_DATES[p.dates_status||'none'][0]:'—',s:p?.status!=='approved'?bc:p.dates_status==='approved'?'approved':p.dates_status==='submitted'?'submitted':p.dates_status==='rejected'?'rejected':'none'},{v:[lpShiftsText(p,'\n'),p?.admin_note,p?.dates_status==='rejected'?p.dates_note:''].filter(Boolean).join('\n'),s:z?'zebraWrap':'wrap'},{v:p?.submitted_at?String(p.submitted_at).slice(0,10):'—',s:bc}]};
+      {v:p&&p.status==='approved'?m(p.assigned_month):p&&p.status==='submitted'?'لم يُعتمد بعد':'—',s:p&&p.status==='approved'?'approved':bc},{v:p?.periods?.length?lpPeriodsText(p,'\n'):'—',s:z?'prevZ':'prev'},{v:p?.status==='approved'?LP_DATES[p.dates_status||'none'][0]:'—',s:p?.status!=='approved'?bc:p.dates_status==='approved'?'approved':p.dates_status==='submitted'?'submitted':p.dates_status==='rejected'?'rejected':'none'},{v:[lpShiftsText(p,'\n'),p?.admin_note,p?.dates_status==='rejected'?p.dates_note:''].filter(Boolean).join('\n'),s:z?'zebraWrap':'wrap'},(()=>{const b=r.employee?Number(r.employee.leaveBalance):NaN;return Number.isFinite(b)?{v:b,s:b<0?'rejected':'num'}:{v:'—',s:bc}})()]};
   });
   const last=3+body.length;
-  const sheet1={name:`خطة الإجازة ${year}`,cols:[5,30,12,17,24,16,16,16,18,30,22,24,14],freeze:3,filter:`A3:M${last}`,merges:['A1:M1','A2:M2'],
+  const sheet1={name:`خطة الإجازة ${year}`,cols:[5,30,12,17,24,16,16,16,18,30,22,24,13],freeze:3,filter:`A3:M${last}`,merges:['A1:M1','A2:M2'],
     rows:[{height:34,cells:[{v:`خطة الإجازة السنوية ${year} · Group A`,s:'title'},...Array(12).fill({v:'',s:'title'})]},
       {height:22,cells:[{v:`تاريخ التصدير ${dstr}   ·   سلّموا ${sent} من ${rows.length}   ·   الحد في الشهر ${max}   ·   البرتقالي = الشهر المرشّح له   ·   الأحمر = نفس شهر إجازة ${py}`,s:'sub'},...Array(12).fill({v:'',s:'sub'})]},
       {height:26,cells:head.map(v=>({v,s:'head'}))},...body]};
