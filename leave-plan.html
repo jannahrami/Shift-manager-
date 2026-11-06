@@ -190,6 +190,17 @@ let data=null;
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function monthLabel(m){return `${MONTHS_AR[m-1]} · ${MONTHS_EN[m-1]}`}
 function show(id,on=true){$(id).classList.toggle('hidden',!on)}
+const DAYS_AR=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+function dlInfo(kind){
+  const dl=kind==='dates'?data.dates_deadline:data.deadline;if(!dl)return null;
+  const [y,m,d]=dl.split('-').map(Number),[ty,tm,td]=String(data.today||'').split('-').map(Number);
+  const left=ty?Math.round((Date.UTC(y,m-1,d)-Date.UTC(ty,tm-1,td))/86400000):null;
+  const label=`${DAYS_AR[new Date(Date.UTC(y,m-1,d)).getUTCDay()]} ${d} ${MONTHS_AR[m-1]}`;
+  const txt=left===null?'':left<0?'انتهى الموعد':left===0?'اليوم آخر يوم':left===1?'باقي يوم واحد':left===2?'باقي يومين':left<=10?`باقي ${left} أيام`:`باقي ${left} يوم`;
+  return {label,left,txt};
+}
+function dlHtml(kind){const i=dlInfo(kind);if(!i||i.left<0)return '';return `<div class="alert ${i.left<=3?'amber':'green'}" style="margin-top:8px">⏰ آخر موعد: <b>${i.label}</b> — ${i.txt}</div>`}
+function closedMsg(kind){const i=dlInfo(kind);return i&&i.left<0?`انتهى آخر موعد (${i.label}). تواصل مع المشرف.`:'استقبال الخطط مقفل حاليًا. تواصل مع المشرف.'}
 function alertBox(el,cls,html){$(el).innerHTML=html?`<div class="alert ${cls}">${html}</div>`:''}
 
 async function rpc(fn,body){
@@ -230,7 +241,7 @@ function renderView(p){
   alertBox('viewAlert',msg[0],msg[1]||'');
   const canEdit=p.status!=='approved'&&(data.is_open||p.status==='rejected');
   show('editBtn',canEdit);
-  if(!data.is_open&&p.status==='submitted')alertBox('viewAlert','amber','استقبال الخطط مقفل حاليًا.');
+  if(!data.is_open&&p.status==='submitted')alertBox('viewAlert','amber',closedMsg('months'));
 }
 
 function fillSelects(c1,c2,c3){
@@ -262,7 +273,8 @@ function syncDisabled(){
 function renderForm(p){
   show('viewCard',false);show('formCard');
   alertBox('formAlert','','');
-  if(!data.is_open&&p?.status!=='rejected'){alertBox('formAlert','amber','استقبال الخطط مقفل حاليًا. تواصل مع المشرف.');$('submitBtn').disabled=true}
+  if(!data.is_open&&p?.status!=='rejected'){alertBox('formAlert','amber',closedMsg('months'));$('submitBtn').disabled=true}
+  else if(p?.status!=='rejected')$('formAlert').innerHTML=dlHtml('months');
   fillSelects(p?.choice1,p?.choice2,p?.choice3);
   show('cancelBtn',!!p);
 }
@@ -292,7 +304,7 @@ async function submit(){
     window.scrollTo({top:0,behavior:'smooth'});
     return;
   }
-  const msgs={duplicate:'لازم تكون الأشهر الثلاثة مختلفة.',bad_choices:'اختر الأشهر الثلاثة كلها.',closed:'استقبال الخطط مقفل حاليًا.',already_approved:'خطتك معتمدة ولا يمكن تعديلها. تواصل مع المشرف.',invalid_link:'الرابط غير صالح.'};
+  const msgs={duplicate:'لازم تكون الأشهر الثلاثة مختلفة.',bad_choices:'اختر الأشهر الثلاثة كلها.',closed:closedMsg('months'),already_approved:'خطتك معتمدة ولا يمكن تعديلها. تواصل مع المشرف.',invalid_link:'الرابط غير صالح.'};
   formError(msgs[r.error]||'صار خطأ. حاول مرة ثانية.');
 }
 
@@ -343,8 +355,12 @@ function renderDates(p){
   else if(ds==='approved')alert=['green','اعتمد المشرف تواريخ إجازتك. إجازة سعيدة 🌴'];
   else if(!datesEditing)alert=['amber','استلمنا تواريخك وهي الحين قيد المراجعة والاعتماد.'];
   alertBox('datesAlert',alert[0]||'',alert[1]||'');
+  const datesLocked=data.dates_open===false&&ds!=='rejected'&&!ds;
+  if(!ds&&data.dates_open===false)alertBox('datesAlert','amber',closedMsg('dates').replace('استقبال الخطط','استقبال التواريخ'));
+  else if(!ds||datesEditing)$('datesAlert').innerHTML+=dlHtml('dates');
   show('datesPicker',picking);show('datesSubmit',picking);show('datesCancel',picking&&!!ds&&ds!=='rejected');
-  show('datesEdit',ds==='submitted'&&!datesEditing);
+  show('datesEdit',ds==='submitted'&&!datesEditing&&data.dates_open!==false);
+  $('datesSubmit').disabled=datesLocked;
   if(picking){
     if(!picked.size)picked=blocksFromPeriods(periodsFromServer(p));
     $('datesRule').innerHTML=`اختر <b>${reqText(req)}</b>. كل شفت 7 أيام، اضغط على أي يوم فيه ويتحدد كله.<br>أيام الراحة اللي بعد آخر شفت تنحسب من الإجازة، وتباشر أول يوم في الشفت اللي بعدها.<br>الشفت الممتلئ (6 مجازين في الليلي، 5 في الصباحي والمسائي) ما يقبل أحد زيادة.<br>تقدر تقسمها لـ <b>فترتين</b> بالحد الأعلى، وأول شفت لازم يبدأ في <b>${MONTHS_AR[p.assigned_month-1]}</b>.`;
@@ -404,7 +420,7 @@ $('datesSubmit').addEventListener('click',async()=>{
     alertBox('datesAlert','green','تم استلام تواريخك ✓ وهي الحين قيد المراجعة والاعتماد.');window.scrollTo({top:0,behavior:'smooth'});return}
   if(r.error==='shift_full'){try{const fresh=await rpc('lp_get_plan',{p_token:token});if(fresh?.ok){data.load=fresh.load;loadMap=null;const st=utc(r.date),b=blockOf(st);if(b)picked.delete(b.start);drawCals(p,req)}}catch{}
     return datesError(`شفت ${longDate(utc(r.date))} امتلأ (الحد ${r.cap}) قبل ما توصل تواريخك. اختر شفت ثاني.`)}
-  const msgs={wrong_count:`لازم تختار ${reqText({min:r.required,max:r.max||r.required})}.`,bad_month:`أول شفت لازم يبدأ في ${MONTHS_AR[p.assigned_month-1]}، والباقي ما يتعدى الشهر اللي بعده.`,overlap:'فيه فترات متداخلة.',not_shift_aligned:'لازم تختار شفتات كاملة.',already_approved:'تواريخك معتمدة ولا يمكن تعديلها. تواصل مع المشرف.',not_approved:'شهرك ما انعتمد بعد.'};
+  const msgs={wrong_count:`لازم تختار ${reqText({min:r.required,max:r.max||r.required})}.`,bad_month:`أول شفت لازم يبدأ في ${MONTHS_AR[p.assigned_month-1]}، والباقي ما يتعدى الشهر اللي بعده.`,overlap:'فيه فترات متداخلة.',not_shift_aligned:'لازم تختار شفتات كاملة.',already_approved:'تواريخك معتمدة ولا يمكن تعديلها. تواصل مع المشرف.',not_approved:'شهرك ما انعتمد بعد.',dates_closed:closedMsg('dates').replace('استقبال الخطط','استقبال التواريخ')};
   datesError(msgs[r.error]||'صار خطأ. حاول مرة ثانية.');
 });
 $('datesEdit').addEventListener('click',()=>{datesEditing=true;picked=new Set();renderDates(data.plan)});

@@ -940,6 +940,12 @@
     .lp-group{border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;background:var(--card2)}
     .lp-gt{flex-basis:100%;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:2px}
     .lp-group button{font-size:12px;padding:8px 10px}
+    .lp-controls input[type=date]{width:150px}
+    .lp-dl{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px}
+    .lp-dl>div{flex:1 1 240px;border-radius:12px;padding:9px 12px;font-size:12.5px;font-weight:700;border:1px solid var(--line);background:var(--card2)}
+    .lp-dl .ok{border-color:#9bd3ae;background:#ecf8f0;color:#1c6b3a}.lp-dl .warn{border-color:#f0c36d;background:#fff6e2;color:#8a5a00}.lp-dl .late{border-color:#f0a3a3;background:#fdeeee;color:#a12828}
+    .lp-rm-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.lp-rm-row .n{flex:1;min-width:0}.lp-rm-row .n small{display:block;color:var(--muted);font-size:11px}.lp-rm-row button{font-size:12px;padding:6px 10px}
+    .lp-nav-dot{display:inline-block;min-width:16px;height:16px;line-height:16px;border-radius:8px;background:#d64545;color:#fff;font-size:10px;font-weight:800;margin-inline-start:4px;padding:0 4px;vertical-align:middle}
     @media(max-width:900px){.lp-groups{grid-template-columns:1fr}}
     .lp-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
     .lp-filter button{padding:6px 12px;font-size:11px;border-radius:999px!important}
@@ -1228,15 +1234,19 @@
         <div class="lp-controls">
           <label>السنة<input type="number" id="lpYear" min="2025" max="2100" onchange="lpLoad()"></label>
           <label>الحد في الشهر<input type="number" id="lpMax" min="1" max="60" value="6"></label>
+          <label>آخر موعد لاختيار الأشهر<input type="date" id="lpDeadline"></label>
+          <label>آخر موعد لتحديد التواريخ<input type="date" id="lpDatesDeadline"></label>
           <label class="lp-check"><input type="checkbox" id="lpOpen" checked> الاستقبال مفتوح</label>
           <button class="secondary" onclick="lpSaveSettings()">حفظ الإعدادات</button>
         </div>
         <div id="lpStatus" class="small-note" style="margin:8px 0"></div>
+        <div class="lp-dl" id="lpDl"></div>
         <div class="lp-stats" id="lpStats"></div>
         <div class="lp-months" id="lpMonths"></div>
         <div class="lp-groups">
           <div class="lp-group"><div class="lp-gt">١ · الروابط والرسائل</div>
             <button class="primary" onclick="lpGenerateLinks()">🔗 تجهيز روابط الموظفين</button>
+            <button class="primary" onclick="lpReminders()">⏰ تذكير المتأخرين</button>
             <button class="secondary" onclick="lpCopyLinks(false)">📨 روابط اللي ما سلّموا</button>
             <button class="secondary" onclick="lpCopyLinks(true)">نسخ كل الروابط</button>
             <button class="secondary" onclick="lpCopyDatesMessages()">📅 رسائل تحديد الفترة</button>
@@ -1892,7 +1902,7 @@ function persistAuth(){
 function applyRoleUI(){
   document.querySelectorAll('.admin-only').forEach(el=>{el.classList.remove('admin-only');el.removeAttribute('aria-hidden')});
   document.querySelectorAll('.employee-role-select,.roster-required').forEach(el=>{el.disabled=false;el.removeAttribute('title')});
-  document.body.classList.toggle('guest-mode',!isAdmin());{const nb=document.getElementById('lpNavBtn');if(nb)nb.style.display=isAdmin()?'':'none'}document.getElementById('smBackupSection')?.classList.toggle('hidden',!isAdmin());const badge=document.getElementById('currentRoleBadge');if(badge)badge.textContent=isAdmin()?'Admin':'Guest · عرض فقط';
+  document.body.classList.toggle('guest-mode',!isAdmin());{const nb=document.getElementById('lpNavBtn');if(nb)nb.style.display=isAdmin()?'':'none';if(isAdmin())setTimeout(lpNavDot,1500)}document.getElementById('smBackupSection')?.classList.toggle('hidden',!isAdmin());const badge=document.getElementById('currentRoleBadge');if(badge)badge.textContent=isAdmin()?'Admin':'Guest · عرض فقط';
   if(isAdmin())return;
   const blocked=/^(openEmployeeModal|openLeaveModal|openShiftModal|openPersonalNoteModal|saveEmployeeRecord|saveEmployeeAchievement|editEmployeeAchievement|deleteEmployeeAchievement|deleteEmployeeRecord|editLeaveBalance|editEmployeeDutyRole|updateEmployeeDutyRole|saveMonthlyRosterPeriod|cancelMonthlyRoster|previewAutoMonthlyRoster|confirmAutoMonthlyRoster|openMonthlyRosterModal|saveMonthlyRosterAssignment|clearMonthlyRosterAssignment|saveEmployee|saveLeave|saveShift|savePersonalNote|deletePersonalNote|deleteEmployee|deleteLeave|deleteShift)/;
   document.querySelectorAll('[onclick]').forEach(el=>{const code=el.getAttribute('onclick')||'';if(blocked.test(code)){el.classList.add('admin-only');el.setAttribute('aria-hidden','true')}});
@@ -3391,20 +3401,20 @@ async function lpLoad(){
   try{
     const [settings,links,plans]=await Promise.all([
       lpApi(`/rest/v1/leave_plan_settings?year=eq.${year}&select=*`),
-      lpApi(`/rest/v1/leave_plan_links?year=eq.${year}&select=token,employee_id,badge,name`),
+      lpApi(`/rest/v1/leave_plan_links?year=eq.${year}&select=token,employee_id,badge,name,reminded_at`),
       lpApi(`/rest/v1/leave_plans?year=eq.${year}&select=*`)
     ]);
     lpState={...lpState,year,settings:settings?.[0]||null,links:links||[],plans:plans||[],loaded:true};
-    lpEl('lpMax').value=lpMax();lpEl('lpOpen').checked=lpState.settings?lpState.settings.is_open:true;
+    lpEl('lpMax').value=lpMax();lpEl('lpOpen').checked=lpState.settings?lpState.settings.is_open:true;lpEl('lpDeadline').value=lpState.settings?.deadline||'';lpEl('lpDatesDeadline').value=lpState.settings?.dates_deadline||'';
     lpStatusMsg(lpState.links.length?'':'ما تم تجهيز روابط لهذه السنة بعد. اضغط «تجهيز روابط الموظفين».');
     lpRender();
   }catch(e){lpState.loaded=false;lpStatusMsg(lpFriendlyError(e),true);lpEl('lpList').innerHTML='';lpEl('lpStats').innerHTML='';lpEl('lpMonths').innerHTML=''}
 }
 async function lpSaveSettings(silent=false){
-  const year=Number(lpEl('lpYear').value),max=Math.max(1,Math.min(60,Number(lpEl('lpMax').value)||6)),open=lpEl('lpOpen').checked;
+  const year=Number(lpEl('lpYear').value),max=Math.max(1,Math.min(60,Number(lpEl('lpMax').value)||6)),open=lpEl('lpOpen').checked,deadline=lpEl('lpDeadline').value||null,dates_deadline=lpEl('lpDatesDeadline').value||null;
   try{
-    await lpApi('/rest/v1/leave_plan_settings?on_conflict=year',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({year,max_per_month:max,is_open:open,updated_at:new Date().toISOString()})});
-    lpState.settings={year,max_per_month:max,is_open:open};lpRender();if(!silent)lpStatusMsg('تم حفظ الإعدادات ✓');
+    await lpApi('/rest/v1/leave_plan_settings?on_conflict=year',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({year,max_per_month:max,is_open:open,deadline,dates_deadline,updated_at:new Date().toISOString()})});
+    lpState.settings={year,max_per_month:max,is_open:open,deadline,dates_deadline};lpNavDot();lpRender();if(!silent)lpStatusMsg('تم حفظ الإعدادات ✓');
   }catch(e){lpStatusMsg(lpFriendlyError(e),true)}
 }
 async function lpGenerateLinks(){
@@ -3430,6 +3440,7 @@ function lpRender(){
   const rows=lpRows(),counts=lpMonthCounts(),max=lpMax();
   const st=k=>rows.filter(r=>(r.plan?.status||'none')===k).length;
   const sent=rows.filter(r=>r.plan).length;
+  lpEl('lpDl').innerHTML=lpDeadlineBanner(rows);lpNavDot();
   lpEl('lpStats').innerHTML=[[sent,'سلّموا'],[rows.length-sent,'لم يسلّموا'],[st('submitted'),'بانتظار الاعتماد'],[st('approved'),'معتمدة']].map(([n,l])=>`<div class="lp-stat"><b>${n}</b><span>${l}</span></div>`).join('');
   lpEl('lpMonths').innerHTML=LP_MONTHS_AR.map((m,i)=>{const n=counts[i+1],pct=Math.min(100,Math.round(n/max*100));return `<div class="lp-month ${n>=max?'full':n>=max-1?'near':''}" title="${LP_MONTHS_EN[i]}"><b>${m}</b>${n} / ${max}<div class="bar"><i style="width:${pct}%"></i></div></div>`}).join('');
   const dst=k=>rows.filter(r=>r.plan?.status==='approved'&&(r.plan.dates_status||'none')===k).length;
@@ -3631,8 +3642,83 @@ function lpMessage(r){
     const why=p.dates_note?`\nالسبب: ${p.dates_note}`:'';
     return `السلام عليكم ${r.name}\nشهر إجازتك (${LP_MONTHS_AR[p.assigned_month-1]}) معتمد ✓، بس التواريخ اللي اخترتها تحتاج تعديل.${why}\nالرجاء الدخول على الرابط واختيار فترة جديدة من التقويم:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
   }
-  if(lpPhase(r)==='dates')return `السلام عليكم ${r.name}\nتم اعتماد إجازتك السنوية لسنة ${lpState.year} في شهر ${LP_MONTHS_AR[p.assigned_month-1]} ✓\nالرجاء الدخول على الرابط وتحديد فترة الإجازة (${lpReqText(p.assigned_month)}) من التقويم:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
-  return `السلام عليكم ${r.name}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والمشرف يراجع الخطط ويعتمدها.\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  if(lpPhase(r)==='dates')return `السلام عليكم ${r.name}\nتم اعتماد إجازتك السنوية لسنة ${lpState.year} في شهر ${LP_MONTHS_AR[p.assigned_month-1]} ✓\nالرجاء الدخول على الرابط وتحديد فترة الإجازة (${lpReqText(p.assigned_month)}) من التقويم:${lpDlLine('dates')}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  return `السلام عليكم ${r.name}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والمشرف يراجع الخطط ويعتمدها.${lpDlLine('months')}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+}
+/* ===== آخر موعد + التذكير ===== */
+const LP_DAYS_AR=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+function lpTodayISO(){const d=new Date(Date.now()+3*3600000);return d.toISOString().slice(0,10)}
+function lpDaysLeft(dl){if(!dl)return null;return diffDays(dl,lpTodayISO())}
+function lpDlFmt(dl){const [y,m,d]=dl.split('-').map(Number);return `${LP_DAYS_AR[new Date(Date.UTC(y,m-1,d)).getUTCDay()]} ${d} ${LP_MONTHS_AR[m-1]}`}
+function lpLeftText(n){return n<0?'انتهى الموعد':n===0?'اليوم آخر يوم':n===1?'باقي يوم واحد':n===2?'باقي يومين':n<=10?`باقي ${n} أيام`:`باقي ${n} يوم`}
+function lpDl(kind){return kind==='dates'?lpState.settings?.dates_deadline:lpState.settings?.deadline}
+function lpDlLine(kind){const dl=lpDl(kind);if(!dl)return '';const n=lpDaysLeft(dl);return n<0?'':`\nآخر موعد: ${lpDlFmt(dl)} (${lpLeftText(n)}).`}
+/* مين متأخر: ما سلّم الأشهر، أو شهره معتمد وما حدد التواريخ */
+function lpLate(rows=lpRows()){
+  return {months:rows.filter(r=>r.link&&!r.plan),dates:rows.filter(r=>r.link&&r.plan?.status==='approved'&&!r.plan.dates_status)};
+}
+function lpDeadlineBanner(rows){
+  const late=lpLate(rows),out=[];
+  [['months','اختيار الأشهر',late.months],['dates','تحديد التواريخ',late.dates]].forEach(([k,label,list])=>{
+    const dl=lpDl(k);if(!dl)return;const n=lpDaysLeft(dl);
+    const cls=n<0?'late':(n<=3&&list.length)?'warn':'ok';
+    const who=list.length?` · ${list.length} موظف ما ${k==='months'?'سلّموا':'حددوا'}`:' · الكل سلّم ✓';
+    out.push(`<div class="${cls}">⏰ ${label}: ${lpDlFmt(dl)} — ${lpLeftText(n)}${n<0?' (الاستقبال مقفل تلقائيًا)':''}${who}</div>`);
+  });
+  return out.join('');
+}
+function lpReminderMessage(r,kind){
+  const url=lpLinkUrl(r.link.token),dl=lpDl(kind),n=lpDaysLeft(dl);
+  const when=dl?(n<0?`\nانتهى الموعد (${lpDlFmt(dl)})، تواصل مع المشرف بأسرع وقت.`:`\nآخر موعد: ${lpDlFmt(dl)} (${lpLeftText(n)}).`):'';
+  if(kind==='dates')return `السلام عليكم ${r.name}\nتذكير: شهر إجازتك (${LP_MONTHS_AR[r.plan.assigned_month-1]}) معتمد ✓ وباقي تحدد فترة الإجازة (${lpReqText(r.plan.assigned_month)}) من التقويم.${when}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  return `السلام عليكم ${r.name}\nتذكير: ما وصلتنا خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب من الرابط، والأشهر تُحجز بالأسبقية.${when}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+}
+function lpAgo(t){if(!t)return '';const h=Math.round((Date.now()-new Date(t).getTime())/3600000);return h<1?'قبل شوي':h<24?`قبل ${h} ساعة`:`قبل ${Math.round(h/24)} يوم`}
+function lpReminders(){
+  if(!lpState.links.length){alert('جهّز الروابط أولًا');return}
+  const late=lpLate();document.getElementById('lpRemBox')?.remove();
+  if(!late.months.length&&!late.dates.length){alert('ما فيه أحد متأخر ✓ الكل سلّم');return}
+  const row=(r,k)=>{const ph=normalizeSaudiPhone(r.employee?.phone);return `<div class="lp-rm-row" id="lpRm_${k}_${esc(r.id)}"><div class="n"><b>${esc(r.name)}</b><small>${esc(r.badge||'')}${ph?'':' · ⚠ ما فيه جوال'}${r.link.reminded_at?` · ذُكِّر ${lpAgo(r.link.reminded_at)}`:''}</small></div><button class="primary" onclick="lpRemindOne('${esc(r.id)}','${k}')">واتساب</button></div>`};
+  const sec=(k,title,list)=>list.length?`<h4 style="margin:12px 0 4px">${title} (${list.length})${lpDl(k)?` <span class="small-note">· ${lpLeftText(lpDaysLeft(lpDl(k)))}</span>`:''}</h4>${list.map(r=>row(r,k)).join('')}<button class="secondary" style="margin-top:8px" onclick="lpCopyReminders('${k}')">📋 نسخ رسالة جماعية</button>`:'';
+  const box=document.createElement('div');box.id='lpRemBox';box.className='modal show';
+  box.innerHTML=`<div class="sheet" style="max-width:520px;max-height:86vh;overflow:auto"><h3 style="margin:0 0 4px">⏰ تذكير المتأخرين</h3>
+    <p class="small-note" style="margin:0">اضغط «واتساب» لكل موظف، تنفتح الرسالة جاهزة فيها رابطه وآخر موعد. أو انسخ رسالة جماعية للقروب.</p>
+    ${sec('months','ما سلّموا خطة الأشهر',late.months)}${sec('dates','ما حددوا التواريخ',late.dates)}
+    <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="secondary" onclick="document.getElementById('lpRemBox').remove()">إغلاق</button></div></div>`;
+  document.body.appendChild(box);
+}
+async function lpMarkReminded(ids){
+  const now=new Date().toISOString();
+  lpState.links.forEach(l=>{if(ids.includes(String(l.employee_id)))l.reminded_at=now});
+  try{await lpApi(`/rest/v1/leave_plan_links?year=eq.${lpState.year}&employee_id=in.(${ids.map(i=>'"'+String(i).replace(/"/g,'')+'"').join(',')})`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({reminded_at:now})})}catch(e){console.warn(e)}
+}
+function lpRemindOne(id,kind){
+  const r=lpRows().find(x=>x.id===id);if(!r?.link)return;
+  const phone=normalizeSaudiPhone(r.employee?.phone),msg=lpReminderMessage(r,kind);
+  const url=phone?`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`;
+  const opened=window.open(url,'_blank');if(!opened)window.location.href=url;
+  lpMarkReminded([id]);const el=document.getElementById(`lpRm_${kind}_${id}`);if(el){el.style.opacity='.5';const b=el.querySelector('button');if(b)b.textContent='✓ أُرسل'}
+}
+function lpCopyReminders(kind){
+  const list=lpLate()[kind];if(!list.length)return;const dl=lpDl(kind),n=lpDaysLeft(dl);
+  const head=kind==='dates'?`تذكير: الموظفين التالية أسماؤهم شهر إجازتهم معتمد وباقي يحددون فترة الإجازة من التقويم.`:`تذكير: الموظفين التالية أسماؤهم ما سلّموا خطة الإجازة السنوية ${lpState.year}. كل واحد يفتح رابطه ويختار 3 أشهر.`;
+  const text=head+(dl&&n>=0?`\nآخر موعد: ${lpDlFmt(dl)} (${lpLeftText(n)}).`:'')+'\n\n'+list.map(r=>`${r.name}${kind==='dates'?' · '+LP_MONTHS_AR[r.plan.assigned_month-1]:''}:\n${lpLinkUrl(r.link.token)}`).join('\n\n');
+  lpCopyText(text,`تم نسخ تذكير ${list.length} موظف ✓`);lpMarkReminded(list.map(r=>r.id));
+}
+/* نقطة حمراء على تبويب خطة الإجازة لما يقرب الموعد وفيه متأخرين */
+async function lpNavDot(){
+  const nb=document.getElementById('lpNavBtn');if(!nb||!isAdmin())return;nb.querySelector('.lp-nav-dot')?.remove();
+  try{
+    let rows,settings=lpState.settings;
+    if(lpState.loaded)rows=lpRows();
+    else{
+      const year=lpDefaultYear();const [st,links,plans]=await Promise.all([lpApi(`/rest/v1/leave_plan_settings?year=eq.${year}&select=*`),lpApi(`/rest/v1/leave_plan_links?year=eq.${year}&select=employee_id`),lpApi(`/rest/v1/leave_plans?year=eq.${year}&select=employee_id,status,dates_status`)]);
+      settings=st?.[0];const pm=new Map((plans||[]).map(p=>[String(p.employee_id),p]));rows=(links||[]).map(l=>({link:l,plan:pm.get(String(l.employee_id))}));
+    }
+    const late=lpLate(rows);let n=0;
+    [['deadline',late.months],['dates_deadline',late.dates]].forEach(([k,list])=>{const left=lpDaysLeft(settings?.[k]);if(left!==null&&left<=3&&list.length)n+=list.length});
+    if(n){const s=document.createElement('span');s.className='lp-nav-dot';s.textContent=n;s.title=`${n} موظف متأخر والموعد قريب`;nb.appendChild(s)}
+  }catch(e){}
 }
 async function lpApproveAll(){
   const n=lpState.plans.filter(p=>p.status==='submitted').length;if(!n){alert('ما فيه خطط بانتظار الاعتماد');return}
