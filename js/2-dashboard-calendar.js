@@ -35,7 +35,58 @@ function renderInsightsDashboard(){
     <div class="metric-card warning"><div class="insight-donut" style="--pct:${overPct};--color:#f59e0b"><strong>${overPct}%</strong></div><div class="insight-copy"><h3>رصيد فوق حد الترحيل</h3><p>رصيدهم أكثر من 9 أيام (الحد اللي يترحّل للسنة الجاية)</p><b>${overCarry.length} من ${total} موظف</b></div></div>
     <div class="metric-card danger"><div class="insight-donut" style="--pct:${expiredPct};--color:#ef4444"><strong>${expiredPct}%</strong></div><div class="insight-copy"><h3>بطاقات منتهية</h3><p>بطاقات Marine ID منتهية الصلاحية حاليًا</p><b>${expiredCards.length} من ${total} موظف</b></div></div>
     <div class="metric-card ${ye.excessTotal?'danger':'success'}"><div class="insight-donut" style="--pct:${lostPct};--color:${ye.excessTotal?'#ef4444':'#2dd4a3'}"><strong>${formatDays(ye.excessTotal)}</strong></div><div class="insight-copy"><h3>أيام لازم تنصرف قبل 31 ديسمبر</h3><p>الرصيد الزايد عن 9 أيام ما يترحّل حسب نظام الشركة، ولازم ينصرف إجازة. باقي ${ye.daysLeft} يوم على نهاية السنة</p><b>${ye.needs.length} موظف</b></div></div>`;
-  renderInsightsShiftLoad();renderInsightsYearEnd(ye);
+  renderInsightsShiftLoad();renderInsightsYearEnd(ye);renderInsightsMonths();
+}
+/* توزيع الإجازات على أشهر السنة: الإجازات المدخلة + خطة الإجازة المعتمدة (اللي ما تحولت لإجازة بعد) */
+const INS_MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+let insMonthsYear=null,insMonthSel=0;const insPlanCache={};
+async function insLoadPlans(year){
+  if(!isAdmin()||insPlanCache[year])return;
+  try{
+    const [plans,st]=await Promise.all([lpApi(`/rest/v1/leave_plans?year=eq.${year}&select=employee_id,name,assigned_month,status,dates_status`),lpApi(`/rest/v1/leave_plan_settings?year=eq.${year}&select=max_per_month`)]);
+    insPlanCache[year]={plans:plans||[],max:st?.[0]?.max_per_month||null};
+  }catch(e){insPlanCache[year]={plans:[],max:null}}
+  if(insMonthsYear===year)renderInsightsMonths();
+}
+function insMonthData(year){
+  const emps=new Map(state.employees.map(e=>[e.id,e])),notLeave=typeof LP_NOT_LEAVE!=='undefined'?LP_NOT_LEAVE:/cour|دورة|تدريب|training/i;
+  const months=Array.from({length:12},()=>({entered:new Map(),planned:new Map()}));
+  (state.leaves||[]).forEach(l=>{
+    if(!emps.has(l.employeeId)||notLeave.test(l.note||''))return;
+    for(let m=0;m<12;m++){
+      const ms=`${year}-${String(m+1).padStart(2,'0')}-01`,me=addDaysISO(m===11?`${year+1}-01-01`:`${year}-${String(m+2).padStart(2,'0')}-01`,-1);
+      if(l.start>me||l.end<ms)continue;
+      const days=diffDays(l.end<me?l.end:me,l.start>ms?l.start:ms)+1,cur=months[m].entered.get(l.employeeId)||0;
+      months[m].entered.set(l.employeeId,cur+days);
+    }
+  });
+  const pc=insPlanCache[year];
+  (pc?.plans||[]).forEach(p=>{
+    if(p.status!=='approved'||p.dates_status==='approved')return;
+    const m=months[p.assigned_month-1];if(!m.entered.has(String(p.employee_id)))m.planned.set(String(p.employee_id),p.name);
+  });
+  return {months,max:pc?.max||null};
+}
+function renderInsightsMonths(){
+  const box=document.getElementById('insightsMonths'),tabs=document.getElementById('insMonthsTabs');if(!box)return;
+  const cy=Number(todayISO().slice(0,4));if(!insMonthsYear)insMonthsYear=cy;
+  tabs.innerHTML=[cy,cy+1].map(y=>`<button class="secondary ${insMonthsYear===y?'on':''}" onclick="insMonthsYear=${y};insMonthSel=0;renderInsightsMonths()">${y}</button>`).join('');
+  if(!insPlanCache[insMonthsYear])insLoadPlans(insMonthsYear);
+  const {months,max}=insMonthData(insMonthsYear);
+  const totals=months.map(m=>m.entered.size+m.planned.size),top=Math.max(max||0,...totals,1)+1;
+  const curM=insMonthsYear===cy?Number(todayISO().slice(5,7)):0;
+  box.innerHTML=`<div class="ins-months">${max?`<div class="ins-cap" style="bottom:${Math.round(max/top*180)+22}px"><span>الحد ${max} في الشهر</span></div>`:''}${months.map((m,i)=>{
+      const n=totals[i],over=max&&n>max,days=[...m.entered.values()].reduce((a,b)=>a+b,0);
+      const h=v=>Math.round(v/top*180);
+      return `<div class="ins-m ${over?'over':''} ${insMonthSel===i+1?'sel':''}" onclick="insMonthSel=${i+1};renderInsightsMonths()" title="${days} يوم إجازة مدخلة"><b>${n||''}</b><div class="stack"><i style="height:${h(m.entered.size)}px"></i>${m.planned.size?`<i class="plan" style="height:${h(m.planned.size)}px"></i>`:''}</div><small style="${curM===i+1?'color:var(--text);font-weight:800':''}">${INS_MONTHS[i]}</small></div>`}).join('')}</div>
+    <div class="ins-legend"><span><i></i>إجازة مدخلة في البرنامج</span><span><i class="plan"></i>خطة إجازة معتمدة (ما انحددت تواريخها بعد)</span>${max?`<span style="color:#c0303f">- - الحد الشهري في خطة الإجازة</span>`:''}<span>اضغط على أي شهر عشان تشوف الأسماء</span></div>
+    ${insMonthSel?insMonthDetail(months[insMonthSel-1],insMonthSel):''}`;
+}
+function insMonthDetail(m,month){
+  const name=id=>{const e=state.employees.find(x=>x.id===id);return esc(rosterEmployeeName(e)||e?.name||'')};
+  const ent=[...m.entered.entries()].sort((a,b)=>b[1]-a[1]).map(([id,d])=>`<span>${name(id)} · ${d} يوم</span>`).join('');
+  const pl=[...m.planned.entries()].map(([id,n])=>`<span class="plan">${name(id)||esc(n)} · مخطط</span>`).join('');
+  return `<div class="ins-mdetail"><b>${INS_MONTHS[month-1]} ${insMonthsYear}</b> — ${m.entered.size+m.planned.size} موظف${m.planned.size?` (منهم ${m.planned.size} من خطة الإجازة)`:''}<div class="who">${ent+pl||'<span>ما فيه أحد مجاز</span>'}</div></div>`;
 }
 /* ضغط الإجازات على كل شفت (7 أيام) خلال الأسابيع الجاية، مقابل الحد */
 const INS_CAP={N:6,A:5,M:5},INS_WORD={N:'ليل',A:'مساء',M:'صباح'};
