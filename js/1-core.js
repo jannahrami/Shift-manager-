@@ -45,6 +45,7 @@ async function loadAppConfig(){
     (await res.json()).forEach(r=>{
       if(r.key==='marine_id_expiry'&&r.value&&typeof r.value==='object')MARINE_ID_EXPIRY_BY_BADGE=r.value;
       if(r.key==='access_groups'&&Array.isArray(r.value))ACCESS_GROUPS=r.value;
+      if(r.key==='historical_locations_2026'&&r.value&&typeof r.value==='object')HISTORICAL_LOCATIONS_2026=r.value;
     });
   }catch(e){console.warn('config load failed',e)}
 }

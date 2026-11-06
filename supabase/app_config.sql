@@ -18,3 +18,4 @@ create policy smc_write on public.shift_manager_config for all to authenticated
 revoke all on public.shift_manager_config from anon;
 -- keys: 'marine_id_expiry' = {"badge":"YYYY-MM-DD",...}
 --       'access_groups'    = [{id,title,icon,badges:[...],names:{badge:name}}, ...]
+--       'historical_locations_2026' = {"YYYY-MM":{"post":["name",...]}}
