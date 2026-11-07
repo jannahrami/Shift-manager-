@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#f3f5f9" />
+<meta name="robots" content="noindex,nofollow" />
+<title>مؤشرات Group A</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f3f5f9;--card:#fff;--card2:#f6f8fb;--line:#e2e7ef;--text:#1a2233;--muted:#5d6b80;--primary:#e8a83c;--ink:#0a0f17;
+    --ok:#1f9d63;--okbg:#ecf8f0;--warn:#c17a12;--warnbg:#fff6e2;--bad:#c0303f;--badbg:#fdf1f2;--blue:#315fe7}
+  *{box-sizing:border-box;font-family:"Cairo",-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
+  body{margin:0;background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%}
+  .wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px}
+  .top{display:flex;align-items:center;gap:12px;margin:4px 0 16px}
+  .logo{width:42px;height:42px;border-radius:12px;background:var(--ink);color:#5fd6d2;display:grid;place-items:center;font-weight:800;font-size:19px;flex:0 0 auto}
+  .top b{display:block;font-size:17px}.top small{color:var(--muted);font-size:12.5px}
+  .top .ro{margin-inline-start:auto;font-size:11.5px;font-weight:700;color:var(--muted);border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 10px;white-space:nowrap}
+  .sec{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+  .sec h2{font-size:17px;margin:0 0 2px}.sec .sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+  .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  .card{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;background:var(--card2);cursor:pointer;text-align:right;font:inherit;color:inherit}
+  .card:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .donut{--pct:0;--c:#315fe7;width:70px;height:70px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--pct)*1%),var(--line) 0);position:relative}
+  .donut::before{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--card2)}
+  .donut b{position:relative;font-size:15px}
+  .card h3{font-size:13.5px;margin:0 0 3px}.card p{font-size:11px;line-height:1.55;color:var(--muted);margin:0}.card .n{font-size:12.5px;font-weight:800;margin-top:4px;display:block}
+  .card.ok{background:var(--okbg);border-color:#bfe3cd}.card.warn{background:var(--warnbg);border-color:#f0d29a}.card.bad{background:var(--badbg);border-color:#f0b3ba}
+  .people{margin-top:10px;display:none;flex-wrap:wrap;gap:6px}.people.open{display:flex}
+  .people span{font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+  .load{display:grid;gap:8px}
+  .row{display:grid;grid-template-columns:150px 1fr 64px;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--card2)}
+  .row .lbl b{display:block;font-size:13px}.row .lbl small{color:var(--muted);font-size:11px}
+  .bar{height:12px;border-radius:6px;background:var(--line);overflow:hidden;position:relative}.bar i{position:absolute;inset:0 0 0 auto;border-radius:6px;background:var(--ok)}
+  .row .n{font-weight:800;text-align:center;font-size:14px;font-variant-numeric:tabular-nums}
+  .row.near{border-color:#f0d29a}.row.near .bar i{background:#e8a83c}.row.full{border-color:#f0a3a3;background:var(--badbg)}.row.full .bar i{background:#e0475a}
+  .row.now{box-shadow:inset -4px 0 0 var(--blue)}
+  .row details{grid-column:1/-1}.row summary{cursor:pointer;font-size:11.5px;color:var(--muted)}.row .who{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.row .who span{font-size:11.5px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px 8px}
+  .tabs{display:flex;gap:6px}.tabs button{font:inherit;font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);cursor:pointer}.tabs button.on{background:#172033;color:#fff;border-color:#172033}
+  .months{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;align-items:end;height:230px;position:relative;padding-top:8px}
+  .m{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;cursor:pointer;border-radius:10px;border:0;background:none;font:inherit;color:inherit;padding:2px 0}
+  .m:hover,.m.sel{background:rgba(49,95,231,.07)}
+  .m .stack{width:70%;max-width:46px;display:flex;flex-direction:column-reverse;border-radius:7px 7px 3px 3px;overflow:hidden;min-height:2px}
+  .m .stack i{display:block;background:var(--blue)}.m .stack i.plan{background:repeating-linear-gradient(135deg,#9db4f5 0 5px,#c9d7fb 5px 10px)}
+  .m.over .stack i{background:#e0475a}.m.over .stack i.plan{background:repeating-linear-gradient(135deg,#ef8f9b 0 5px,#f7c4ca 5px 10px)}
+  .m b{font-size:13px;margin-bottom:4px;font-variant-numeric:tabular-nums}.m small{font-size:10.5px;color:var(--muted);margin-top:6px;white-space:nowrap}
+  .cap{position:absolute;left:0;right:0;border-top:2px dashed #e0475a;pointer-events:none}.cap span{position:absolute;top:-18px;inset-inline-start:0;font-size:10.5px;color:var(--bad);font-weight:800;background:var(--card);padding:0 4px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--muted);margin-top:10px}.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-inline-end:5px;background:var(--blue)}.legend i.plan{background:repeating-linear-gradient(135deg,#9db4f5 0 4px,#c9d7fb 4px 8px)}
+  .detail{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--card2);font-size:13px}.detail .who{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.detail .who span{font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 9px}.detail .who span.plan{border-style:dashed;color:#2563c9}
+  .ye-top{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+  .ye-top div{border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;background:var(--card2)}.ye-top b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.ye-top span{font-size:11px;color:var(--muted)}
+  .ye-top .bad{border-color:#f0b3ba;background:var(--badbg)}.ye-top .bad b{color:var(--bad)}
+  .ye-r{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line);font-size:13px}.ye-r:last-child{border-bottom:0}
+  .ye-r small{display:block;color:var(--muted);font-size:11px}.tag{font-size:11px;border-radius:999px;padding:3px 9px;font-weight:800;white-space:nowrap;background:#fdeeee;color:#a12828}
+  .note{font-size:11.5px;color:var(--muted);margin-top:8px}
+  .state{text-align:center;padding:60px 20px;color:var(--muted)}.state b{display:block;color:var(--text);font-size:17px;margin-bottom:6px}
+  .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:18px}
+  .hidden{display:none!important}
+  @media(max-width:760px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.card{flex-direction:column;text-align:center}.donut{width:62px;height:62px}
+    .row{grid-template-columns:105px 1fr 54px}.months{gap:2px;height:200px}.m small{font-size:9px}.m b{font-size:11px}.m .stack{width:80%}.ye-top{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="logo">S</div><div><b>مؤشرات Group A</b><small id="asOf">جاري التحميل…</small></div><span class="ro">للعرض فقط</span></div>
+  <div id="state" class="state">جاري التحميل…</div>
+  <div id="app" class="hidden">
+    <div class="sec"><h2>نظرة سريعة</h2><p class="sub">اضغط على أي بطاقة عشان تشوف الأسماء</p><div class="cards" id="cards"></div><div class="people" id="people"></div></div>
+    <div class="sec"><h2>ضغط الإجازات على الشفتات</h2><p class="sub">الأسابيع الثمانية الجاية · الحد: ليل 6، صباح ومساء 5</p><div class="load" id="load"></div></div>
+    <div class="sec"><div class="head"><div><h2>توزيع الإجازات على أشهر السنة</h2><p class="sub">مين مجاز في أي شهر</p></div><div class="tabs" id="tabs"></div></div><div id="months"></div></div>
+    <div class="sec"><h2>تصفية الأرصدة</h2><p class="sub" id="yeSub"></p><div id="ye"></div></div>
+    <div class="foot">تتحدث تلقائياً كل 5 دقائق</div>
+  </div>
+</div>
+<script>
+const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
+const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
+const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const ANCHOR='2026-08-30',CYCLE=[{from:0,to:6,code:'N'},{from:7,to:8,code:'OFF'},{from:9,to:15,code:'A'},{from:16,to:17,code:'OFF'},{from:18,to:24,code:'M'},{from:25,to:27,code:'OFF'}];
+const CAP={N:6,A:5,M:5},WORD={N:'ليل',A:'مساء',M:'صباح'};
+const token=new URLSearchParams(location.search).get('t')||'';
+let D=null,monthsYear=null,monthSel=0,openCard='';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const diff=(a,b)=>Math.round((new Date(a+'T12:00:00')-new Date(b+'T12:00:00'))/86400000);
+const add=(d,n)=>{const x=new Date(d+'T12:00:00');x.setDate(x.getDate()+n);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};
+const sd=d=>{const x=new Date(d+'T12:00:00');return `${x.getDate()} ${MONTHS[x.getMonth()]}`};
+const fmt=n=>{n=Number(n)||0;return Number.isInteger(n)?String(n):n.toFixed(1)};
+const shiftOf=d=>{const i=((diff(d,ANCHOR)%28)+28)%28;return CYCLE.find(s=>i>=s.from&&i<=s.to)};
+const nameOf=id=>D.employees.find(e=>e.id===id)?.name||'';
+
+async function load(){
+  if(!/^[0-9a-f-]{36}$/i.test(token)){showState('الرابط غير صحيح','تأكد إنك فتحت الرابط كامل مثل ما وصلك.');return}
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/rpc/sm_supervisor_view`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_token:token})});
+    const j=await res.json();
+    if(!j||!j.ok){showState('الرابط ما يشتغل','ممكن يكون انلغى. اطلب رابط جديد من المسؤول.');return}
+    D=j;D.today=String(j.today);render();
+  }catch(e){if(!D)showState('تعذر التحميل','تأكد من الإنترنت وحدّث الصفحة.')}
+}
+function showState(t,s){$('state').innerHTML=`<b>${esc(t)}</b>${esc(s)}`;$('state').classList.remove('hidden');$('app').classList.add('hidden');$('asOf').textContent=''}
+function render(){
+  $('state').classList.add('hidden');$('app').classList.remove('hidden');
+  const now=new Date();$('asOf').textContent=`آخر تحديث ${now.toLocaleTimeString('ar-SA-u-nu-latn',{hour:'numeric',minute:'2-digit'})}`;
+  renderCards();renderLoad();renderMonths();renderYE();
+}
+function onLeave(d,list=D.leaves){return list.filter(l=>l.start<=d&&l.end>=d)}
+function yearEnd(){
+  const t=D.today,y=t.slice(0,4),end=y+'-12-31',daysLeft=diff(end,t)+1;
+  const rows=D.employees.map(e=>{const bal=Number(e.leaveBalance)||0,excess=Math.max(0,bal-9);
+    const up=D.leaves.filter(l=>l.employeeId===e.id&&l.end>=t&&l.start<=end&&!l.pending);
+    const upDays=up.reduce((s,l)=>s+diff(l.end>end?end:l.end,l.start>t?l.start:t)+1,0);return {e,bal,excess,upDays}});
+  const needs=rows.filter(r=>r.excess>0).sort((a,b)=>b.excess-a.excess);
+  return {y,daysLeft,needs,excess:needs.reduce((s,r)=>s+r.excess,0),upDays:rows.reduce((s,r)=>s+r.upDays,0)};
+}
+function renderCards(){
+  const t=D.today,total=D.employees.length||1,offIds=new Set(onLeave(t).map(l=>l.employeeId));
+  const working=D.employees.filter(e=>!offIds.has(e.id)),over=D.employees.filter(e=>(Number(e.leaveBalance)||0)>9);
+  const expired=D.employees.filter(e=>e.marineIdExpiry&&diff(e.marineIdExpiry,t)<0),ye=yearEnd();
+  const pct=n=>Math.round(n/total*100);
+  const cards=[
+    {k:'work',cls:'ok',c:'#1f9d63',p:pct(working.length),v:pct(working.length)+'%',h:'على رأس العمل',d:'الحاضرون اليوم من إجمالي القوة',n:`${working.length} من ${D.employees.length}`,list:D.employees.filter(e=>offIds.has(e.id)).map(e=>e.name),lt:'المجازين اليوم'},
+    {k:'over',cls:over.length?'warn':'',c:'#e8a83c',p:pct(over.length),v:pct(over.length)+'%',h:'رصيد فوق حد الترحيل',d:'رصيدهم أكثر من 9 أيام',n:`${over.length} من ${D.employees.length}`,list:over.map(e=>`${e.name} · ${fmt(e.leaveBalance)}`)},
+    {k:'marine',cls:expired.length?'bad':'',c:'#e0475a',p:pct(expired.length),v:pct(expired.length)+'%',h:'بطاقات Marine منتهية',d:'منتهية الصلاحية حالياً',n:`${expired.length} من ${D.employees.length}`,list:expired.map(e=>e.name)},
+    {k:'ye',cls:ye.excess?'bad':'ok',c:ye.excess?'#e0475a':'#1f9d63',p:pct(ye.needs.length),v:fmt(ye.excess),h:'أيام لازم تنصرف قبل 31 ديسمبر',d:`الزايد عن 9 أيام ما يترحّل · باقي ${ye.daysLeft} يوم`,n:`${ye.needs.length} موظف`,list:ye.needs.map(r=>`${r.e.name} · ${fmt(r.excess)}`)}];
+  $('cards').innerHTML=cards.map(c=>`<button class="card ${c.cls}" onclick="toggleCard('${c.k}')" aria-expanded="${openCard===c.k}"><div class="donut" style="--pct:${c.p};--c:${c.c}"><b>${c.v}</b></div><div><h3>${c.h}</h3><p>${c.d}</p><span class="n">${c.n}</span></div></button>`).join('');
+  const sel=cards.find(c=>c.k===openCard);
+  $('people').className='people'+(sel?' open':'');
+  $('people').innerHTML=sel?(sel.list.length?sel.list.map(x=>`<span>${esc(x)}</span>`).join(''):'<span>ما فيه أحد</span>'):'';
+}
+function toggleCard(k){openCard=openCard===k?'':k;renderCards()}
+function renderLoad(){
+  const t=D.today,end=add(t,56),blocks=new Map(),lv=D.leaves.filter(l=>l.end>=t&&l.start<=end);
+  for(let d=t;d<=end;d=add(d,1)){const s=shiftOf(d);if(!CAP[s.code])continue;const i=((diff(d,ANCHOR)%28)+28)%28,st=add(d,-(i-s.from)),k=s.code+st;
+    if(!blocks.has(k))blocks.set(k,{code:s.code,start:st,end:add(st,s.to-s.from),max:0,who:new Set()});
+    const b=blocks.get(k),on=onLeave(d,lv);b.max=Math.max(b.max,on.length);on.forEach(l=>b.who.add(l.employeeId))}
+  $('load').innerHTML=[...blocks.values()].map(b=>{const cap=CAP[b.code],cls=b.max>=cap?'full':b.max>=cap-1?'near':'',now=b.start<=t&&b.end>=t;
+    return `<div class="row ${cls} ${now?'now':''}"><div class="lbl"><b>${WORD[b.code]}${now?' · الحين':''}</b><small>${sd(b.start)} – ${sd(b.end)}</small></div><div class="bar"><i style="width:${Math.min(100,Math.round(b.max/cap*100))}%"></i></div><div class="n">${b.max} / ${cap}</div>${b.who.size?`<details><summary>${b.who.size} مجاز${b.max>=cap?' — الشفت ممتلئ':b.max>=cap-1?' — باقي مكان واحد':''}</summary><div class="who">${[...b.who].map(id=>`<span>${esc(nameOf(id))}</span>`).join('')}</div></details>`:''}</div>`}).join('');
+}
+function monthData(y){
+  const months=Array.from({length:12},()=>({e:new Map(),p:new Map()}));
+  D.leaves.forEach(l=>{if(l.course||!D.employees.some(e=>e.id===l.employeeId))return;
+    for(let m=0;m<12;m++){const ms=`${y}-${String(m+1).padStart(2,'0')}-01`,me=add(m===11?`${y+1}-01-01`:`${y}-${String(m+2).padStart(2,'0')}-01`,-1);
+      if(l.start>me||l.end<ms)continue;months[m].e.set(l.employeeId,(months[m].e.get(l.employeeId)||0)+diff(l.end<me?l.end:me,l.start>ms?l.start:ms)+1)}});
+  (D.plans?.[y]||[]).forEach(p=>{const m=months[p.assigned_month-1];if(m&&!m.e.has(String(p.employee_id)))m.p.set(String(p.employee_id),p.name)});
+  return {months,max:D.plan_max?.[y]||null};
+}
+function renderMonths(){
+  const cy=Number(D.today.slice(0,4));if(!monthsYear)monthsYear=cy;
+  $('tabs').innerHTML=[cy,cy+1].map(y=>`<button class="${monthsYear===y?'on':''}" onclick="monthsYear=${y};monthSel=0;renderMonths()">${y}</button>`).join('');
+  const {months,max}=monthData(monthsYear),tot=months.map(m=>m.e.size+m.p.size),top=Math.max(max||0,...tot,1)+1,h=v=>Math.round(v/top*180),cur=monthsYear===cy?Number(D.today.slice(5,7)):0;
+  let html=`<div class="months">${max?`<div class="cap" style="bottom:${h(max)+22}px"><span>الحد ${max} في الشهر</span></div>`:''}`+months.map((m,i)=>`<button class="m ${max&&tot[i]>max?'over':''} ${monthSel===i+1?'sel':''}" onclick="monthSel=${i+1};renderMonths()"><b>${tot[i]||''}</b><div class="stack"><i style="height:${h(m.e.size)}px"></i>${m.p.size?`<i class="plan" style="height:${h(m.p.size)}px"></i>`:''}</div><small style="${cur===i+1?'color:var(--text);font-weight:800':''}">${MONTHS[i]}</small></button>`).join('')+`</div>`;
+  html+=`<div class="legend"><span><i></i>إجازة مدخلة</span><span><i class="plan"></i>خطة إجازة معتمدة (التواريخ ما انحددت)</span>${max?'<span style="color:var(--bad)">- - الحد الشهري</span>':''}</div>`;
+  if(monthSel){const m=months[monthSel-1];
+    html+=`<div class="detail"><b>${MONTHS[monthSel-1]} ${monthsYear}</b> — ${m.e.size+m.p.size} موظف<div class="who">${[...m.e.entries()].sort((a,b)=>b[1]-a[1]).map(([id,d])=>`<span>${esc(nameOf(id))} · ${d} يوم</span>`).join('')}${[...m.p.entries()].map(([id,n])=>`<span class="plan">${esc(nameOf(id)||n)} · مخطط</span>`).join('')||(m.e.size?'':'<span>ما فيه أحد مجاز</span>')}</div></div>`}
+  $('months').innerHTML=html;
+}
+function renderYE(){
+  const ye=yearEnd();$('yeSub').textContent=`باقي ${ye.daysLeft} يوم على 31 ديسمبر ${ye.y} · نظام الشركة ما يرحّل أكثر من 9 أيام`;
+  $('ye').innerHTML=`<div class="ye-top"><div class="${ye.excess?'bad':''}"><b>${fmt(ye.excess)}</b><span>يوم لازم تنصرف قبل نهاية السنة</span></div><div><b>${ye.needs.length}</b><span>موظف رصيده فوق 9</span></div><div><b>${ye.upDays}</b><span>يوم إجازة مجدولة لين نهاية السنة</span></div><div><b>${ye.daysLeft}</b><span>يوم باقي على نهاية السنة</span></div></div>`+
+    (ye.needs.length?ye.needs.map(r=>`<div class="ye-r"><div><b>${esc(r.e.name)}</b><small>الرصيد ${fmt(r.bal)} يوم${r.upDays?` · عنده ${r.upDays} يوم إجازة مجدولة`:''}</small></div><span class="tag">يحتاج ${fmt(r.excess)} يوم قبل 31 ديسمبر</span></div>`).join(''):'<div class="note">كل الأرصدة ضمن حد الترحيل 👌</div>');
+}
+load();setInterval(load,5*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
+</script>
+</body>
+</html>

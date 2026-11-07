@@ -826,3 +826,38 @@ let aiRealtimeWaitingRetry=false;
 const aiRealtimeHandledCalls=new Set();
 let aiRealtimeResponseActive=false;
 let aiRealtimeResponsePending=null;
+
+/* ===== رابط السوبرفايزر: صفحة مؤشرات للقراءة فقط ===== */
+function smShareUrl(token){return new URL('supervisor.html?t='+token,location.href).href}
+async function smShareOpen(){
+  if(!isAdmin())return;
+  document.getElementById('smShareBox')?.remove();
+  const box=document.createElement('div');box.id='smShareBox';box.className='modal show';
+  box.innerHTML=`<div class="sheet" style="max-width:560px;max-height:86vh;overflow:auto"><h3 style="margin:0 0 4px">مشاركة المؤشرات</h3>
+    <p class="small-note" style="margin:0 0 12px">رابط يفتح صفحة المؤشرات بس، للقراءة، ويتحدث تلقائياً. ما يقدر صاحبه يدخل البرنامج أو يعدّل، وما يشوف أرقام الجوالات. تقدر تلغي الرابط أي وقت.</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px"><input id="smShareLabel" placeholder="لمين الرابط؟ مثال: السوبرفايزر" style="flex:1"><button class="primary" onclick="smShareCreate()">إنشاء رابط</button></div>
+    <div id="smShareList" class="small-note">جاري التحميل…</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="secondary" onclick="document.getElementById('smShareBox').remove()">إغلاق</button></div></div>`;
+  box.addEventListener('click',e=>{if(e.target===box)box.remove()});
+  document.body.appendChild(box);smShareLoad();
+}
+async function smShareLoad(){
+  const el=document.getElementById('smShareList');if(!el)return;
+  try{
+    const rows=await lpApi('/rest/v1/sm_share_links?revoked=eq.false&select=token,label,created_at,last_seen&order=created_at.desc')||[];
+    el.innerHTML=rows.length?rows.map(r=>`<div class="lp-rm-row"><div class="n"><b>${esc(r.label||'بدون اسم')}</b><small>${r.last_seen?'آخر فتح '+lpAgo(r.last_seen):'ما انفتح بعد'}</small></div>
+      <button class="secondary" onclick="smShareCopy('${r.token}')">نسخ</button><button class="primary" onclick="smShareWa('${r.token}')">واتساب</button><button class="secondary danger" onclick="smShareRevoke('${r.token}')">إلغاء</button></div>`).join(''):'ما فيه روابط. اكتب لمين الرابط واضغط «إنشاء رابط».';
+  }catch(e){el.textContent='تعذر التحميل: '+e.message}
+}
+async function smShareCreate(){
+  const label=(document.getElementById('smShareLabel')?.value||'').trim()||'السوبرفايزر';
+  try{await lpApi('/rest/v1/sm_share_links',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({label})});document.getElementById('smShareLabel').value='';smShareLoad()}
+  catch(e){alert('تعذر إنشاء الرابط: '+e.message)}
+}
+function smShareCopy(t){lpCopyText(smShareUrl(t),'تم نسخ الرابط ✓')}
+function smShareWa(t){const msg=`السلام عليكم\nهذا رابط مؤشرات Group A (للعرض فقط، ويتحدث تلقائياً):\n${smShareUrl(t)}`;const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;const w=window.open(url,'_blank');if(!w)location.href=url}
+async function smShareRevoke(t){
+  if(!confirm('إلغاء الرابط؟ اللي عنده الرابط ما راح يقدر يفتحه بعدها.'))return;
+  try{await lpApi(`/rest/v1/sm_share_links?token=eq.${t}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({revoked:true})});smShareLoad()}
+  catch(e){alert('تعذر الإلغاء: '+e.message)}
+}
