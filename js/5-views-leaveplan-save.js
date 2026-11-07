@@ -476,19 +476,27 @@ function lpxDownload(blob,filename){const url=URL.createObjectURL(blob),a=docume
 function lpDistributionSheet(rows,year,max){
   const md=d=>{const [,m,dd]=d.split('-').map(Number);return `${LP_MONTHS_EN[m-1].slice(0,3)} ${dd}`};
   const E=(v,s)=>({v,s});
+  /* كل فترة تنحط تحت الشهر اللي تبدأ فيه (موظف عنده فترة في يناير وفترة في يونيو يطلع في الشهرين) */
+  const entries=[];
+  rows.filter(r=>r.plan&&r.plan.status!=='rejected').forEach(r=>{
+    const ps=r.plan.periods||[];
+    if(!ps.length){entries.push({r,m:r.plan.assigned_month,periods:[]});return}
+    const byM=new Map();ps.forEach(x=>{const m=Number(String(x.start).slice(5,7));if(!byM.has(m))byM.set(m,[]);byM.get(m).push(x)});
+    byM.forEach((periods,m)=>entries.push({r,m,periods}));
+  });
   const block=m=>{
-    const list=rows.filter(r=>r.plan&&r.plan.status!=='rejected'&&r.plan.assigned_month===m)
-      .sort((a,b)=>String(a.plan.periods?.[0]?.start||'9').localeCompare(String(b.plan.periods?.[0]?.start||'9'))||String(a.employee?.name||a.name).localeCompare(String(b.employee?.name||b.name)));
+    const list=entries.filter(e=>e.m===m)
+      .sort((a,b)=>String(a.periods[0]?.start||'9').localeCompare(String(b.periods[0]?.start||'9'))||String(a.r.employee?.name||a.r.name).localeCompare(String(b.r.employee?.name||b.r.name)));
     const out=[{height:26,title:true,cells:[E(`${LP_MONTHS_EN[m-1]} 1, ${year}`,'mTitle'),E('','mTitle'),E('','mTitle'),E('','mTitle'),E('','mTitle')]},
       {height:24,cells:['No.','Badge #','Name','Vacation',`Remaining ${year}`].map(v=>E(v,'dHead'))}];
     const n=Math.max(list.length,max);
     for(let i=0;i<n;i++){
-      const r=list[i],p=r?.plan;
+      const en=list[i],r=en?.r,p=r?.plan;
       if(!r){out.push({height:22,cells:[E(i+1,'dBody'),E('','dBody'),E('','dBody'),E('','dBody'),E('','dBody')]});continue}
       const monthOk=p.status==='approved',ds=p.dates_status;
       const st=!monthOk?'dGray':ds==='approved'?'dGreen':ds==='submitted'?'dYellow':'dBody';
-      const vac=p.periods?.length?p.periods.map(x=>`${md(x.start)} to ${md(x.end)}`).join('  /  '):(monthOk?'':'month pending');
-      out.push({height:p.periods?.length>1?36:22,cells:[E(i+1,st),E(r.badge,st),E(r.employee?.name||r.name,st),E(vac,st),(()=>{const pb=lpProjectedBalance(r,year);return pb?E(pb.balance,st!=='dGray'&&pb.balance<0?'prevWarn':st):E('—',st)})()]});
+      const vac=en.periods.length?en.periods.map(x=>`${md(x.start)} to ${md(x.end)}`).join('  /  '):(monthOk?'':'month pending');
+      out.push({height:en.periods.length>1?36:22,cells:[E(i+1,st),E(r.badge,st),E(r.employee?.name||r.name,st),E(vac,st),(()=>{const pb=lpProjectedBalance(r,year);return pb?E(pb.balance,st!=='dGray'&&pb.balance<0?'prevWarn':st):E('—',st)})()]});
     }
     return out;
   };
