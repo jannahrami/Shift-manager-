@@ -346,7 +346,7 @@ function lpCopyReminders(kind){
 }
 /* نقطة حمراء على تبويب خطة الإجازة لما يقرب الموعد وفيه متأخرين */
 async function lpNavDot(){
-  const nb=document.getElementById('lpNavBtn');if(!nb||!isAdmin())return;nb.querySelector('.lp-nav-dot')?.remove();
+  const nb=document.getElementById('lpNavBtn');if(!nb||!isAdmin())return;
   try{
     let rows,settings=lpState.settings;
     if(lpState.loaded)rows=lpRows();
@@ -356,6 +356,7 @@ async function lpNavDot(){
     }
     const late=lpLate(rows);let n=0;
     [['deadline',late.months],['dates_deadline',late.dates]].forEach(([k,list])=>{const left=lpDaysLeft(settings?.[k]);if(left!==null&&left<=3&&list.length)n+=list.length});
+    nb.querySelectorAll('.lp-nav-dot').forEach(x=>x.remove());
     if(n){const s=document.createElement('span');s.className='lp-nav-dot';s.textContent=n;s.title=`${n} موظف متأخر والموعد قريب`;nb.appendChild(s)}
   }catch(e){}
 }
