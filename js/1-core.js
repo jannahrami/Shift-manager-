@@ -138,7 +138,7 @@ function renderMarineAlert(){
   const cls=expired?'danger':soon?'warning':'ok',text=expired?`${expired} منتهية${soon?` · ${soon} تنتهي خلال شهر`:''}`:soon?`${soon} تنتهي خلال شهر`:'جميع البطاقات سارية';
   const desktop=document.getElementById('marineAlert'),mobile=document.getElementById('marineMobileAlert');
   if(desktop){desktop.className=`marine-alert ${cls}`;desktop.innerHTML=`<strong>Marine ID Access</strong><span>${text}</span>`}
-  if(mobile){mobile.className=`marine-mobile-alert ${cls}`;mobile.textContent=`Marine ID Access — ${text}`}
+  if(mobile){mobile.className=`marine-mobile-alert ${cls}`;mobile.textContent=`بطاقات Marine: ${text}`}
 }
 function openMarineAlerts(){
   const rows=marineEmployees(),box=document.getElementById('marineAlertsList');

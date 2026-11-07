@@ -358,9 +358,9 @@ function renderDashboardShift(){
   if(!code)return;
   const t=todayISO(),current=groupShiftForDate(t),end=shiftPeriodEnd(t,current.code),next=nextWorkingShift(t,current.code);
   code.textContent=current.code;
-  document.getElementById('dashboardShiftName').textContent=current.code==='OFF'?'يوم راحة':current.name+' Shift';
+  document.getElementById('dashboardShiftName').textContent=current.code==='OFF'?'يوم راحة':({N:'شفت الليل',A:'شفت المساء',M:'شفت الصباح'}[current.code]||current.name);
   document.getElementById('dashboardShiftPeriod').textContent=current.code==='OFF'?`الراحة مستمرة حتى ${shortDate(end)}`:`${current.arabic} حتى ${shortDate(end)}`;
-  document.getElementById('dashboardNextShift').textContent=next?`القادم: ${next.code} · ${next.name} — ${shortDate(next.date)}`:'—';
+  document.getElementById('dashboardNextShift').textContent=next?`القادم: ${({N:'ليل',A:'مساء',M:'صباح'}[next.code]||next.name)} — ${shortDate(next.date)}`:'—';
   renderConditionalReminder();
   renderReminderCards();
   renderLatestUpdatesCard();

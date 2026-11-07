@@ -587,7 +587,7 @@ function buildNavMore(){
   const panel=document.getElementById('navMorePanel');if(!panel)return;
   const items=[...document.querySelectorAll('.bottom-nav .navbtn:not(.nav-main):not(.nav-more)')].filter(b=>b.style.display!=='none');
   panel.innerHTML=items.map(b=>`<button class="navbtn ${b.classList.contains('active')?'active':''}" data-view="${b.dataset.view}" type="button" onclick="toggleNavMore(false);showView('${b.dataset.view}',null)">${b.innerHTML}</button>`).join('')+
-    `<button class="navbtn" type="button" onclick="toggleNavMore(false);openAIAssistant()"><span>✦</span>المساعد الذكي</button>`;
+    `<button class="navbtn" type="button" onclick="toggleNavMore(false);openAIAssistant()"><span><svg class=\"ic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M16 18a2 2 0 0 1 2 2 2 2 0 0 1 2-2 2 2 0 0 1-2-2 2 2 0 0 1-2 2m0-12a2 2 0 0 1 2 2 2 2 0 0 1 2-2 2 2 0 0 1-2-2 2 2 0 0 1-2 2M9 18a6 6 0 0 1 6-6 6 6 0 0 1-6-6 6 6 0 0 1-6 6 6 6 0 0 1 6 6\"/></svg></span>المساعد الذكي</button>`;
 }
 function toggleNavMore(open){
   const sh=document.getElementById('navMoreSheet');if(!sh)return;

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=20261107b">
+  <link rel="stylesheet" href="css/app.css?v=20261107c">
 </head>
 <body>
 <div class="auth-screen" id="authScreen">
@@ -53,16 +53,16 @@
   </div>
 
   <nav class="bottom-nav">
-    <button class="navbtn active" data-view="insightsView" onclick="showView('insightsView',this)"><span>📊</span>المؤشرات</button>
-    <button class="navbtn nav-main" data-view="homeView" onclick="showView('homeView',this)"><span>⌂</span>الرئيسية</button>
-    <button class="navbtn nav-main" data-view="employeesView" onclick="showView('employeesView',this)"><span>👥</span>الموظفون</button>
-    <button class="navbtn nav-main" data-view="leaveView" onclick="showView('leaveView',this)"><span>🗓️</span>الإجازات</button>
-<button class="navbtn nav-main" id="lpNavBtn" data-view="leavePlanView" onclick="showView('leavePlanView',this)"><span>🗳️</span>خطة الإجازة</button>
-    <button class="navbtn" data-view="calendarView" onclick="showView('calendarView',this)"><span>▦</span>التقويم</button>
-    <button class="navbtn" data-view="shiftView" onclick="showView('shiftView',this)"><span>🛡️</span>الشفت</button>
-    <button class="navbtn" data-view="reportsView" onclick="showView('reportsView',this)"><span>📊</span>التقارير</button>
-    <button class="navbtn" data-view="updateView" onclick="showView('updateView',this)"><span>📌</span>تحديثات</button>
-    <button class="navbtn nav-more" type="button" onclick="toggleNavMore()" aria-haspopup="true"><span>☰</span>المزيد</button>
+    <button class="navbtn active" data-view="insightsView" onclick="showView('insightsView',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M15 9a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/><path d="M9 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/><path d="M4 20h14"/></svg></span>المؤشرات</button>
+    <button class="navbtn nav-main" data-view="homeView" onclick="showView('homeView',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12H3l9-9 9 9h-2"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/><path d="M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6"/></svg></span>الرئيسية</button>
+    <button class="navbtn nav-main" data-view="employeesView" onclick="showView('employeesView',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg></span>الموظفون</button>
+    <button class="navbtn nav-main" data-view="leaveView" onclick="showView('leaveView',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/><path d="M8 15h2v2H8z"/></svg></span>الإجازات</button>
+<button class="navbtn nav-main" id="lpNavBtn" data-view="leavePlanView" onclick="showView('leavePlanView',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 3m0 2a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M9 14l2 2 4-4"/></svg></span>خطة الإجازة</button>
+    <button class="navbtn" data-view="calendarView" onclick="showView('calendarView',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/><path d="M11 15h1"/><path d="M12 15v3"/></svg></span>التقويم</button>
+    <button class="navbtn" data-view="shiftView" onclick="showView('shiftView',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a12 12 0 0 0 8.5 3A12 12 0 0 1 12 21 12 12 0 0 1 3.5 6 12 12 0 0 0 12 3"/></svg></span>الشفت</button>
+    <button class="navbtn" data-view="reportsView" onclick="showView('reportsView',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 17v-5"/><path d="M12 17v-1"/><path d="M15 17v-3"/></svg></span>التقارير</button>
+    <button class="navbtn" data-view="updateView" onclick="showView('updateView',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5l-4 4L7 10l-1.5 1.5 7 7L14 17l1.5-4 4-4"/><path d="M9 15l-4.5 4.5"/><path d="M14.5 4L20 9.5"/></svg></span>تحديثات</button>
+    <button class="navbtn nav-more" type="button" onclick="toggleNavMore()" aria-haspopup="true"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></span>المزيد</button>
   </nav>
   <div class="nav-more-sheet" id="navMoreSheet" onclick="if(event.target===this)toggleNavMore(false)"><div class="nav-more-panel" id="navMorePanel"></div></div>
 
@@ -241,21 +241,23 @@
 
     <section id="leaveView" class="view">
       <div class="section">
-        <div class="section-head"><h2>الإجازات</h2><button onclick="openLeaveModal()">+ إجازة</button></div>
+        <div class="section-head"><h2>الإجازات</h2><div style="display:flex;gap:8px"><button class="secondary" style="background:var(--card)!important;color:var(--text)!important;border:1px solid var(--line)!important" onclick="exportLeavesExcel()">⬇ تصدير Excel</button><button onclick="openLeaveModal()">+ إجازة</button></div></div>
         <div class="month-filter">
           <input type="month" id="leaveMonthFilter" aria-label="اختر شهر الإجازات" onchange="clearLeaveRange(false);renderLeaves()">
           <button class="secondary" onclick="showCurrentLeaveMonth()">هذا الشهر</button>
           <button class="secondary" onclick="clearLeaveMonth()">عرض الكل</button>
-          <button class="primary" onclick="exportLeavesExcel()">⬇ Export Excel</button>
+          
         </div>
+        <details class="leave-range" id="leaveRangeBox"><summary>بحث بفترة محددة</summary>
         <div class="month-filter" style="margin-top:10px">
-          <label class="small-note">الإجازات خلال الفترة من</label>
+          <label class="small-note">من</label>
           <input type="text" id="leaveRangeStart" placeholder="اختر تاريخ البداية" readonly onclick="openShiftDatePicker('leaveRangeStart')" aria-label="بداية فترة البحث">
           <label class="small-note">إلى</label>
           <input type="text" id="leaveRangeEnd" placeholder="اختر تاريخ النهاية" readonly onclick="openShiftDatePicker('leaveRangeEnd')" aria-label="نهاية فترة البحث">
           <button class="primary" onclick="applyLeaveRange()">عرض الموظفين</button>
           <button class="secondary" onclick="clearLeaveRange()">مسح الفترة</button>
         </div>
+        </details>
         <div class="section-head"><span class="small-note" id="leaveMonthTitle">جميع الإجازات</span><span class="chip" id="leaveMonthCount">0 موظف</span></div>
         <div class="list" id="leaveList"></div>
       </div>
@@ -287,7 +289,7 @@
 
     <section id="leavePlanView" class="view">
       <div class="section lp-section" id="leavePlanSection">
-        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 7 نوفمبر ٢</span></div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">↻ تحديث</button></div>
+        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 7 نوفمبر ٣</span></div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">↻ تحديث</button></div>
         <div class="lp-controls">
           <label>السنة<input type="number" id="lpYear" min="2025" max="2100" onchange="lpLoad()"></label>
           <label>الحد في الشهر<input type="number" id="lpMax" min="1" max="60" value="6"></label>
@@ -314,7 +316,7 @@
             <button class="secondary" onclick="lpApproveAllDates()">✓ اعتماد كل التواريخ المرسلة</button>
           </div>
           <div class="lp-group"><div class="lp-gt">٣ · التصدير</div>
-            <button class="secondary" onclick="lpExport()">⬇ Export Excel</button>
+            <button class="secondary" onclick="lpExport()">⬇ تصدير Excel</button>
           </div>
         </div>
         <div class="lp-filter" id="lpFilter"></div>
@@ -417,7 +419,7 @@
             <button class="secondary no-print" onclick="changeMonthlyRosterMonth(-1)">السابق</button>
             <button class="secondary no-print" onclick="goMonthlyRosterToday()">هذا الشهر</button>
             <button class="secondary no-print" onclick="changeMonthlyRosterMonth(1)">التالي</button>
-            <button class="primary no-print auto-roster-btn" onclick="previewAutoMonthlyRoster()">⚡ Auto Generate</button>
+            <button class="primary no-print auto-roster-btn" onclick="previewAutoMonthlyRoster()">⚡ توزيع تلقائي</button>
             <button class="primary no-print" onclick="saveMonthlyRosterPeriod()">💾 حفظ الجدول</button>
             <button class="secondary danger no-print" onclick="cancelMonthlyRoster()">🗑 إلغاء الجدول</button>
             <button class="primary no-print" onclick="printMonthlyRoster()">🖨 طباعة / PDF</button>
@@ -443,10 +445,10 @@
           <div class="shift-status-card" id="nextShiftCard"></div>
         </div>
         <div class="status-legend">
-          <span class="legend-item"><span class="legend-dot" style="background:#efd45b"></span>Night</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#e993aa"></span>Afternoon</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#d68ce4"></span>Morning</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#aab4c2"></span>Off</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#efd45b"></span>ليل</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#e993aa"></span>مساء</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#d68ce4"></span>صباح</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#aab4c2"></span>راحة</span>
         </div>
         <div class="schedule-calendar">
           <div class="schedule-weekdays" id="scheduleWeekdays"></div>
@@ -706,11 +708,11 @@
   </div>
 </div>
 
-<script src="js/1-core.js?v=20261107b"></script>
-<script src="js/2-dashboard-calendar.js?v=20261107b"></script>
-<script src="js/3-employees-reports.js?v=20261107b"></script>
-<script src="js/4-leaves-roster.js?v=20261107b"></script>
-<script src="js/5-views-leaveplan-save.js?v=20261107b"></script>
-<script src="js/6-assistant-boot.js?v=20261107b"></script>
+<script src="js/1-core.js?v=20261107c"></script>
+<script src="js/2-dashboard-calendar.js?v=20261107c"></script>
+<script src="js/3-employees-reports.js?v=20261107c"></script>
+<script src="js/4-leaves-roster.js?v=20261107c"></script>
+<script src="js/5-views-leaveplan-save.js?v=20261107c"></script>
+<script src="js/6-assistant-boot.js?v=20261107c"></script>
 </body>
 </html>
