@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=20261107a">
+  <link rel="stylesheet" href="css/app.css?v=20261107b">
 </head>
 <body>
 <div class="auth-screen" id="authScreen">
@@ -54,15 +54,17 @@
 
   <nav class="bottom-nav">
     <button class="navbtn active" data-view="insightsView" onclick="showView('insightsView',this)"><span>📊</span>المؤشرات</button>
-    <button class="navbtn" data-view="homeView" onclick="showView('homeView',this)"><span>⌂</span>الرئيسية</button>
-    <button class="navbtn" data-view="employeesView" onclick="showView('employeesView',this)"><span>👥</span>الموظفون</button>
-    <button class="navbtn" data-view="leaveView" onclick="showView('leaveView',this)"><span>🗓️</span>الإجازات</button>
-<button class="navbtn" id="lpNavBtn" data-view="leavePlanView" onclick="showView('leavePlanView',this)"><span>🗳️</span>خطة الإجازة</button>
+    <button class="navbtn nav-main" data-view="homeView" onclick="showView('homeView',this)"><span>⌂</span>الرئيسية</button>
+    <button class="navbtn nav-main" data-view="employeesView" onclick="showView('employeesView',this)"><span>👥</span>الموظفون</button>
+    <button class="navbtn nav-main" data-view="leaveView" onclick="showView('leaveView',this)"><span>🗓️</span>الإجازات</button>
+<button class="navbtn nav-main" id="lpNavBtn" data-view="leavePlanView" onclick="showView('leavePlanView',this)"><span>🗳️</span>خطة الإجازة</button>
     <button class="navbtn" data-view="calendarView" onclick="showView('calendarView',this)"><span>▦</span>التقويم</button>
     <button class="navbtn" data-view="shiftView" onclick="showView('shiftView',this)"><span>🛡️</span>الشفت</button>
     <button class="navbtn" data-view="reportsView" onclick="showView('reportsView',this)"><span>📊</span>التقارير</button>
     <button class="navbtn" data-view="updateView" onclick="showView('updateView',this)"><span>📌</span>تحديثات</button>
+    <button class="navbtn nav-more" type="button" onclick="toggleNavMore()" aria-haspopup="true"><span>☰</span>المزيد</button>
   </nav>
+  <div class="nav-more-sheet" id="navMoreSheet" onclick="if(event.target===this)toggleNavMore(false)"><div class="nav-more-panel" id="navMorePanel"></div></div>
 
   <main>
     <section id="insightsView" class="view active">
@@ -285,7 +287,7 @@
 
     <section id="leavePlanView" class="view">
       <div class="section lp-section" id="leavePlanSection">
-        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 7 نوفمبر ١</span></div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">↻ تحديث</button></div>
+        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 7 نوفمبر ٢</span></div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">↻ تحديث</button></div>
         <div class="lp-controls">
           <label>السنة<input type="number" id="lpYear" min="2025" max="2100" onchange="lpLoad()"></label>
           <label>الحد في الشهر<input type="number" id="lpMax" min="1" max="60" value="6"></label>
@@ -704,11 +706,11 @@
   </div>
 </div>
 
-<script src="js/1-core.js?v=20261107a"></script>
-<script src="js/2-dashboard-calendar.js?v=20261107a"></script>
-<script src="js/3-employees-reports.js?v=20261107a"></script>
-<script src="js/4-leaves-roster.js?v=20261107a"></script>
-<script src="js/5-views-leaveplan-save.js?v=20261107a"></script>
-<script src="js/6-assistant-boot.js?v=20261107a"></script>
+<script src="js/1-core.js?v=20261107b"></script>
+<script src="js/2-dashboard-calendar.js?v=20261107b"></script>
+<script src="js/3-employees-reports.js?v=20261107b"></script>
+<script src="js/4-leaves-roster.js?v=20261107b"></script>
+<script src="js/5-views-leaveplan-save.js?v=20261107b"></script>
+<script src="js/6-assistant-boot.js?v=20261107b"></script>
 </body>
 </html>

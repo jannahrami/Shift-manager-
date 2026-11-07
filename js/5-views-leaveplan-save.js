@@ -582,10 +582,28 @@ async function smRestore(id){
     alert('تم الاسترجاع ✓ الصفحة بتتحدث الحين.');location.reload();
   }catch(e){alert('تعذر الاسترجاع: '+e.message)}
 }
+/* الجوال: 4 تبويبات أساسية + "المزيد" فيه الباقي والمساعد الذكي */
+function buildNavMore(){
+  const panel=document.getElementById('navMorePanel');if(!panel)return;
+  const items=[...document.querySelectorAll('.bottom-nav .navbtn:not(.nav-main):not(.nav-more)')].filter(b=>b.style.display!=='none');
+  panel.innerHTML=items.map(b=>`<button class="navbtn ${b.classList.contains('active')?'active':''}" data-view="${b.dataset.view}" type="button" onclick="toggleNavMore(false);showView('${b.dataset.view}',null)">${b.innerHTML}</button>`).join('')+
+    `<button class="navbtn" type="button" onclick="toggleNavMore(false);openAIAssistant()"><span>✦</span>المساعد الذكي</button>`;
+}
+function toggleNavMore(open){
+  const sh=document.getElementById('navMoreSheet');if(!sh)return;
+  const on=open===undefined?!sh.classList.contains('open'):open;
+  if(on)buildNavMore();sh.classList.toggle('open',on);
+}
+function syncNavMoreActive(id){
+  const more=document.querySelector('.bottom-nav .nav-more');if(!more)return;
+  const main=[...document.querySelectorAll('.bottom-nav .nav-main')].some(b=>b.dataset.view===id);
+  more.classList.toggle('active',!main);
+}
 function showView(id,btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
+  syncNavMoreActive(id);
   document.querySelector('.fab')?.classList.toggle('hidden',!['homeView','employeesView'].includes(id));
   if(id==='reportsView'){
     const month=document.getElementById('monthlyReportMonth'),year=document.getElementById('annualReportYear');
