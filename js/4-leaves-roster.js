@@ -450,6 +450,28 @@ function renderAutoRosterPreview(){
   box.innerHTML=html+'</tbody></table></div>';document.getElementById('confirmAutoRosterBtn').disabled=!Object.keys(pendingAutoRoster.result).length;
 }
 function confirmAutoMonthlyRoster(){if(!pendingAutoRoster)return;state.monthlySchedules[monthlyRosterMonth]=pendingAutoRoster.result;pendingAutoRoster=null;closeModal('autoRosterPreviewModal');save();alert('تم اعتماد وحفظ التوزيع الشهري')}
+/* تصدير الجدول الشهري Excel بنفس شكل ملف Monthly Schedule: المهمة | الأسماء، الليدر بالأحمر، والمجازين بالأحمر تحت */
+function exportMonthlyRosterExcel(){
+  const data=monthlyRosterData(),E=(v,s)=>({v,s}),rows=[],merges=[];
+  const nameOf=e=>rosterEmployeeName(e)||e.name;
+  const people=key=>(Array.isArray(data[key])?data[key]:[]).map(id=>state.employees.find(e=>e.id===id)).filter(Boolean);
+  const band=(text,style,h=24)=>{rows.push({height:h,cells:[E(text,style),E('',style)]});merges.push(`A${rows.length}:B${rows.length}`)};
+  const runsFor=list=>{const leaders=list.filter(e=>e.dutyRole==='leader'),rest=list.filter(e=>e.dutyRole!=='leader'),out=[];
+    [...leaders,...rest].forEach((e,i)=>{if(i)out.push({t:' - ',color:'000000'});out.push({t:nameOf(e),color:e.dutyRole==='leader'?'C00000':'000000'})});return out};
+  band('Monthly Schedule','rsTitle',32);
+  rows.push({height:8,cells:[]});
+  const groups=Object.fromEntries(MONTHLY_ROSTER_GROUPS.map(g=>[g.key,g]));
+  groups.leadership.posts.forEach(post=>{const list=people(rosterPostKey('leadership',post));if(!list.length)return;rows.push({height:24,cells:[E(post,'rsPost'),{runs:runsFor(list.map(e=>({...e,dutyRole:''}))),s:'rsNames'}]})});
+  band('Stations','rsBand');
+  groups.stations.posts.forEach(post=>{const list=people(rosterPostKey('stations',post));rows.push({height:24,cells:[E(post.replace('STN#','STN#'),'rsPost'),list.length?{runs:runsFor(list),s:'rsNames'}:E('','rsNames')]})});
+  band('','rsGap',18);
+  groups.patrol.posts.forEach(post=>{const list=people(rosterPostKey('patrol',post));rows.push({height:24,cells:[E(post.replace('Patrol#','Patrol #'),'rsPost'),list.length?{runs:runsFor(list.map(e=>({...e,dutyRole:''}))),s:'rsNames'}:E('','rsNames')]})});
+  band('','rsDark',18);
+  const onLeave=rosterEmployeesOnLeave().map(x=>nameOf(x.employee));
+  rows.push({height:28,cells:[E(onLeave.join('    '),'rsLeave'),E('','rsLeave')]});merges.push(`A${rows.length}:B${rows.length}`);
+  const sheet={name:'Monthly Schedule',ltr:true,portrait:true,onePage:true,cols:[34,86],merges,rows};
+  lpxDownload(lpxWorkbook([sheet]),`Monthly-Schedule-${monthlyRosterMonth}.xlsx`);
+}
 function printMonthlyRoster(){
   const box=document.getElementById('monthlyRosterTable');if(!box)return;const period=monthlyRosterPeriod(),win=window.open('','_blank');if(!win){alert('اسمح بالنوافذ المنبثقة للطباعة');return}
   win.document.write(`<!doctype html><html dir="ltr"><head><meta charset="utf-8"><title>${esc(document.getElementById('monthlyRosterTitle').textContent)}</title><style>*{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}html,body{margin:0;padding:0}body{font-family:Arial,sans-serif;color:#172033;font-size:7.5px}h1{text-align:center;font-size:15px;line-height:1;margin:0 0 2px}.period{text-align:center;color:#64748b;font-size:7.5px;line-height:1;margin-bottom:4px}.monthly-roster-wrap{overflow:visible!important}table{width:100%;border-collapse:collapse;direction:ltr;table-layout:fixed}th,td{border:1px solid #aeb8c5;padding:2px 3px;text-align:left;font-size:7.2px;line-height:1.05;vertical-align:middle}th:nth-child(1),td:nth-child(1){width:18%}th:nth-child(2),td:nth-child(2){width:7%}.roster-group td{background:#167590;color:#fff;font-weight:bold;text-align:center;padding:2px}.roster-group.patrol td{background:#c45d1b}.roster-group.leave td{background:#be123c}.roster-people{display:flex;align-items:center;gap:2px;flex-wrap:wrap}.roster-person{display:inline-block;margin:0 1px;padding:1px 3px;border-radius:3px;font-size:6.8px;line-height:1.05;white-space:nowrap}.roster-leader{color:#b4232f;font-weight:bold}.roster-mid-leave{background:#fff4bf!important;color:#765500!important;border:1px solid #e9c94f}.roster-returning{background:#dcfce7!important;color:#166534!important;border:1px solid #86d79f}.roster-leave-person{color:#9f1239;font-weight:bold}.small-note{font-size:6px}.no-print,.roster-edit,button{display:none!important}input{border:0;background:transparent;width:28px;font-size:7px}.roster-fixed{box-shadow:none}tr{break-inside:avoid;page-break-inside:avoid}@page{size:A4 landscape;margin:4mm}@media print{body{width:100%;overflow:hidden}}</style></head><body><h1>${esc(document.getElementById('monthlyRosterTitle').textContent)}</h1><div class="period">From ${fmtDate(period.start)} To ${fmtDate(period.end)}</div>${box.innerHTML}</body></html>`);win.document.close();win.focus();setTimeout(()=>win.print(),250);
