@@ -346,7 +346,8 @@ function isDesignatedBackupAssignment(employeeId,key,period=monthlyRosterPeriod(
   return false;
 }
 function rosterEmployeesOnLeave(period=monthlyRosterPeriod()){
-  return state.employees.map(employee=>{const leaves=state.leaves.filter(l=>l.employeeId===employee.id&&l.start<=period.end&&l.end>=period.start).sort((a,b)=>a.start.localeCompare(b.start));return leaves.length?{employee,leaves}:null}).filter(Boolean).sort((a,b)=>a.employee.name.localeCompare(b.employee.name));
+  /* بس اللي إجازتهم شغالة في يوم بداية الجدول (اللي تبدأ إجازته بعدين يطلع في التوزيع عادي) */
+  return state.employees.map(employee=>{const leaves=state.leaves.filter(l=>l.employeeId===employee.id&&l.start<=period.start&&l.end>=period.start).sort((a,b)=>a.start.localeCompare(b.start));return leaves.length?{employee,leaves}:null}).filter(Boolean).sort((a,b)=>a.employee.name.localeCompare(b.employee.name));
 }
 function rosterLeaveSectionRows(columns=4){
   const entries=rosterEmployeesOnLeave();if(!entries.length)return '';
