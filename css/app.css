@@ -1010,3 +1010,10 @@
     .leave-range{margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--card2)}
     .leave-range summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--muted)}
     .leave-range[open] summary{margin-bottom:4px}
+    /* polish: nav count must win over the bar's span reset */
+    .bottom-nav .navbtn span.lp-nav-dot{background:#d64545!important;color:#fff!important;font-size:10px!important;min-width:16px!important;height:16px!important;line-height:16px!important;padding:0 4px!important;border-radius:8px!important;box-shadow:0 0 0 2px var(--card)!important}
+    /* polish: themed keyboard focus */
+    button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--primary)!important;outline-offset:2px}
+    /* polish: employee names never split mid-name on narrow tables */
+    #employeesList .name,#employeesList td:nth-child(2) strong{white-space:nowrap}
+    .report-choice>span svg.ic{width:22px;height:22px}.report-choice>span{display:inline-flex!important;align-items:center;justify-content:center}

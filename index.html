@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=20261107c">
+  <link rel="stylesheet" href="css/app.css?v=20261107d">
 </head>
 <body>
 <div class="auth-screen" id="authScreen">
@@ -137,7 +137,7 @@
       <div class="section section-wide leave-insights-section">
         <div class="section-head">
           <div><span class="section-kicker">مؤشرات السنة الحالية</span><h2>متابعة استخدام وتصفية رصيد الإجازات</h2></div>
-          <div style="display:flex;gap:8px;align-items:center"><span class="chip" id="leaveInsightsYear"></span><button class="secondary" onclick="exportLeaveInsightsPDF()">⬇ PDF</button></div>
+          <div style="display:flex;gap:8px;align-items:center"><span class="chip" id="leaveInsightsYear"></span><button class="secondary" onclick="exportLeaveInsightsPDF()">PDF</button></div>
         </div>
         <div class="leave-insights" id="leaveBalanceInsights"></div>
       </div>
@@ -212,7 +212,7 @@
       </div>
 
       <div class="section achievement-section">
-        <div class="section-head"><div><span class="section-kicker">السجل الإيجابي</span><h2>إنجازات الموظف</h2></div><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span class="chip" id="achievementCount">0</span><button class="secondary" onclick="printEmployeeAchievements()">🖨 طباعة الإنجازات</button><button class="secondary" onclick="openAllAchievementsReport()">📊 تقرير الجميع</button></div></div>
+        <div class="section-head"><div><span class="section-kicker">السجل الإيجابي</span><h2>إنجازات الموظف</h2></div><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span class="chip" id="achievementCount">0</span><button class="secondary" onclick="printEmployeeAchievements()">طباعة الإنجازات</button><button class="secondary" onclick="openAllAchievementsReport()">تقرير الجميع</button></div></div>
         <div class="form achievement-form">
           <select id="achievementType">
             <option value="بلاغ عن مشكلة">بلاغ عن مشكلة</option>
@@ -241,7 +241,7 @@
 
     <section id="leaveView" class="view">
       <div class="section">
-        <div class="section-head"><h2>الإجازات</h2><div style="display:flex;gap:8px"><button class="secondary" style="background:var(--card)!important;color:var(--text)!important;border:1px solid var(--line)!important" onclick="exportLeavesExcel()">⬇ تصدير Excel</button><button onclick="openLeaveModal()">+ إجازة</button></div></div>
+        <div class="section-head"><h2>الإجازات</h2><div style="display:flex;gap:8px"><button class="secondary" style="background:var(--card)!important;color:var(--text)!important;border:1px solid var(--line)!important" onclick="exportLeavesExcel()">تصدير Excel</button><button onclick="openLeaveModal()">+ إجازة</button></div></div>
         <div class="month-filter">
           <input type="month" id="leaveMonthFilter" aria-label="اختر شهر الإجازات" onchange="clearLeaveRange(false);renderLeaves()">
           <button class="secondary" onclick="showCurrentLeaveMonth()">هذا الشهر</button>
@@ -268,7 +268,7 @@
       <div class="section">
         <div class="section-head">
           <div><span class="section-kicker">Read Only — من بيانات History المحفوظة</span><h2>Gate &amp; Patrol Coverage</h2></div>
-          <button class="secondary" onclick="showView('homeView',document.querySelector('[data-view=homeView]'))">→ الرئيسية</button>
+          <button class="secondary" onclick="showView('homeView',document.querySelector('[data-view=homeView]'))">الرئيسية</button>
         </div>
         <div class="form" style="max-width:220px;margin-bottom:6px">
           <label class="small-note">السنة</label>
@@ -289,7 +289,7 @@
 
     <section id="leavePlanView" class="view">
       <div class="section lp-section" id="leavePlanSection">
-        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 7 نوفمبر ٣</span></div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">↻ تحديث</button></div>
+        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 7 نوفمبر ٤</span></div><h2>خطة الإجازة السنوية</h2></div><button class="secondary" onclick="lpLoad()">تحديث</button></div>
         <div class="lp-controls">
           <label>السنة<input type="number" id="lpYear" min="2025" max="2100" onchange="lpLoad()"></label>
           <label>الحد في الشهر<input type="number" id="lpMax" min="1" max="60" value="6"></label>
@@ -304,19 +304,19 @@
         <div class="lp-months" id="lpMonths"></div>
         <div class="lp-groups">
           <div class="lp-group"><div class="lp-gt">١ · الروابط والرسائل</div>
-            <button class="primary" onclick="lpGenerateLinks()">🔗 تجهيز روابط الموظفين</button>
+            <button class="primary" onclick="lpGenerateLinks()">تجهيز روابط الموظفين</button>
             <button class="primary" onclick="lpReminders()">⏰ تذكير المتأخرين</button>
-            <button class="secondary" onclick="lpCopyLinks(false)">📨 روابط اللي ما سلّموا</button>
+            <button class="secondary" onclick="lpCopyLinks(false)">روابط اللي ما سلّموا</button>
             <button class="secondary" onclick="lpCopyLinks(true)">نسخ كل الروابط</button>
-            <button class="secondary" onclick="lpCopyDatesMessages()">📅 رسائل تحديد الفترة</button>
-            <button class="secondary" onclick="lpCopyRejectedMessages()">↩ رسائل المرفوضين</button>
+            <button class="secondary" onclick="lpCopyDatesMessages()">رسائل تحديد الفترة</button>
+            <button class="secondary" onclick="lpCopyRejectedMessages()">رسائل المرفوضين</button>
           </div>
           <div class="lp-group"><div class="lp-gt">٢ · الاعتماد</div>
-            <button class="secondary" onclick="lpApproveAll()">✓ اعتماد كل الأشهر المرسلة</button>
-            <button class="secondary" onclick="lpApproveAllDates()">✓ اعتماد كل التواريخ المرسلة</button>
+            <button class="secondary" onclick="lpApproveAll()">اعتماد كل الأشهر المرسلة</button>
+            <button class="secondary" onclick="lpApproveAllDates()">اعتماد كل التواريخ المرسلة</button>
           </div>
           <div class="lp-group"><div class="lp-gt">٣ · التصدير</div>
-            <button class="secondary" onclick="lpExport()">⬇ تصدير Excel</button>
+            <button class="secondary" onclick="lpExport()">تصدير Excel</button>
           </div>
         </div>
         <div class="lp-filter" id="lpFilter"></div>
@@ -326,19 +326,19 @@
 
     <section id="reportsView" class="view">
       <div class="report-picker">
-        <button class="report-choice active" data-report="balances" onclick="selectReportType('balances',this)"><span>💳</span><strong>أرصدة الموظفين</strong><small>رصيد جميع الموظفين</small></button>
-        <button class="report-choice" data-report="monthly" onclick="selectReportType('monthly',this)"><span>🗓️</span><strong>إجازات الشهر</strong><small>تقرير شهري كامل</small></button>
-        <button class="report-choice" data-report="annual" onclick="selectReportType('annual',this)"><span>👤</span><strong>التقرير السنوي</strong><small>تقرير موظف محدد</small></button>
-        <button class="report-choice" data-report="fullEmployee" onclick="selectReportType('fullEmployee',this)"><span>📋</span><strong>تقرير موظف كامل</strong><small>الملاحظات والإجازات والإنجازات</small></button>
-        <button class="report-choice" data-report="achievements" onclick="selectReportType('achievements',this)"><span>🏆</span><strong>تقرير الإنجازات</strong><small>جميع الموظفين المنجزين</small></button>
+        <button class="report-choice active" data-report="balances" onclick="selectReportType('balances',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 8V5a1 1 0 0 0-1-1H6a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2V6"/><path d="M20 12v4h-4a2 2 0 0 1 0-4h4"/></svg></span><strong>أرصدة الموظفين</strong><small>رصيد جميع الموظفين</small></button>
+        <button class="report-choice" data-report="monthly" onclick="selectReportType('monthly',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg></span><strong>إجازات الشهر</strong><small>تقرير شهري كامل</small></button>
+        <button class="report-choice" data-report="annual" onclick="selectReportType('annual',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 1 0-8 0"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg></span><strong>التقرير السنوي</strong><small>تقرير موظف محدد</small></button>
+        <button class="report-choice" data-report="fullEmployee" onclick="selectReportType('fullEmployee',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span><strong>تقرير موظف كامل</strong><small>الملاحظات والإجازات والإنجازات</small></button>
+        <button class="report-choice" data-report="achievements" onclick="selectReportType('achievements',this)"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10"/><path d="M17 4v8a5 5 0 0 1-10 0V4"/><path d="M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0"/><path d="M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0"/></svg></span><strong>تقرير الإنجازات</strong><small>جميع الموظفين المنجزين</small></button>
       </div>
 
       <div class="section report-panel active" id="balancesReportPanel">
         <div class="section-head"><div><span class="section-kicker">جميع الموظفين</span><h2>تقرير أرصدة الإجازات</h2></div></div>
         <div class="month-filter">
           <button class="primary" onclick="renderBalancesReport()">تحديث التقرير</button>
-          <button class="secondary" onclick="exportBalancesReportExcel()">⬇ Excel</button>
-          <button class="secondary" onclick="printReport('balancesReportBox','تقرير أرصدة الإجازات')">🖨 طباعة / PDF</button>
+          <button class="secondary" onclick="exportBalancesReportExcel()">Excel</button>
+          <button class="secondary" onclick="printReport('balancesReportBox','تقرير أرصدة الإجازات')">طباعة / PDF</button>
         </div>
         <div id="balancesReportBox"></div>
       </div>
@@ -350,8 +350,8 @@
           <div class="month-filter">
             <input type="month" id="monthlyReportMonth" aria-label="شهر التقرير">
             <button class="primary" onclick="renderMonthlyReport()">عرض التقرير</button>
-            <button class="secondary" onclick="exportMonthlyReportExcel()">⬇ Excel</button>
-            <button class="secondary" onclick="printReport('monthlyReportBox','تقرير الإجازات الشهري')">🖨 طباعة / PDF</button>
+            <button class="secondary" onclick="exportMonthlyReportExcel()">Excel</button>
+            <button class="secondary" onclick="printReport('monthlyReportBox','تقرير الإجازات الشهري')">طباعة / PDF</button>
           </div>
         </div>
         <div id="monthlyReportBox"></div>
@@ -364,8 +364,8 @@
             <select id="annualReportEmployee"></select>
             <input type="number" id="annualReportYear" min="2020" max="2100" aria-label="السنة">
             <button class="primary" onclick="renderAnnualEmployeeReport()">عرض التقرير</button>
-            <button class="secondary" onclick="exportAnnualEmployeeReport()">⬇ Excel</button>
-            <button class="secondary" onclick="printReport('annualReportBox','التقرير السنوي للموظف')">🖨 طباعة / PDF</button>
+            <button class="secondary" onclick="exportAnnualEmployeeReport()">Excel</button>
+            <button class="secondary" onclick="printReport('annualReportBox','التقرير السنوي للموظف')">طباعة / PDF</button>
           </div>
         </div>
         <div id="annualReportBox"></div>
@@ -380,7 +380,7 @@
             <input type="date" id="fullEmployeeReportStart" aria-label="من تاريخ">
             <input type="date" id="fullEmployeeReportEnd" aria-label="إلى تاريخ">
             <button class="primary" onclick="renderFullEmployeeReport()">عرض التقرير الكامل</button>
-            <button class="secondary" onclick="printReport('fullEmployeeReportBox','التقرير الكامل للموظف')">🖨 طباعة / PDF</button>
+            <button class="secondary" onclick="printReport('fullEmployeeReportBox','التقرير الكامل للموظف')">طباعة / PDF</button>
           </div>
         </div>
         <div id="fullEmployeeReportBox"></div>
@@ -390,14 +390,14 @@
         <div class="section-head"><div><span class="section-kicker">السجل الإيجابي</span><h2>تقرير إنجازات الموظفين</h2></div></div>
         <div class="month-filter">
           <button class="primary" onclick="renderAchievementsReport()">عرض التقرير</button>
-          <button class="secondary" onclick="exportAchievementsReportExcel()">⬇ Excel</button>
-          <button class="secondary" onclick="printReport('achievementsReportBox','تقرير إنجازات الموظفين')">🖨 طباعة / PDF</button>
+          <button class="secondary" onclick="exportAchievementsReportExcel()">Excel</button>
+          <button class="secondary" onclick="printReport('achievementsReportBox','تقرير إنجازات الموظفين')">طباعة / PDF</button>
         </div>
         <div id="achievementsReportBox"></div>
       </div>
       <div class="section" id="smBackupSection" style="margin-top:16px">
         <div class="section-head"><div><div class="section-kicker">تنحفظ تلقائياً قبل أي تعديل · كل النسخ لآخر 7 أيام، ونسخة لكل يوم لين 4 شهور</div><h2>💾 النسخ الاحتياطية</h2></div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="secondary" onclick="smBackupNow()">💾 نسخة الآن</button><button class="secondary" onclick="smBackupsLoad()">↻ تحديث</button></div></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="secondary" onclick="smBackupNow()">نسخة الآن</button><button class="secondary" onclick="smBackupsLoad()">تحديث</button></div></div>
         <div id="smBackupStatus" class="small-note" style="margin:6px 0"></div>
         <div class="list" id="smBackupList"></div>
       </div>
@@ -419,10 +419,10 @@
             <button class="secondary no-print" onclick="changeMonthlyRosterMonth(-1)">السابق</button>
             <button class="secondary no-print" onclick="goMonthlyRosterToday()">هذا الشهر</button>
             <button class="secondary no-print" onclick="changeMonthlyRosterMonth(1)">التالي</button>
-            <button class="primary no-print auto-roster-btn" onclick="previewAutoMonthlyRoster()">⚡ توزيع تلقائي</button>
-            <button class="primary no-print" onclick="saveMonthlyRosterPeriod()">💾 حفظ الجدول</button>
-            <button class="secondary danger no-print" onclick="cancelMonthlyRoster()">🗑 إلغاء الجدول</button>
-            <button class="primary no-print" onclick="printMonthlyRoster()">🖨 طباعة / PDF</button>
+            <button class="primary no-print auto-roster-btn" onclick="previewAutoMonthlyRoster()">توزيع تلقائي</button>
+            <button class="primary no-print" onclick="saveMonthlyRosterPeriod()">حفظ الجدول</button>
+            <button class="secondary danger no-print" onclick="cancelMonthlyRoster()">إلغاء الجدول</button>
+            <button class="primary no-print" onclick="printMonthlyRoster()">طباعة / PDF</button>
           </div>
         </div>
         <div class="small-note">توزيع شهري يدوي مستقل. لا يتم إنشاء أو تعديل أي توزيع يومي تلقائيًا.</div>
@@ -470,8 +470,8 @@
             <button class="secondary no-print" onclick="changeCalendarMonth(-1)">السابق</button>
             <button class="secondary no-print" onclick="goCalendarToday()">اليوم</button>
             <button class="secondary no-print" onclick="changeCalendarMonth(1)">التالي</button>
-            <button class="secondary no-print" onclick="exportLeavesExcel(calendarMonth)">⬇ Excel</button>
-            <button class="primary no-print" onclick="prepareCalendarEmail()">📧 إرسال التقويم</button>
+            <button class="secondary no-print" onclick="exportLeavesExcel(calendarMonth)">Excel</button>
+            <button class="primary no-print" onclick="prepareCalendarEmail()">إرسال التقويم</button>
           </div>
         </div>
         <div class="status-legend" style="margin-bottom:12px">
@@ -481,10 +481,10 @@
         </div>
         <div class="combined-calendar-note">يظهر دوام Group A أعلى كل يوم، وتظهر أسماء الموظفين المجازين تحته.</div>
         <div class="status-legend" style="margin-bottom:12px">
-          <span class="legend-item"><span class="legend-dot" style="background:#efd45b"></span>N · Night</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#e993aa"></span>A · Afternoon</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#d68ce4"></span>M · Morning</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#aab4c2"></span>OFF</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#efd45b"></span>ليل</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#e993aa"></span>مساء</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#d68ce4"></span>صباح</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#aab4c2"></span>راحة</span>
         </div>
         <div class="calendar-scroll"><div class="calendar-inner">
           <div class="calendar-weekdays" id="calendarWeekdays"></div>
@@ -671,7 +671,7 @@
     <div id="employeeHistoryUnique" style="margin-bottom:12px"></div>
     <div id="employeeHistoryList"></div>
     <div class="small-note" style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
-      <button class="secondary" onclick="runHistoricalImportMatch()">🗂️ استيراد History 2026 من Excel (إجراء مرة واحدة لكل النظام)</button>
+      <button class="secondary" onclick="runHistoricalImportMatch()">استيراد History 2026 من Excel (إجراء مرة واحدة لكل النظام)</button>
     </div>
   </div>
 </div>
@@ -708,11 +708,11 @@
   </div>
 </div>
 
-<script src="js/1-core.js?v=20261107c"></script>
-<script src="js/2-dashboard-calendar.js?v=20261107c"></script>
-<script src="js/3-employees-reports.js?v=20261107c"></script>
-<script src="js/4-leaves-roster.js?v=20261107c"></script>
-<script src="js/5-views-leaveplan-save.js?v=20261107c"></script>
-<script src="js/6-assistant-boot.js?v=20261107c"></script>
+<script src="js/1-core.js?v=20261107d"></script>
+<script src="js/2-dashboard-calendar.js?v=20261107d"></script>
+<script src="js/3-employees-reports.js?v=20261107d"></script>
+<script src="js/4-leaves-roster.js?v=20261107d"></script>
+<script src="js/5-views-leaveplan-save.js?v=20261107d"></script>
+<script src="js/6-assistant-boot.js?v=20261107d"></script>
 </body>
 </html>
