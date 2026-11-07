@@ -1017,3 +1017,5 @@
     /* polish: employee names never split mid-name on narrow tables */
     #employeesList .name,#employeesList td:nth-child(2) strong{white-space:nowrap}
     .report-choice>span svg.ic{width:22px;height:22px}.report-choice>span{display:inline-flex!important;align-items:center;justify-content:center}
+    .ins-mgrp{margin:12px 0 2px;font-size:13px;color:var(--muted)}.ins-mgrp:first-child{margin-top:0}
+    .tag.warn{background:#fff6e2;color:#8a5a00}.tag.soon{background:#fdf8e4;color:#7a6200}

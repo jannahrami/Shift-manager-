@@ -28,14 +28,14 @@ function renderInsightsDashboard(){
   const inLeave=state.employees.filter(e=>employeeStatus(e).text==='إجازة').length;
   const working=total-inLeave,workingPct=total?Math.round(working/total*100):0;
   const overCarry=state.employees.filter(e=>(Number(e.leaveBalance)||0)>9),overPct=total?Math.round(overCarry.length/total*100):0;
-  const expiredCards=state.employees.filter(e=>marineStatus(e).kind==='expired'),expiredPct=total?Math.round(expiredCards.length/total*100):0;
+  const mr=insMarine(),mAttn=mr.expired.length+mr.d30.length+mr.d60.length,expiredPct=mr.withCard?Math.round(mAttn/mr.withCard*100):0;
   const ye=insYearEnd(),lostPct=total?Math.round(ye.needs.length/total*100):0;
   box.innerHTML=`
     <div class="metric-card success"><div class="insight-donut" style="--pct:${workingPct};--color:#2dd4a3"><strong>${workingPct}%</strong></div><div class="insight-copy"><h3>على رأس العمل</h3><p>الموظفون الحاضرون اليوم من إجمالي القوة</p><b>${working} من ${total} موظف</b></div></div>
     <div class="metric-card warning"><div class="insight-donut" style="--pct:${overPct};--color:#f59e0b"><strong>${overPct}%</strong></div><div class="insight-copy"><h3>رصيد فوق حد الترحيل</h3><p>رصيدهم أكثر من 9 أيام (الحد اللي يترحّل للسنة الجاية)</p><b>${overCarry.length} من ${total} موظف</b></div></div>
-    <div class="metric-card danger"><div class="insight-donut" style="--pct:${expiredPct};--color:#ef4444"><strong>${expiredPct}%</strong></div><div class="insight-copy"><h3>بطاقات منتهية</h3><p>بطاقات Marine ID منتهية الصلاحية حاليًا</p><b>${expiredCards.length} من ${total} موظف</b></div></div>
+    <div class="metric-card ${mr.expired.length?'danger':mAttn?'warning':'success'}"><div class="insight-donut" style="--pct:${expiredPct};--color:${mr.expired.length?'#ef4444':'#f59e0b'}"><strong>${mAttn}</strong></div><div class="insight-copy"><h3>بطاقات Marine تحتاج تجديد</h3><p>من ${mr.withCard} موظف عندهم صلاحية دخول</p><b>${mr.expired.length} منتهية · ${mr.d30.length+mr.d60.length} خلال 60 يوم</b></div></div>
     <div class="metric-card ${ye.excessTotal?'danger':'success'}"><div class="insight-donut" style="--pct:${lostPct};--color:${ye.excessTotal?'#ef4444':'#2dd4a3'}"><strong>${formatDays(ye.excessTotal)}</strong></div><div class="insight-copy"><h3>أيام لازم تنصرف قبل 31 ديسمبر</h3><p>الرصيد الزايد عن 9 أيام ما يترحّل حسب نظام الشركة، ولازم ينصرف إجازة. باقي ${ye.daysLeft} يوم على نهاية السنة</p><b>${ye.needs.length} موظف</b></div></div>`;
-  renderInsightsShiftLoad();renderInsightsYearEnd(ye);renderInsightsMonths();
+  renderInsightsShiftLoad();renderInsightsYearEnd(ye);renderInsightsMonths();renderInsightsMarine(mr);
 }
 /* توزيع الإجازات على أشهر السنة: الإجازات المدخلة + خطة الإجازة المعتمدة (اللي ما تحولت لإجازة بعد) */
 const INS_MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
@@ -87,6 +87,20 @@ function insMonthDetail(m,month){
   const ent=[...m.entered.entries()].sort((a,b)=>b[1]-a[1]).map(([id,d])=>`<span>${name(id)} · ${d} يوم</span>`).join('');
   const pl=[...m.planned.entries()].map(([id,n])=>`<span class="plan">${name(id)||esc(n)} · مخطط</span>`).join('');
   return `<div class="ins-mdetail"><b>${INS_MONTHS[month-1]} ${insMonthsYear}</b> — ${m.entered.size+m.planned.size} موظف${m.planned.size?` (منهم ${m.planned.size} من خطة الإجازة)`:''}<div class="who">${ent+pl||'<span>ما فيه أحد مجاز</span>'}</div></div>`;
+}
+/* بطاقات Marine: بس الموظفين اللي عندهم صلاحية دخول (عندهم تاريخ) */
+function insMarine(){
+  const t=todayISO(),rows=state.employees.map(e=>({e,exp:marineExpiryFor(e)})).filter(r=>r.exp).map(r=>({...r,days:diffDays(r.exp,t)})).sort((a,b)=>a.days-b.days);
+  return {withCard:rows.length,expired:rows.filter(r=>r.days<0),d30:rows.filter(r=>r.days>=0&&r.days<=30),d60:rows.filter(r=>r.days>30&&r.days<=60)};
+}
+function renderInsightsMarine(mr=insMarine()){
+  const box=document.getElementById('insightsMarine');if(!box)return;
+  const k=document.getElementById('insMarineKicker');if(k)k.textContent=`${mr.withCard} موظف عندهم صلاحية دخول`;
+  const fd=d=>{const x=new Date(d+'T12:00:00');return `${x.getDate()} ${INS_MONTHS[x.getMonth()]} ${x.getFullYear()}`};
+  const row=r=>`<div class="ye-r"><div><b>${esc(rosterEmployeeName(r.e)||r.e.name)}</b><small>#${esc(r.e.empId||'-')} · تنتهي ${fd(r.exp)}</small></div><span class="tag ${r.days<0?'lose':r.days<=30?'warn':'soon'}">${r.days<0?`منتهية من ${-r.days} يوم`:r.days===0?'تنتهي اليوم':`باقي ${r.days} يوم`}</span></div>`;
+  const grp=(title,list)=>list.length?`<h4 class="ins-mgrp">${title} (${list.length})</h4>${list.map(row).join('')}`:'';
+  const all=grp('منتهية',mr.expired)+grp('تنتهي خلال 30 يوم',mr.d30)+grp('تنتهي خلال 31 – 60 يوم',mr.d60);
+  box.innerHTML=`<div class="ins-ye-list">${all||'<div class="empty">كل البطاقات سارية لأكثر من 60 يوم 👌</div>'}</div>`;
 }
 /* ضغط الإجازات على كل شفت (7 أيام) خلال الأسابيع الجاية، مقابل الحد */
 const INS_CAP={N:6,A:5,M:5},INS_WORD={N:'ليل',A:'مساء',M:'صباح'};

@@ -71,6 +71,7 @@
   <div id="app" class="hidden">
     <div class="sec"><h2>نظرة سريعة</h2><p class="sub">اضغط على أي بطاقة عشان تشوف الأسماء</p><div class="cards" id="cards"></div><div class="people" id="people"></div></div>
     <div class="sec"><h2>ضغط الإجازات على الشفتات</h2><p class="sub">الأسابيع الثمانية الجاية · الحد: ليل 6، صباح ومساء 5</p><div class="load" id="load"></div></div>
+    <div class="sec"><h2>بطاقات Marine ID</h2><p class="sub" id="mSub">اللي انتهت أو بتنتهي خلال 60 يوم</p><div id="marine"></div></div>
     <div class="sec"><div class="head"><div><h2>توزيع الإجازات على أشهر السنة</h2><p class="sub">مين مجاز في أي شهر</p></div><div class="tabs" id="tabs"></div></div><div id="months"></div></div>
     <div class="sec"><h2>تصفية الأرصدة</h2><p class="sub" id="yeSub"></p><div id="ye"></div></div>
     <div class="foot">تتحدث تلقائياً كل 5 دقائق</div>
@@ -106,7 +107,7 @@ function showState(t,s){$('state').innerHTML=`<b>${esc(t)}</b>${esc(s)}`;$('stat
 function render(){
   $('state').classList.add('hidden');$('app').classList.remove('hidden');
   const now=new Date();$('asOf').textContent=`آخر تحديث ${now.toLocaleTimeString('ar-SA-u-nu-latn',{hour:'numeric',minute:'2-digit'})}`;
-  renderCards();renderLoad();renderMonths();renderYE();
+  renderCards();renderLoad();renderMarine();renderMonths();renderYE();
 }
 function onLeave(d,list=D.leaves){return list.filter(l=>l.start<=d&&l.end>=d)}
 function yearEnd(){
@@ -117,15 +118,26 @@ function yearEnd(){
   const needs=rows.filter(r=>r.excess>0).sort((a,b)=>b.excess-a.excess);
   return {y,daysLeft,needs,excess:needs.reduce((s,r)=>s+r.excess,0),upDays:rows.reduce((s,r)=>s+r.upDays,0)};
 }
+function marine(){
+  const rows=D.employees.filter(e=>e.marineIdExpiry).map(e=>({e,exp:e.marineIdExpiry,days:diff(e.marineIdExpiry,D.today)})).sort((a,b)=>a.days-b.days);
+  return {with:rows.length,expired:rows.filter(r=>r.days<0),d30:rows.filter(r=>r.days>=0&&r.days<=30),d60:rows.filter(r=>r.days>30&&r.days<=60)};
+}
+function renderMarine(){
+  const mr=marine();$('mSub').textContent=`${mr.with} موظف عندهم صلاحية دخول · اللي انتهت أو بتنتهي خلال 60 يوم`;
+  const fd=d=>{const x=new Date(d+'T12:00:00');return `${x.getDate()} ${MONTHS[x.getMonth()]} ${x.getFullYear()}`};
+  const row=r=>`<div class="ye-r"><div><b>${esc(r.e.name)}</b><small>تنتهي ${fd(r.exp)}</small></div><span class="tag" style="${r.days<0?'':r.days<=30?'background:#fff6e2;color:#8a5a00':'background:#fdf8e4;color:#7a6200'}">${r.days<0?`منتهية من ${-r.days} يوم`:r.days===0?'تنتهي اليوم':`باقي ${r.days} يوم`}</span></div>`;
+  const grp=(t,l)=>l.length?`<div class="note" style="margin:10px 0 2px;font-weight:700">${t} (${l.length})</div>${l.map(row).join('')}`:'';
+  $('marine').innerHTML=grp('منتهية',mr.expired)+grp('تنتهي خلال 30 يوم',mr.d30)+grp('تنتهي خلال 31 – 60 يوم',mr.d60)||'<div class="note">كل البطاقات سارية لأكثر من 60 يوم 👌</div>';
+}
 function renderCards(){
   const t=D.today,total=D.employees.length||1,offIds=new Set(onLeave(t).map(l=>l.employeeId));
   const working=D.employees.filter(e=>!offIds.has(e.id)),over=D.employees.filter(e=>(Number(e.leaveBalance)||0)>9);
-  const expired=D.employees.filter(e=>e.marineIdExpiry&&diff(e.marineIdExpiry,t)<0),ye=yearEnd();
+  const mr=marine(),mAttn=mr.expired.length+mr.d30.length+mr.d60.length,ye=yearEnd();
   const pct=n=>Math.round(n/total*100);
   const cards=[
     {k:'work',cls:'ok',c:'#1f9d63',p:pct(working.length),v:pct(working.length)+'%',h:'على رأس العمل',d:'الحاضرون اليوم من إجمالي القوة',n:`${working.length} من ${D.employees.length}`,list:D.employees.filter(e=>offIds.has(e.id)).map(e=>e.name),lt:'المجازين اليوم'},
     {k:'over',cls:over.length?'warn':'',c:'#e8a83c',p:pct(over.length),v:pct(over.length)+'%',h:'رصيد فوق حد الترحيل',d:'رصيدهم أكثر من 9 أيام',n:`${over.length} من ${D.employees.length}`,list:over.map(e=>`${e.name} · ${fmt(e.leaveBalance)}`)},
-    {k:'marine',cls:expired.length?'bad':'',c:'#e0475a',p:pct(expired.length),v:pct(expired.length)+'%',h:'بطاقات Marine منتهية',d:'منتهية الصلاحية حالياً',n:`${expired.length} من ${D.employees.length}`,list:expired.map(e=>e.name)},
+    {k:'marine',cls:mr.expired.length?'bad':mAttn?'warn':'ok',c:mr.expired.length?'#e0475a':'#e8a83c',p:mr.with?Math.round(mAttn/mr.with*100):0,v:mAttn,h:'بطاقات Marine تحتاج تجديد',d:`من ${mr.with} موظف عندهم صلاحية دخول`,n:`${mr.expired.length} منتهية · ${mr.d30.length+mr.d60.length} خلال 60 يوم`,list:[...mr.expired,...mr.d30,...mr.d60].map(r=>`${r.e.name} · ${r.days<0?'منتهية':'باقي '+r.days+' يوم'}`)},
     {k:'ye',cls:ye.excess?'bad':'ok',c:ye.excess?'#e0475a':'#1f9d63',p:pct(ye.needs.length),v:fmt(ye.excess),h:'أيام لازم تنصرف قبل 31 ديسمبر',d:`الزايد عن 9 أيام ما يترحّل · باقي ${ye.daysLeft} يوم`,n:`${ye.needs.length} موظف`,list:ye.needs.map(r=>`${r.e.name} · ${fmt(r.excess)}`)}];
   $('cards').innerHTML=cards.map(c=>`<button class="card ${c.cls}" onclick="toggleCard('${c.k}')" aria-expanded="${openCard===c.k}"><div class="donut" style="--pct:${c.p};--c:${c.c}"><b>${c.v}</b></div><div><h3>${c.h}</h3><p>${c.d}</p><span class="n">${c.n}</span></div></button>`).join('');
   const sel=cards.find(c=>c.k===openCard);
