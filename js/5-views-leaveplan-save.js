@@ -557,6 +557,35 @@ function lpExport(){
       {height:26,cells:['الشهر','معتمد','قيد المراجعة','المجموع','الحد','المتبقي','الموظفين'].map(v=>({v,s:'head'}))},...mrows]};
   lpxDownload(lpxWorkbook([sheet1,sheet2,lpDistributionSheet(rows,year,max)]),`Group_A_Annual_Leave_Plan_${year}.xlsx`);
 }
+/* أطول إجازة للموظف في سنة معيّنة، وشهرها (الشهر اللي فيه أغلب أيامها) */
+function lpLongestLeave(id,year){
+  let best=null;
+  (state.leaves||[]).forEach(l=>{
+    if(String(l.employeeId)!==String(id)||LP_NOT_LEAVE.test(l.note||''))return;
+    const s=/^(\d{4})-(\d{2})-(\d{2})$/.exec(l.start||''),e=/^(\d{4})-(\d{2})-(\d{2})$/.exec(l.end||'');if(!s||!e)return;
+    const per=Array(13).fill(0);let d=Date.UTC(+s[1],+s[2]-1,+s[3]);const end=Date.UTC(+e[1],+e[2]-1,+e[3]);
+    for(let g=0;d<=end&&g<400;d+=86400000,g++){const x=new Date(d);if(x.getUTCFullYear()===year)per[x.getUTCMonth()+1]++}
+    const days=per.reduce((a,b)=>a+b,0);if(!days)return;
+    const m=per.indexOf(Math.max(...per));
+    if(!best||days>best.days)best={m,days};
+  });
+  return best;
+}
+/* تصدير خيارات الموظفين: الاسم · الباج · شهر أطول إجازة السنة الماضية · الخيارات الثلاثة */
+function lpExportChoices(){
+  const rows=lpRows();if(!rows.length){alert('لا يوجد بيانات');return}
+  const year=lpState.year,py=year-1,m=x=>x?LP_MONTHS_AR[x-1]:'—';
+  const body=rows.map((r,i)=>{
+    const p=r.plan&&r.plan.status!=='rejected'?r.plan:null,z=i%2===1,b=z?'zebra':'body',bc=z?'zebraC':'bodyC',ll=lpLongestLeave(r.id,py);
+    const same=k=>p&&ll&&p[k]===ll.m;
+    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:ll?`${m(ll.m)} (${ll.days} يوم)`:'لا يوجد',s:bc},...['choice1','choice2','choice3'].map(k=>({v:p?m(p[k]):'—',s:same(k)?'prevWarn':bc}))]};
+  });
+  const sheet={name:`خيارات ${year}`,cols:[5,32,13,22,15,15,15],freeze:3,filter:`A3:G${3+body.length}`,merges:['A1:G1','A2:G2'],portrait:true,
+    rows:[{height:34,cells:[{v:`خيارات خطة الإجازة ${year} · Group A`,s:'title'},...Array(6).fill({v:'',s:'title'})]},
+      {height:22,cells:[{v:`سلّموا ${rows.filter(r=>r.plan&&r.plan.status!=='rejected').length} من ${rows.length}   ·   الأحمر = نفس شهر أطول إجازة له في ${py}`,s:'sub'},...Array(6).fill({v:'',s:'sub'})]},
+      {height:26,cells:['#','الاسم','رقم الباج',`شهر أطول إجازة ${py}`,'الخيار الأول','الخيار الثاني','الخيار الثالث'].map(v=>({v,s:'head'}))},...body]};
+  lpxDownload(lpxWorkbook([sheet]),`Group_A_Leave_Choices_${year}.xlsx`);
+}
 /* ===== النسخ الاحتياطية ===== */
 const SM_REASON={auto:'تلقائية',manual:'يدوية',before_restore:'قبل الاسترجاع',initial:'أول نسخة'};
 function smFmt(ts){const d=new Date(ts);return d.toLocaleString('ar-SA-u-nu-latn-ca-gregory',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}
