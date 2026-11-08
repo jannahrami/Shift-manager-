@@ -573,6 +573,8 @@ function lpLongestLeave(id,year){
 }
 /* خيارات خطة 2026 (من جدول Excel اللي كان قبل البرنامج) حسب رقم الباج: [الأول، الثاني، الثالث] */
 const LP_CHOICES_2026={};
+/* أشهر إجازة 2026 الفعلية (من جدول 2026 Vacation Plan) حسب رقم الباج */
+const LP_VAC_2026={};
 function lpGivenChoice(badge,year,month){
   const c=year===2026?LP_CHOICES_2026[String(badge||'')]:lpState.prevPlans?.[String(badge||'')];
   if(!c||!month)return null;const i=c.indexOf(month);return i<0?'خارج الخيارات':i+1;
@@ -583,9 +585,11 @@ function lpExportChoices(){
   const year=lpState.year,py=year-1,m=x=>x?LP_MONTHS_AR[x-1]:'—';
   const body=rows.map((r,i)=>{
     const p=r.plan&&r.plan.status!=='rejected'?r.plan:null,z=i%2===1,b=z?'zebra':'body',bc=z?'zebraC':'bodyC',ll=lpLongestLeave(r.id,py);
-    const same=k=>p&&ll&&p[k]===ll.m;
-    const gc=ll?lpGivenChoice(r.badge,py,ll.m):null;
-    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:ll?`${m(ll.m)} (${ll.days} يوم)`:'لا يوجد',s:bc},{v:gc??'—',s:gc==='خارج الخيارات'?'prevWarn':typeof gc==='number'?'num':bc},...['choice1','choice2','choice3'].map(k=>({v:p?m(p[k]):'—',s:same(k)?'prevWarn':bc}))]};
+    const same=k=>p&&(py===2026&&LP_VAC_2026[String(r.badge||'')]?LP_VAC_2026[String(r.badge||'')]:ll?[ll.m]:[]).includes(p[k]);
+    const vm=py===2026?LP_VAC_2026[String(r.badge||'')]:null,months=vm||(ll?[ll.m]:[]);
+    const gcs=months.map(x=>lpGivenChoice(r.badge,py,x)).filter(x=>x!=null),gc=!gcs.length?null:gcs.length===1?gcs[0]:gcs.join(' + ');
+    const vtxt=vm?vm.map(m).join(' + '):ll?`${m(ll.m)} (${ll.days} يوم)`:'لا يوجد';
+    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:vtxt,s:bc},{v:gc??'—',s:gcs.includes('خارج الخيارات')?'prevWarn':typeof gc==='number'?'num':bc},...['choice1','choice2','choice3'].map(k=>({v:p?m(p[k]):'—',s:same(k)?'prevWarn':bc}))]};
   });
   const sheet={name:`خيارات ${year}`,cols:[5,32,13,22,16,15,15,15],freeze:3,filter:`A3:H${3+body.length}`,merges:['A1:H1','A2:H2'],portrait:true,
     rows:[{height:34,cells:[{v:`خيارات خطة الإجازة ${year} · Group A`,s:'title'},...Array(7).fill({v:'',s:'title'})]},
