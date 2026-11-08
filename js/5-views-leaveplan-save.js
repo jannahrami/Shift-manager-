@@ -595,7 +595,7 @@ function lpExportChoices(){
     rows:[{height:34,cells:[{v:`خيارات خطة الإجازة ${year} · Group A`,s:'title'},...Array(7).fill({v:'',s:'title'})]},
       {height:22,cells:[{v:`سلّموا ${rows.filter(r=>r.plan&&r.plan.status!=='rejected').length} من ${rows.length}   ·   الأحمر = نفس شهر إجازته في ${py}   ·   رقم الخيار = أي خيار من خياراته في ${py} انعطى له`,s:'sub'},...Array(7).fill({v:'',s:'sub'})]},
       {height:26,cells:['#','الاسم','رقم الباج',`إجازة ${py}`,`رقم الخيار ${py}`,'الخيار الأول','الخيار الثاني','الخيار الثالث'].map(v=>({v,s:'head'}))},...body]};
-  lpxDownload(lpxWorkbook([sheet]),`Group_A_Leave_Choices_${year}.xlsx`);
+  lpxDownload(lpxWorkbook([sheet,lpDistributionSheet(rows,year,lpMax())]),`Group_A_Leave_Choices_${year}.xlsx`);
 }
 /* ===== النسخ الاحتياطية ===== */
 const SM_REASON={auto:'تلقائية',manual:'يدوية',before_restore:'قبل الاسترجاع',initial:'أول نسخة'};
