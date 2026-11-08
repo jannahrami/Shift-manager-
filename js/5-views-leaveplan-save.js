@@ -127,7 +127,7 @@ function lpRowHtml(r){
   let datesHtml='';
   if(p?.status==='approved'){
     const ds=p.dates_status||'none',[dl,dc]=LP_DATES[ds];
-    datesHtml=`<div class="lp-dates"><span class="badge ${dc}">${dl}</span>${p.periods?.length?`<span class="lp-dates-text">${esc(lpPeriodsText(p))}</span><span class="small-note">${esc(lpShiftsText(p))}</span>`:''}${p.dates_note&&ds==='rejected'?`<small style="color:var(--red)">${esc(p.dates_note)}</small>`:''}</div>`;
+    datesHtml=`<div class="lp-dates"><span class="badge ${dc}">${dl}</span>${p.periods?.length?`<span class="lp-dates-text">${esc(lpPeriodsText(p))}</span><span class="small-note">${esc(lpShiftsText(p))}</span>`:''}${p.dates_note&&ds==='rejected'?`<small style="color:var(--red)">${esc(p.dates_note)}</small>`:''}${(()=>{if(p.assigned_month<10||!p.periods?.length)return '';const pb=lpProjectedBalance(r,lpState.year);return pb&&pb.balance>9?`<small style="color:var(--red);font-weight:700">⚠ يبقى رصيده ${pb.balance} يوم بعد الإجازة — فوق 9، لازم يزيد ${pb.balance-9} يوم</small>`:''})()}</div>`;
     if(ds==='submitted')acts.push(`<button class="primary" onclick="lpApproveDates('${id}')">اعتماد التواريخ</button>`,`<button class="danger" onclick="lpRejectDates('${id}')">رفض التواريخ</button>`);
     acts.push(`<button class="secondary" onclick="lpEditDates('${id}')">${p.periods?.length?'تعديل التواريخ':'إدخال التواريخ'}</button>`);
     if(ds==='approved')acts.push(`<button class="secondary" onclick="lpUnapproveDates('${id}')">إلغاء اعتماد التواريخ</button>`);
@@ -175,7 +175,7 @@ function lpBuildLeaves(p){
   const future=lpState.year>new Date().getFullYear();
   return (p.periods||[]).map(x=>{const d=diffDays(x.end,x.start)+1;return {id:crypto.randomUUID(),employeeId:String(p.employee_id),start:x.start,end:x.end,note:`خطة الإجازة السنوية ${lpState.year}`,...(future?{balanceDaysCharged:0,pendingChargeYear:lpState.year,pendingChargeDays:d}:{balanceDaysCharged:d})}});
 }
-function lpReqText(m){return m<=3?'شفتين على الأقل':'3 شفتات'}
+function lpReqText(m){return m<=3?'شفتين على الأقل':m>=10?'شفتات تكفي إن رصيدك ما يبقى أكثر من 9 أيام':'3 شفتات'}
 const LP_SHIFT_CAP={N:6,A:5,M:5};
 function lpShiftCapWarnings(p,ignoreIds){
   const out=[],emp=String(p.employee_id),seen=new Set();

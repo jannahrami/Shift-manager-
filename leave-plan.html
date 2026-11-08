@@ -137,6 +137,7 @@
       <div id="datesPicker">
         <div class="rule" id="datesRule"></div>
         <div class="counter"><span>الشفتات المختارة</span><span class="n" id="datesCount"></span></div>
+        <div class="counter hidden" id="balCounter"><span id="balLabel">أيام الإجازة</span><span class="n" id="balCount" style="white-space:nowrap"></span></div>
         <div class="legend"><span><i style="background:#e6e9f7"></i>ليلي N</span><span><i style="background:#fdebd5"></i>مسائي A</span><span><i style="background:#e2f2ea"></i>صباحي M</span><span><i style="background:var(--primary)"></i>اختيارك</span><span>👥 3/5 = مجازين من الحد</span><span><i style="background:#fbecee;border:1px solid #efc9cf"></i>ممتلئ</span></div>
         <div id="cals"></div>
       </div>
@@ -329,6 +330,10 @@ function dayLoad(t){if(!loadMap){loadMap=new Map();(data.load||[]).forEach(x=>lo
 function blockLoad(b){let n=0;for(let i=0;i<7;i++)n=Math.max(n,dayLoad(b.start+i*DAY));return n}
 function capOf(code){return (data.caps&&data.caps[code])||(code==='N'?6:5)}
 function reqOf(p){return {min:p.required_shifts||(p.assigned_month<=3?2:3),max:p.max_shifts||3}}
+/* أكتوبر–ديسمبر: يختار عدد الشفتات بنفسه بشرط ما يبقى رصيده أكثر من 9 */
+function yearEnd(p){return !!p.year_end&&p.balance!=null}
+function pickedDays(){return groupPeriods(picked).reduce((a,g)=>a+Math.round((g.end-g.start)/DAY)+1,0)}
+function dayWord(n){return n===1?'يوم واحد':n===2?'يومين':n>=3&&n<=10?`${n} أيام`:`${n} يوم`}
 function reqText(q){return q.min===q.max?`${q.min} شفتات`:`${q.min===2?'شفتين':q.min+' شفتات'} على الأقل، والحد الأعلى ${q.max}`}
 /* الفترة تشمل أيام الراحة اللي بعد آخر شفت، ويباشر أول يوم في الشفت اللي بعدها */
 function nextWorkDay(t){let d=t+DAY;for(let i=0;i<5&&!blockOf(d);i++)d+=DAY;return d}
@@ -363,7 +368,7 @@ function renderDates(p){
   $('datesSubmit').disabled=datesLocked;
   if(picking){
     if(!picked.size)picked=blocksFromPeriods(periodsFromServer(p));
-    $('datesRule').innerHTML=`اختر <b>${reqText(req)}</b>. كل شفت 7 أيام، اضغط على أي يوم فيه ويتحدد كله.<br>أيام الراحة اللي بعد آخر شفت تنحسب من الإجازة، وتباشر أول يوم في الشفت اللي بعدها.<br>الشفت الممتلئ (6 مجازين في الليلي، 5 في الصباحي والمسائي) ما يقبل أحد زيادة.<br>تقدر تقسمها لـ <b>فترتين</b> بالحد الأعلى، وأول شفت لازم يبدأ في <b>${MONTHS_AR[p.assigned_month-1]}</b>.`;
+    $('datesRule').innerHTML=(yearEnd(p)?`إجازتك في آخر السنة، فلازم تصرف رصيدك وما يبقى عندك أكثر من <b>9 أيام</b> (الزايد ما يترحّل).<br>رصيدك المتوقع لسنة ${data.year}: <b>${dayWord(Number(p.balance))}</b>، يعني لازم تاخذ <b>${dayWord(Number(p.min_days))} على الأقل</b>. اختر عدد الشفتات اللي يكفي (لين ${req.max} شفتات).<br>كل شفت 7 أيام`:`اختر <b>${reqText(req)}</b>. كل شفت 7 أيام`)+`، اضغط على أي يوم فيه ويتحدد كله.<br>أيام الراحة اللي بعد آخر شفت تنحسب من الإجازة، وتباشر أول يوم في الشفت اللي بعدها.<br>الشفت الممتلئ (6 مجازين في الليلي، 5 في الصباحي والمسائي) ما يقبل أحد زيادة.<br>تقدر تقسمها لـ <b>فترتين</b> بالحد الأعلى، وأول شفت لازم يبدأ في <b>${MONTHS_AR[p.assigned_month-1]}</b>.`;
     drawCals(p,req);
   }else{
     const list=periodsFromServer(p);
@@ -392,7 +397,11 @@ function drawCals(p,req){
     }
     return `<div class="cal"><h3>${MONTHS_AR[m]} ${y}</h3><div class="wd">${['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'].map(x=>`<div>${x}</div>`).join('')}</div><div class="grid">${cells}</div></div>`;
   }).join('');
-  const c=$('datesCount');c.textContent=req.min===req.max?`${picked.size} / ${req.max}`:`${picked.size} (${req.min}–${req.max})`;c.classList.toggle('done',picked.size>=req.min&&picked.size<=req.max);
+  const c=$('datesCount');c.textContent=yearEnd(p)?`${picked.size}`:req.min===req.max?`${picked.size} / ${req.max}`:`${picked.size} (${req.min}–${req.max})`;
+  const days=pickedDays(),need=Number(p.min_days)||0,left=Number(p.balance)-days,balOk=!yearEnd(p)||days>=need;
+  c.classList.toggle('done',picked.size>=req.min&&picked.size<=req.max&&balOk);
+  show('balCounter',yearEnd(p));
+  if(yearEnd(p)){$('balLabel').textContent=`أيام الإجازة (المطلوب ${need} على الأقل)`;const b=$('balCount');b.textContent=`${days} يوم · يبقى ${left}`;b.classList.toggle('done',balOk&&picked.size>0)}
   $('periodsList').innerHTML=groups.map((g,i)=>periodLi(g,i,groups.length)).join('');
 }
 function datesValidate(p,req){
@@ -401,6 +410,7 @@ function datesValidate(p,req){
   if(picked.size>req.max)return `الحد الأعلى ${req.max} شفتات.`;
   if(g.length>2)return 'تقدر تقسم إجازتك لفترتين بس. خلّ الشفتات متتالية أكثر.';
   if(starts[0]<w.mstart||starts[0]>w.mend)return `أول شفت لازم يبدأ في ${MONTHS_AR[p.assigned_month-1]}.`;
+  if(yearEnd(p)&&pickedDays()<Number(p.min_days))return `اخترت ${dayWord(pickedDays())} ويبقى رصيدك ${Number(p.balance)-pickedDays()} يوم. لازم تاخذ ${dayWord(Number(p.min_days))} على الأقل عشان ما يبقى عندك أكثر من 9. زِد شفت.`;
   return '';
 }
 function datesError(t){const e=$('datesErr');e.textContent=t;e.style.display='block'}
@@ -420,7 +430,7 @@ $('datesSubmit').addEventListener('click',async()=>{
     alertBox('datesAlert','green','تم استلام تواريخك ✓ وهي الحين قيد المراجعة والاعتماد.');window.scrollTo({top:0,behavior:'smooth'});return}
   if(r.error==='shift_full'){try{const fresh=await rpc('lp_get_plan',{p_token:token});if(fresh?.ok){data.load=fresh.load;loadMap=null;const st=utc(r.date),b=blockOf(st);if(b)picked.delete(b.start);drawCals(p,req)}}catch{}
     return datesError(`شفت ${longDate(utc(r.date))} امتلأ (الحد ${r.cap}) قبل ما توصل تواريخك. اختر شفت ثاني.`)}
-  const msgs={wrong_count:`لازم تختار ${reqText({min:r.required,max:r.max||r.required})}.`,bad_month:`أول شفت لازم يبدأ في ${MONTHS_AR[p.assigned_month-1]}، والباقي ما يتعدى الشهر اللي بعده.`,overlap:'فيه فترات متداخلة.',not_shift_aligned:'لازم تختار شفتات كاملة.',already_approved:'تواريخك معتمدة ولا يمكن تعديلها. تواصل مع المشرف.',not_approved:'شهرك ما انعتمد بعد.',dates_closed:closedMsg('dates').replace('استقبال الخطط','استقبال التواريخ')};
+  const msgs={wrong_count:`لازم تختار ${reqText({min:r.required,max:r.max||r.required})}.`,bad_month:`أول شفت لازم يبدأ في ${MONTHS_AR[p.assigned_month-1]}، والباقي ما يتعدى الشهر اللي بعده.`,overlap:'فيه فترات متداخلة.',not_shift_aligned:'لازم تختار شفتات كاملة.',balance_left:`لازم تاخذ ${dayWord(Number(r.min_days)||0)} على الأقل عشان ما يبقى رصيدك أكثر من 9. اخترت ${dayWord(Number(r.got_days)||0)}.`,already_approved:'تواريخك معتمدة ولا يمكن تعديلها. تواصل مع المشرف.',not_approved:'شهرك ما انعتمد بعد.',dates_closed:closedMsg('dates').replace('استقبال الخطط','استقبال التواريخ')};
   datesError(msgs[r.error]||'صار خطأ. حاول مرة ثانية.');
 });
 $('datesEdit').addEventListener('click',()=>{datesEditing=true;picked=new Set();renderDates(data.plan)});
