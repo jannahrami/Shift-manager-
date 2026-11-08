@@ -571,6 +571,12 @@ function lpLongestLeave(id,year){
   });
   return best;
 }
+/* خيارات خطة 2026 (من جدول Excel اللي كان قبل البرنامج) حسب رقم الباج: [الأول، الثاني، الثالث] */
+const LP_CHOICES_2026={};
+function lpGivenChoice(badge,year,month){
+  const c=year===2026?LP_CHOICES_2026[String(badge||'')]:lpState.prevPlans?.[String(badge||'')];
+  if(!c||!month)return null;const i=c.indexOf(month);return i<0?'خارج الخيارات':i+1;
+}
 /* تصدير خيارات الموظفين: الاسم · الباج · شهر أطول إجازة السنة الماضية · الخيارات الثلاثة */
 function lpExportChoices(){
   const rows=lpRows();if(!rows.length){alert('لا يوجد بيانات');return}
@@ -578,12 +584,13 @@ function lpExportChoices(){
   const body=rows.map((r,i)=>{
     const p=r.plan&&r.plan.status!=='rejected'?r.plan:null,z=i%2===1,b=z?'zebra':'body',bc=z?'zebraC':'bodyC',ll=lpLongestLeave(r.id,py);
     const same=k=>p&&ll&&p[k]===ll.m;
-    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:ll?`${m(ll.m)} (${ll.days} يوم)`:'لا يوجد',s:bc},...['choice1','choice2','choice3'].map(k=>({v:p?m(p[k]):'—',s:same(k)?'prevWarn':bc}))]};
+    const gc=ll?lpGivenChoice(r.badge,py,ll.m):null;
+    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:ll?`${m(ll.m)} (${ll.days} يوم)`:'لا يوجد',s:bc},{v:gc??'—',s:gc==='خارج الخيارات'?'prevWarn':typeof gc==='number'?'num':bc},...['choice1','choice2','choice3'].map(k=>({v:p?m(p[k]):'—',s:same(k)?'prevWarn':bc}))]};
   });
-  const sheet={name:`خيارات ${year}`,cols:[5,32,13,22,15,15,15],freeze:3,filter:`A3:G${3+body.length}`,merges:['A1:G1','A2:G2'],portrait:true,
-    rows:[{height:34,cells:[{v:`خيارات خطة الإجازة ${year} · Group A`,s:'title'},...Array(6).fill({v:'',s:'title'})]},
-      {height:22,cells:[{v:`سلّموا ${rows.filter(r=>r.plan&&r.plan.status!=='rejected').length} من ${rows.length}   ·   الأحمر = نفس شهر أطول إجازة له في ${py}`,s:'sub'},...Array(6).fill({v:'',s:'sub'})]},
-      {height:26,cells:['#','الاسم','رقم الباج',`شهر أطول إجازة ${py}`,'الخيار الأول','الخيار الثاني','الخيار الثالث'].map(v=>({v,s:'head'}))},...body]};
+  const sheet={name:`خيارات ${year}`,cols:[5,32,13,22,16,15,15,15],freeze:3,filter:`A3:H${3+body.length}`,merges:['A1:H1','A2:H2'],portrait:true,
+    rows:[{height:34,cells:[{v:`خيارات خطة الإجازة ${year} · Group A`,s:'title'},...Array(7).fill({v:'',s:'title'})]},
+      {height:22,cells:[{v:`سلّموا ${rows.filter(r=>r.plan&&r.plan.status!=='rejected').length} من ${rows.length}   ·   الأحمر = نفس شهر إجازته في ${py}   ·   رقم الخيار = أي خيار من خياراته في ${py} انعطى له`,s:'sub'},...Array(7).fill({v:'',s:'sub'})]},
+      {height:26,cells:['#','الاسم','رقم الباج',`إجازة ${py}`,`رقم الخيار ${py}`,'الخيار الأول','الخيار الثاني','الخيار الثالث'].map(v=>({v,s:'head'}))},...body]};
   lpxDownload(lpxWorkbook([sheet]),`Group_A_Leave_Choices_${year}.xlsx`);
 }
 /* ===== النسخ الاحتياطية ===== */
