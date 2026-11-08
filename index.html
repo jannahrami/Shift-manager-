@@ -68,25 +68,32 @@
 
   <main>
     <section id="insightsView" class="view active">
-      <div class="section">
-        <div class="section-head"><div><span class="section-kicker">نظرة سريعة</span><h2>لوحة المؤشرات</h2></div><button class="secondary" id="shareInsightsBtn" style="background:var(--card)!important;color:var(--text)!important;border:1px solid var(--line)!important" onclick="smShareOpen()">مشاركة مع السوبرفايزر</button></div>
-        <div class="leave-insights" id="insightsDashboardBox"></div>
+      <div class="dash-head">
+        <div><span class="section-kicker">Group A · لوحة المؤشرات</span><h2 id="dashTitle">نظرة عامة</h2><small id="dashSub"></small></div>
+        <button class="dash-share" id="shareInsightsBtn" onclick="smShareOpen()">مشاركة مع السوبرفايزر</button>
       </div>
-      <div class="section">
-        <div class="section-head"><div><span class="section-kicker">الأسابيع الثمانية الجاية</span><h2>ضغط الإجازات على الشفتات</h2></div><span class="small-note">الحد: ليل 6 · صباح ومساء 5</span></div>
-        <div class="ins-load" id="insightsShiftLoad"></div>
-      </div>
-      <div class="section">
-        <div class="section-head"><div><span class="section-kicker" id="insMarineKicker">صلاحيات الدخول</span><h2>بطاقات Marine ID</h2></div><span class="small-note">اللي انتهت أو بتنتهي خلال 60 يوم</span></div>
-        <div id="insightsMarine"></div>
-      </div>
-      <div class="section">
-        <div class="section-head"><div><span class="section-kicker">مين مجاز في أي شهر</span><h2>توزيع الإجازات على أشهر السنة</h2></div><div class="ins-tabs" id="insMonthsTabs"></div></div>
-        <div id="insightsMonths"></div>
-      </div>
-      <div class="section">
-        <div class="section-head"><div><span class="section-kicker" id="insightsYearEndKicker">قبل نهاية السنة</span><h2>تصفية الأرصدة</h2></div></div>
-        <div id="insightsYearEnd"></div>
+      <div class="dash-kpis" id="insightsDashboardBox"></div>
+      <div class="dash-grid">
+        <div class="section dash-panel ins-sec dash-span2" id="insSecLoad">
+          <div class="section-head ins-toggle"><div><span class="section-kicker">الأسابيع الثمانية الجاية</span><h2>ضغط الإجازات على الشفتات</h2></div><span class="ins-chev">⌃</span></div>
+          <div class="ins-body"><div class="ins-load" id="insightsShiftLoad"></div></div>
+        </div>
+        <div class="section dash-panel ins-sec" id="insSecAttn">
+          <div class="section-head ins-toggle"><div><span class="section-kicker">مرتبة حسب الأهمية</span><h2>يحتاج انتباهك</h2></div><span class="ins-chev">⌃</span></div>
+          <div class="ins-body"><div class="ins-attn" id="insightsAttention"></div></div>
+        </div>
+        <div class="section dash-panel ins-sec dash-full" id="insSecMonths">
+          <div class="section-head ins-toggle"><div><span class="section-kicker">مين مجاز في أي شهر</span><h2>توزيع الإجازات على أشهر السنة</h2></div><div style="display:flex;gap:8px;align-items:center"><div class="ins-tabs" id="insMonthsTabs"></div><span class="ins-chev">⌃</span></div></div>
+          <div class="ins-body"><div id="insightsMonths"></div></div>
+        </div>
+        <div class="section dash-panel ins-sec dash-span2" id="insSecYE">
+          <div class="section-head ins-toggle"><div><span class="section-kicker" id="insightsYearEndKicker">قبل نهاية السنة</span><h2>تصفية الأرصدة</h2></div><span class="ins-chev">⌃</span></div>
+          <div class="ins-body"><div id="insightsYearEnd"></div></div>
+        </div>
+        <div class="section dash-panel ins-sec" id="insSecMarine">
+          <div class="section-head ins-toggle"><div><span class="section-kicker" id="insMarineKicker">صلاحيات الدخول</span><h2>بطاقات Marine ID</h2></div><span class="ins-chev">⌃</span></div>
+          <div class="ins-body"><div id="insightsMarine"></div></div>
+        </div>
       </div>
     </section>
 

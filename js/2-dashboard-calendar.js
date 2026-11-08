@@ -30,12 +30,50 @@ function renderInsightsDashboard(){
   const overCarry=state.employees.filter(e=>(Number(e.leaveBalance)||0)>9),overPct=total?Math.round(overCarry.length/total*100):0;
   const mr=insMarine(),mAttn=mr.expired.length+mr.d30.length+mr.d60.length,expiredPct=mr.withCard?Math.round(mAttn/mr.withCard*100):0;
   const ye=insYearEnd(),lostPct=total?Math.round(ye.needs.length/total*100):0;
-  box.innerHTML=`
-    <div class="metric-card success"><div class="insight-donut" style="--pct:${workingPct};--color:#2dd4a3"><strong>${workingPct}%</strong></div><div class="insight-copy"><h3>على رأس العمل</h3><p>الموظفون الحاضرون اليوم من إجمالي القوة</p><b>${working} من ${total} موظف</b></div></div>
-    <div class="metric-card warning"><div class="insight-donut" style="--pct:${overPct};--color:#f59e0b"><strong>${overPct}%</strong></div><div class="insight-copy"><h3>رصيد فوق حد الترحيل</h3><p>رصيدهم أكثر من 9 أيام (الحد اللي يترحّل للسنة الجاية)</p><b>${overCarry.length} من ${total} موظف</b></div></div>
-    <div class="metric-card ${mr.expired.length?'danger':mAttn?'warning':'success'}"><div class="insight-donut" style="--pct:${expiredPct};--color:${mr.expired.length?'#ef4444':'#f59e0b'}"><strong>${mAttn}</strong></div><div class="insight-copy"><h3>بطاقات Marine تحتاج تجديد</h3><p>من ${mr.withCard} موظف عندهم صلاحية دخول</p><b>${mr.expired.length} منتهية · ${mr.d30.length+mr.d60.length} خلال 60 يوم</b></div></div>
-    <div class="metric-card ${ye.excessTotal?'danger':'success'}"><div class="insight-donut" style="--pct:${lostPct};--color:${ye.excessTotal?'#ef4444':'#2dd4a3'}"><strong>${formatDays(ye.excessTotal)}</strong></div><div class="insight-copy"><h3>أيام لازم تنصرف قبل 31 ديسمبر</h3><p>الرصيد الزايد عن 9 أيام ما يترحّل حسب نظام الشركة، ولازم ينصرف إجازة. باقي ${ye.daysLeft} يوم على نهاية السنة</p><b>${ye.needs.length} موظف</b></div></div>`;
-  renderInsightsShiftLoad();renderInsightsYearEnd(ye);renderInsightsMonths();renderInsightsMarine(mr);
+  const blocks=insShiftBlocks(8),fullN=blocks.filter(b=>b.max>=INS_CAP[b.code]).length,nearN=blocks.filter(b=>b.max===INS_CAP[b.code]-1).length;
+  const t=todayISO(),dd=new Date(t+'T12:00:00');
+  const sub=document.getElementById('dashSub');if(sub)sub.textContent=`${dd.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn',{weekday:'long'})} ${dd.getDate()} ${INS_MONTHS[dd.getMonth()]} ${dd.getFullYear()} · ${total} موظف`;
+  const kpi=(o)=>`<div class="kpi ${o.lvl||''} ${o.go?'ins-link':''}" ${o.go?`onclick="insGo('${o.go}')"`:''}><div class="kpi-top"><span>${o.label}</span>${o.badge?`<em class="kpi-badge ${o.lvl}">${o.badge}</em>`:''}</div><div class="kpi-num">${o.num}${o.of!=null?`<small>/${o.of}</small>`:''}</div>${o.pct!=null?`<div class="kpi-bar"><i style="width:${Math.min(100,o.pct)}%"></i></div>`:''}<div class="kpi-foot">${o.foot}</div></div>`;
+  box.innerHTML=[
+    kpi({label:'على رأس العمل',num:working,of:total,pct:workingPct,foot:`${workingPct}% حاضرين · ${inLeave} في إجازة`,lvl:'ok'}),
+    kpi({label:'ضغط الشفتات',num:fullN,foot:fullN?`شفت ممتلئ خلال 8 أسابيع${nearN?` · ${nearN} قريب يمتلئ`:''}`:nearN?`${nearN} شفت باقي فيه مكان واحد`:'كل الشفتات فيها مجال',lvl:fullN?'bad':nearN?'warn':'ok',badge:fullN?'ممتلئ':nearN?'انتبه':'سليم',go:'insSecLoad'}),
+    kpi({label:'رصيد فوق حد الترحيل',num:overCarry.length,of:total,pct:overPct,foot:`رصيدهم أكثر من 9 أيام`,lvl:overCarry.length?'warn':'ok',go:'insSecYE'}),
+    kpi({label:'أيام لازم تنصرف',num:formatDays(ye.excessTotal),foot:`قبل 31 ديسمبر · باقي ${ye.daysLeft} يوم`,lvl:ye.excessTotal?(ye.daysLeft<=60?'bad':'warn'):'ok',badge:ye.excessTotal?`${ye.needs.length} موظف`:'سليم',go:'insSecYE'}),
+    kpi({label:'Marine ID',num:mAttn,foot:`${mr.expired.length} منتهية · ${mr.d30.length+mr.d60.length} خلال 60 يوم`,lvl:mr.expired.length?'bad':mAttn?'warn':'ok',badge:mr.expired.length?'منتهية':mAttn?'تجديد':'سارية',go:'insSecMarine'})
+  ].join('');
+
+  renderInsightsAttention(mr,ye,blocks);renderInsightsShiftLoad(blocks);renderInsightsYearEnd(ye);renderInsightsMonths();renderInsightsMarine(mr);insApplyCollapsed();
+}
+/* ===== أقسام تنطوي وتنفتح + التنقل من البطاقات ===== */
+function insCollapsedSet(){try{return new Set(JSON.parse(localStorage.getItem('smInsCollapsed')||'[]'))}catch(e){return new Set()}}
+function insApplyCollapsed(){const c=insCollapsedSet();document.querySelectorAll('#insightsView .ins-sec').forEach(s=>s.classList.toggle('collapsed',c.has(s.id)))}
+function insToggleSec(id,open){
+  const sec=document.getElementById(id);if(!sec)return;
+  const c=insCollapsedSet(),willOpen=open??sec.classList.contains('collapsed');
+  sec.classList.toggle('collapsed',!willOpen);willOpen?c.delete(id):c.add(id);
+  try{localStorage.setItem('smInsCollapsed',JSON.stringify([...c]))}catch(e){}
+}
+function insGo(id){insToggleSec(id,true);const sec=document.getElementById(id);if(sec)sec.scrollIntoView({behavior:'smooth',block:'start'})}
+document.addEventListener('click',e=>{
+  const h=e.target.closest('#insightsView .ins-toggle');if(!h||e.target.closest('button'))return;
+  insToggleSec(h.closest('.ins-sec').id);
+});
+/* ===== يحتاج انتباهك: كل اللي يحتاج تصرف في مكان واحد، الأهم أول ===== */
+function renderInsightsAttention(mr,ye,blocks){
+  const box=document.getElementById('insightsAttention');if(!box)return;
+  const today=todayISO(),nm=e=>esc(rosterEmployeeName(e)||e?.name||'');
+  const chips=list=>`<div class="who">${list.slice(0,8).map(x=>`<span>${x}</span>`).join('')}${list.length>8?`<span class="more">+${list.length-8}</span>`:''}</div>`;
+  const sd=d=>{const x=new Date(d+'T12:00:00');return `${x.getDate()} ${INS_MONTHS[x.getMonth()]}`};
+  const items=[];
+  if(mr.expired.length)items.push({lvl:'red',ic:'🪪',t:`${mr.expired.length} بطاقة Marine منتهية`,s:'ما يقدرون يدخلون الموقع لين تتجدد',go:'insSecMarine',w:mr.expired.map(r=>nm(r.e))});
+  blocks.filter(b=>b.max>=INS_CAP[b.code]).forEach(b=>items.push({lvl:'red',ic:'⛔',t:`شفت ${INS_WORD[b.code]} ممتلئ (${b.max}/${INS_CAP[b.code]})`,s:`${sd(b.start)} – ${sd(b.end)}${b.start<=today?' · الحين':''} · لا تعتمد إجازة جديدة فيه`,go:'insSecLoad',w:[...b.who.keys()].map(id=>nm(state.employees.find(x=>x.id===id)))}));
+  const noPlan=ye.needs.filter(r=>!r.upDays),partial=ye.needs.filter(r=>r.upDays);
+  if(noPlan.length)items.push({lvl:ye.daysLeft<=60?'red':'amber',ic:'⏳',t:`${noPlan.length} موظف رصيدهم فوق 9 وما جدولوا ولا يوم`,s:`مجموع ${formatDays(noPlan.reduce((a,r)=>a+r.excess,0))} يوم لازم ينصرف · باقي ${ye.daysLeft} يوم على نهاية السنة`,go:'insSecYE',w:noPlan.map(r=>`${nm(r.e)} · ${formatDays(r.excess)}`)});
+  if(mr.d30.length)items.push({lvl:'amber',ic:'🪪',t:`${mr.d30.length} بطاقة Marine تنتهي خلال 30 يوم`,s:'ابدأ التجديد الحين',go:'insSecMarine',w:mr.d30.map(r=>`${nm(r.e)} · ${r.days} يوم`)});
+  const near=blocks.filter(b=>b.max===INS_CAP[b.code]-1);
+  if(near.length)items.push({lvl:'amber',ic:'⚠️',t:`${near.length} شفت باقي فيه مكان واحد`,s:'أي إجازة زيادة فيها تملّي الشفت',go:'insSecLoad',w:near.map(b=>`${INS_WORD[b.code]} ${sd(b.start)}`)});
+  if(partial.length)items.push({lvl:'amber',ic:'📅',t:`${partial.length} موظف جدولوا إجازة بس الرصيد لسا فوق 9`,s:'يحتاجون يجدولون أيام زيادة قبل 31 ديسمبر',go:'insSecYE',w:partial.map(r=>`${nm(r.e)} · ${formatDays(r.excess)}`)});
+  box.innerHTML=(items.length?items.map(i=>`<div class="ins-attn-i ${i.lvl}" onclick="insGo('${i.go}')"><div class="ic">${i.ic}</div><div class="tx"><b>${i.t}</b><small>${i.s}</small>${i.w.length?chips(i.w):''}</div><span class="go">‹</span></div>`).join(''):'<div class="ins-attn-i ok"><div class="ic">✅</div><div class="tx"><b>كل شي تمام</b><small>ما فيه شفت ممتلئ ولا بطاقة منتهية ولا رصيد معلّق</small></div></div>');
 }
 /* توزيع الإجازات على أشهر السنة: الإجازات المدخلة + خطة الإجازة المعتمدة (اللي ما تحولت لإجازة بعد) */
 const INS_MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
@@ -118,16 +156,20 @@ function insShiftBlocks(weeks=8){
   }
   return [...blocks.values()];
 }
-function renderInsightsShiftLoad(){
+let insLoadSel=null;
+function renderInsightsShiftLoad(rows=insShiftBlocks(8)){
   const box=document.getElementById('insightsShiftLoad');if(!box)return;
-  const today=todayISO(),rows=insShiftBlocks(8);
+  const today=todayISO();
   if(!rows.length){box.innerHTML='<div class="empty">لا توجد شفتات</div>';return}
-  const sd=d=>{const x=new Date(d+'T12:00:00');return `${x.getDate()} ${['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'][x.getMonth()]}`};
-  box.innerHTML=rows.map(b=>{
-    const cap=INS_CAP[b.code],cls=b.max>=cap?'full':b.max>=cap-1?'near':'',pct=Math.min(100,Math.round(b.max/cap*100));
-    const names=[...b.who.values()].map(l=>{const e=state.employees.find(x=>x.id===l.employeeId);return `<span>${esc(rosterEmployeeName(e)||e?.name||'')}</span>`}).join('');
-    return `<div class="ins-row ${cls} ${b.start<=today&&b.end>=today?'now':''}"><div class="lbl"><b>${INS_WORD[b.code]}${b.start<=today&&b.end>=today?' · الحين':''}</b><small>${sd(b.start)} – ${sd(b.end)}</small></div><div class="bar"><i style="width:${pct}%"></i></div><div class="n">${b.max} / ${cap}</div>${b.who.size?`<details><summary>${b.who.size} مجاز${b.max>=cap?' — الشفت ممتلئ':b.max>=cap-1?' — باقي مكان واحد':''}</summary><div class="who">${names}</div></details>`:''}</div>`;
+  const sd=d=>{const x=new Date(d+'T12:00:00');return `${x.getDate()} ${INS_MONTHS[x.getMonth()]}`};
+  if(insLoadSel&&!rows.some(b=>b.code+b.start===insLoadSel))insLoadSel=null;
+  const tiles=rows.map(b=>{
+    const cap=INS_CAP[b.code],cls=b.max>=cap?'full':b.max>=cap-1?'near':b.max?'some':'free',now=b.start<=today&&b.end>=today,k=b.code+b.start;
+    return `<button class="ins-tile ${cls} ${now?'now':''} ${insLoadSel===k?'sel':''}" onclick="insLoadSel=insLoadSel==='${k}'?null:'${k}';renderInsightsShiftLoad()"><div class="t-h"><b>${INS_WORD[b.code]}</b>${now?'<em>الحين</em>':''}</div><small>${sd(b.start)} – ${sd(b.end)}</small><div class="t-n">${b.max}<span>/${cap}</span></div><div class="t-dots">${Array.from({length:cap},(_,i)=>`<i class="${i<b.max?'on':''}"></i>`).join('')}</div></button>`;
   }).join('');
+  const sel=rows.find(b=>b.code+b.start===insLoadSel);
+  const detail=sel?`<div class="ins-mdetail"><b>${INS_WORD[sel.code]} · ${sd(sel.start)} – ${sd(sel.end)}</b> — أعلى عدد مجازين في يوم واحد ${sel.max} من ${INS_CAP[sel.code]}<div class="who">${[...sel.who.values()].map(l=>{const e=state.employees.find(x=>x.id===l.employeeId);return `<span>${esc(rosterEmployeeName(e)||e?.name||'')} · ${sd(l.start>sel.start?l.start:sel.start)}–${sd(l.end<sel.end?l.end:sel.end)}</span>`}).join('')||'<span>ما فيه أحد مجاز</span>'}</div></div>`:'';
+  box.innerHTML=`<div class="ins-tiles">${tiles}</div><div class="ins-legend"><span><i style="background:#2fb872"></i>فيه مجال</span><span><i style="background:#e8a83c"></i>باقي مكان واحد</span><span><i style="background:#e0475a"></i>ممتلئ</span><span>الحد: ليل 6 · صباح ومساء 5 · اضغط على أي شفت تشوف الأسماء</span></div>${detail}`;
 }
 /* تصفية الأرصدة قبل 31 ديسمبر. الرصيد ينخصم وقت إدخال الإجازة، فالزايد عن 9 هو اللي لازم ينصرف قبل نهاية السنة (ما يترحّل). */
 function insYearEnd(){
@@ -144,9 +186,10 @@ function insYearEnd(){
 function renderInsightsYearEnd(ye=insYearEnd()){
   const box=document.getElementById('insightsYearEnd');if(!box)return;
   const k=document.getElementById('insightsYearEndKicker');if(k)k.textContent=`باقي ${ye.daysLeft} يوم على 31 ديسمبر ${ye.year}`;
-  const list=ye.needs.map(r=>`<div class="ye-r"><div><b>${esc(rosterEmployeeName(r.e)||r.e.name)}</b><small>#${esc(r.e.empId||'-')} · الرصيد ${formatDays(r.bal)} يوم${r.upDays?` · عنده ${r.upDays} يوم إجازة مجدولة قبل نهاية السنة`:''}</small></div><span class="tag lose">يحتاج ${formatDays(r.excess)} يوم قبل 31 ديسمبر</span></div>`).join('');
+  const top=Math.max(9,...ye.needs.map(r=>r.bal)),w=v=>(v/top*100).toFixed(1);
+  const list=ye.needs.map(r=>`<div class="ye-r"><div><b>${esc(rosterEmployeeName(r.e)||r.e.name)}</b><small>#${esc(r.e.empId||'-')} · الرصيد ${formatDays(r.bal)} يوم${r.upDays?` · عنده ${r.upDays} يوم إجازة مجدولة قبل نهاية السنة`:' · ما عنده إجازة مجدولة'}</small><div class="ye-bar" title="9 أيام تترحّل · ${formatDays(r.excess)} لازم تنصرف"><i class="keep" style="width:${w(9)}%"></i><i class="ex" style="width:${w(r.excess)}%"></i></div></div><span class="tag ${r.upDays?'warn':'lose'}">يحتاج ${formatDays(r.excess)} يوم</span></div>`).join('');
   box.innerHTML=`<div class="ins-ye-top"><div class="${ye.excessTotal?'bad':''}"><b>${formatDays(ye.excessTotal)}</b><span>يوم لازم تنصرف قبل نهاية السنة</span></div><div><b>${ye.needs.length}</b><span>موظف رصيده فوق 9</span></div><div><b>${ye.upcomingDays}</b><span>يوم إجازة مجدولة لين نهاية السنة</span></div><div><b>${ye.daysLeft}</b><span>يوم باقي على نهاية السنة</span></div></div>
-  <div class="ins-ye-list">${list||'<div class="empty">كل الأرصدة ضمن حد الترحيل 👌 ما فيه أحد يحتاج يصرف رصيد</div>'}</div>
+  ${list?'<div class="ins-legend" style="margin:0 0 6px"><span><i style="background:#9fd9b8"></i>يترحّل (9 أيام)</span><span><i style="background:#e0475a"></i>لازم ينصرف قبل 31 ديسمبر</span></div>':''}<div class="ins-ye-list">${list||'<div class="empty">كل الأرصدة ضمن حد الترحيل 👌 ما فيه أحد يحتاج يصرف رصيد</div>'}</div>
   <p class="small-note" style="margin-top:8px">نظام الشركة ما يرحّل أكثر من 9 أيام، فالزايد لازم يتجدول إجازة قبل 31 ديسمبر. الرصيد ينخصم وقت إدخال الإجازة، فالرقم هنا هو الباقي بعد الإجازات المدخلة.</p>`;
 }
 
