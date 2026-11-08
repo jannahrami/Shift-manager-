@@ -588,11 +588,11 @@ function lpExportChoices(){
     const vm=py===2026?LP_VAC_2026[String(r.badge||'')]:null,months=vm||(ll?[ll.m]:[]);
     const gcs=months.map(x=>lpGivenChoice(r.badge,py,x)).filter(x=>x!=null),gc=!gcs.length?null:gcs.length===1?gcs[0]:gcs.join(' + ');
     const vtxt=vm?vm.map(m).join(' + '):ll?`${m(ll.m)} (${ll.days} يوم)`:'لا يوجد';
-    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:vtxt,s:bc},{v:gc??'—',s:gcs.some(x=>String(x).startsWith('خارج'))?'prevWarn':typeof gc==='number'?'num':bc},...['choice1','choice2','choice3'].map(k=>({v:p?m(p[k]):'—',s:bc}))]};
+    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:vtxt,s:bc},{v:gc??'—',s:gcs.some(x=>String(x).startsWith('خارج'))?'prevWarn':typeof gc==='number'?'num':bc},...['choice1','choice2','choice3'].map(k=>({v:p?m(p[k]):'—',s:p?.status==='approved'&&p.assigned_month===p[k]?'approved':bc}))]};
   });
   const sheet={name:`خيارات ${year}`,cols:[5,32,13,22,34,18,18,18],freeze:3,filter:`A3:H${3+body.length}`,merges:['A1:H1','A2:H2'],portrait:true,
     rows:[{height:34,cells:[{v:`خيارات خطة الإجازة ${year} · Group A`,s:'title'},...Array(7).fill({v:'',s:'title'})]},
-      {height:22,cells:[{v:`سلّموا ${rows.filter(r=>r.plan&&r.plan.status!=='rejected').length} من ${rows.length}   ·   الأحمر = أخذ شهر خارج خياراته في ${py}   ·   رقم الخيار = أي خيار من خياراته في ${py} انعطى له`,s:'sub'},...Array(7).fill({v:'',s:'sub'})]},
+      {height:22,cells:[{v:`سلّموا ${rows.filter(r=>r.plan&&r.plan.status!=='rejected').length} من ${rows.length}   ·   الأخضر = الشهر المعتمد له في ${year}   ·   الأحمر = أخذ شهر خارج خياراته في ${py}   ·   رقم الخيار = أي خيار من خياراته في ${py} انعطى له`,s:'sub'},...Array(7).fill({v:'',s:'sub'})]},
       {height:26,cells:['#','الاسم','رقم الباج',`إجازة ${py}`,`رقم الخيار ${py}`,`الخيار الأول ${year}`,`الخيار الثاني ${year}`,`الخيار الثالث ${year}`].map(v=>({v,s:'head'}))},...body]};
   lpxDownload(lpxWorkbook([sheet,lpDistributionSheet(rows,year,lpMax())]),`Group_A_Leave_Choices_${year}.xlsx`);
 }
