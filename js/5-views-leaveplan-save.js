@@ -577,7 +577,7 @@ const LP_CHOICES_2026={"101771":[5,8,11],"101725":[8,11,4],"101702":[3,6,12],"10
 const LP_VAC_2026={"101749":[1],"101702":[3],"102299":[3],"102297":[3],"104121":[4],"104165":[4],"101697":[4],"103409":[4],"101771":[10],"104495":[5],"101701":[5],"101631":[6],"104116":[6],"102286":[6],"101988":[6],"101634":[7],"103871":[7],"102301":[7],"102293":[7],"101725":[8],"101655":[8],"101632":[8],"101703":[8],"101698":[8],"103661":[9],"102593":[9],"101694":[9],"103630":[10],"101708":[10],"103619":[10],"101700":[10],"101738":[11],"102305":[11],"101690":[11],"101741":[11],"101650":[12],"101662":[12],"104722":[12],"101718":[12]};
 function lpGivenChoice(badge,year,month){
   const c=year===2026?LP_CHOICES_2026[String(badge||'')]:lpState.prevPlans?.[String(badge||'')];
-  if(!c||!month)return null;const i=c.indexOf(month);return i<0?'خارج الخيارات':i+1;
+  if(!c||!month)return null;const i=c.indexOf(month);return i<0?`خارج الخيارات (${c.map(x=>LP_MONTHS_AR[x-1]).join('، ')})`:i+1;
 }
 /* تصدير خيارات الموظفين: الاسم · الباج · شهر أطول إجازة السنة الماضية · الخيارات الثلاثة */
 function lpExportChoices(){
@@ -588,9 +588,9 @@ function lpExportChoices(){
     const vm=py===2026?LP_VAC_2026[String(r.badge||'')]:null,months=vm||(ll?[ll.m]:[]);
     const gcs=months.map(x=>lpGivenChoice(r.badge,py,x)).filter(x=>x!=null),gc=!gcs.length?null:gcs.length===1?gcs[0]:gcs.join(' + ');
     const vtxt=vm?vm.map(m).join(' + '):ll?`${m(ll.m)} (${ll.days} يوم)`:'لا يوجد';
-    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:vtxt,s:bc},{v:gc??'—',s:gcs.includes('خارج الخيارات')?'prevWarn':typeof gc==='number'?'num':bc},...['choice1','choice2','choice3'].map(k=>({v:p?m(p[k]):'—',s:bc}))]};
+    return {height:22,cells:[{v:i+1,s:bc},{v:r.name,s:b},{v:r.badge,s:bc},{v:vtxt,s:bc},{v:gc??'—',s:gcs.some(x=>String(x).startsWith('خارج'))?'prevWarn':typeof gc==='number'?'num':bc},...['choice1','choice2','choice3'].map(k=>({v:p?m(p[k]):'—',s:bc}))]};
   });
-  const sheet={name:`خيارات ${year}`,cols:[5,32,13,22,16,18,18,18],freeze:3,filter:`A3:H${3+body.length}`,merges:['A1:H1','A2:H2'],portrait:true,
+  const sheet={name:`خيارات ${year}`,cols:[5,32,13,22,34,18,18,18],freeze:3,filter:`A3:H${3+body.length}`,merges:['A1:H1','A2:H2'],portrait:true,
     rows:[{height:34,cells:[{v:`خيارات خطة الإجازة ${year} · Group A`,s:'title'},...Array(7).fill({v:'',s:'title'})]},
       {height:22,cells:[{v:`سلّموا ${rows.filter(r=>r.plan&&r.plan.status!=='rejected').length} من ${rows.length}   ·   الأحمر = أخذ شهر خارج خياراته في ${py}   ·   رقم الخيار = أي خيار من خياراته في ${py} انعطى له`,s:'sub'},...Array(7).fill({v:'',s:'sub'})]},
       {height:26,cells:['#','الاسم','رقم الباج',`إجازة ${py}`,`رقم الخيار ${py}`,`الخيار الأول ${year}`,`الخيار الثاني ${year}`,`الخيار الثالث ${year}`].map(v=>({v,s:'head'}))},...body]};
