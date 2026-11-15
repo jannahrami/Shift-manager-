@@ -478,3 +478,41 @@ function printMonthlyRoster(){
   win.document.write(`<!doctype html><html dir="ltr"><head><meta charset="utf-8"><title>${esc(document.getElementById('monthlyRosterTitle').textContent)}</title><style>*{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}html,body{margin:0;padding:0}body{font-family:Arial,sans-serif;color:#172033;font-size:7.5px}h1{text-align:center;font-size:15px;line-height:1;margin:0 0 2px}.period{text-align:center;color:#64748b;font-size:7.5px;line-height:1;margin-bottom:4px}.monthly-roster-wrap{overflow:visible!important}table{width:100%;border-collapse:collapse;direction:ltr;table-layout:fixed}th,td{border:1px solid #aeb8c5;padding:2px 3px;text-align:left;font-size:7.2px;line-height:1.05;vertical-align:middle}th:nth-child(1),td:nth-child(1){width:18%}th:nth-child(2),td:nth-child(2){width:7%}.roster-group td{background:#167590;color:#fff;font-weight:bold;text-align:center;padding:2px}.roster-group.patrol td{background:#c45d1b}.roster-group.leave td{background:#be123c}.roster-people{display:flex;align-items:center;gap:2px;flex-wrap:wrap}.roster-person{display:inline-block;margin:0 1px;padding:1px 3px;border-radius:3px;font-size:6.8px;line-height:1.05;white-space:nowrap}.roster-leader{color:#b4232f;font-weight:bold}.roster-mid-leave{background:#fff4bf!important;color:#765500!important;border:1px solid #e9c94f}.roster-returning{background:#dcfce7!important;color:#166534!important;border:1px solid #86d79f}.roster-leave-person{color:#9f1239;font-weight:bold}.small-note{font-size:6px}.no-print,.roster-edit,button{display:none!important}input{border:0;background:transparent;width:28px;font-size:7px}.roster-fixed{box-shadow:none}tr{break-inside:avoid;page-break-inside:avoid}@page{size:A4 landscape;margin:4mm}@media print{body{width:100%;overflow:hidden}}</style></head><body><h1>${esc(document.getElementById('monthlyRosterTitle').textContent)}</h1><div class="period">From ${fmtDate(period.start)} To ${fmtDate(period.end)}</div>${box.innerHTML}</body></html>`);win.document.close();win.focus();setTimeout(()=>win.print(),250);
 }
 
+
+/* ===== منتقي تاريخ ملوّن بالشفت (ليل/مساء/صباح/راحة) لفترة الجدول الشهري ===== */
+const SDP_COLORS={N:'#efd45b',A:'#e993aa',M:'#d68ce4',OFF:'#e3e7ee'},SDP_WORD={N:'ليل',A:'مساء',M:'صباح',OFF:'راحة'};
+let sdpInput=null,sdpMonth='';
+function openShiftDatePicker(input){
+  sdpInput=input;const v=input.value||todayISO();sdpMonth=v.slice(0,7);
+  let box=document.getElementById('shiftDatePicker');
+  if(!box){box=document.createElement('div');box.id='shiftDatePicker';box.className='sdp';document.body.appendChild(box);
+    document.addEventListener('mousedown',e=>{const b=document.getElementById('shiftDatePicker');if(b&&b.classList.contains('open')&&!b.contains(e.target)&&e.target!==sdpInput)b.classList.remove('open')});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('shiftDatePicker')?.classList.remove('open')})}
+  renderShiftDatePicker();box.classList.add('open');
+  const r=input.getBoundingClientRect(),w=Math.min(330,window.innerWidth-16);
+  box.style.width=w+'px';box.style.top=(window.scrollY+r.bottom+6)+'px';
+  box.style.left=Math.max(8,Math.min(window.scrollX+r.right-w,window.scrollX+window.innerWidth-w-8))+'px';
+}
+function sdpShift(delta){const [y,m]=sdpMonth.split('-').map(Number),d=new Date(y,m-1+delta,1);sdpMonth=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;renderShiftDatePicker()}
+function renderShiftDatePicker(){
+  const box=document.getElementById('shiftDatePicker');if(!box)return;
+  const [y,m]=sdpMonth.split('-').map(Number),first=`${sdpMonth}-01`,startDow=new Date(y,m-1,1).getDay(),days=new Date(y,m,0).getDate();
+  const ps=document.getElementById('monthlyRosterStart')?.value||'',pe=document.getElementById('monthlyRosterEnd')?.value||'',today=todayISO();
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  let cells='';for(let i=0;i<startDow;i++)cells+='<span></span>';
+  for(let d=1;d<=days;d++){
+    const iso=`${sdpMonth}-${String(d).padStart(2,'0')}`,sh=groupShiftForDate(iso),code=SDP_COLORS[sh.code]?sh.code:'OFF';
+    const prev=groupShiftForDate(addDaysISO(iso,-1)).code,blockStart=code!=='OFF'&&prev!==sh.code;
+    const sel=iso===sdpInput?.value,inRange=ps&&pe&&iso>=ps&&iso<=pe;
+    cells+=`<button type="button" class="sdp-d ${sel?'sel':''} ${inRange?'rng':''} ${iso===today?'today':''} ${blockStart?'bs':''}" style="--c:${SDP_COLORS[code]}" title="${SDP_WORD[code]}${blockStart?' · بداية الشفت':''}" onclick="pickShiftDate('${iso}')"><b>${d}</b><small>${code==='OFF'?'':code}</small></button>`;
+  }
+  box.innerHTML=`<div class="sdp-head"><button type="button" onclick="sdpShift(-1)" aria-label="الشهر السابق">›</button><b>${months[m-1]} ${y}</b><button type="button" onclick="sdpShift(1)" aria-label="الشهر التالي">‹</button></div>
+    <div class="sdp-dow"><span>ح</span><span>ن</span><span>ث</span><span>ر</span><span>خ</span><span>ج</span><span>س</span></div>
+    <div class="sdp-grid">${cells}</div>
+    <div class="sdp-leg">${['N','A','M','OFF'].map(k=>`<span><i style="background:${SDP_COLORS[k]}"></i>${SDP_WORD[k]}</span>`).join('')}<span><i class="bsi"></i>بداية شفت</span></div>
+    <div class="sdp-foot"><button type="button" onclick="pickShiftDate(todayISO())">اليوم</button><button type="button" onclick="document.getElementById('shiftDatePicker').classList.remove('open')">إغلاق</button></div>`;
+}
+function pickShiftDate(iso){
+  if(!sdpInput)return;sdpInput.value=iso;sdpInput.dispatchEvent(new Event('change',{bubbles:true}));
+  document.getElementById('shiftDatePicker')?.classList.remove('open');
+}
