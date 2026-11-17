@@ -275,14 +275,14 @@ function lpMessage(r){
   const url=lpLinkUrl(r.link.token),p=r.plan;
   if(p?.status==='rejected'){
     const why=p.admin_note?`\nالسبب: ${p.admin_note}`:'';
-    return `السلام عليكم ${r.name}\nنعتذر، لم يتم اعتماد خطة إجازتك لسنة ${lpState.year} (الخيار: ${LP_MONTHS_AR[p.choice1-1]}).${why}\nالرجاء الدخول على الرابط واختيار أشهر جديدة، ثم الإرسال مرة ثانية:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+    return `السلام عليكم ${lpShortName(r.name)}\nنعتذر، لم يتم اعتماد خطة إجازتك لسنة ${lpState.year} (الخيار: ${LP_MONTHS_AR[p.choice1-1]}).${why}\nالرجاء الدخول على الرابط واختيار أشهر جديدة، ثم الإرسال مرة ثانية:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
   }
   if(p?.status==='approved'&&p.dates_status==='rejected'){
     const why=p.dates_note?`\nالسبب: ${p.dates_note}`:'';
-    return `السلام عليكم ${r.name}\nشهر إجازتك (${LP_MONTHS_AR[p.assigned_month-1]}) معتمد ✓، بس التواريخ اللي اخترتها تحتاج تعديل.${why}\nالرجاء الدخول على الرابط واختيار فترة جديدة من التقويم:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+    return `السلام عليكم ${lpShortName(r.name)}\nشهر إجازتك (${LP_MONTHS_AR[p.assigned_month-1]}) معتمد ✓، بس التواريخ اللي اخترتها تحتاج تعديل.${why}\nالرجاء الدخول على الرابط واختيار فترة جديدة من التقويم:\n${url}\nالرابط خاص فيك، لا تشاركه.`;
   }
-  if(lpPhase(r)==='dates')return `السلام عليكم ${r.name}\nتم اعتماد إجازتك السنوية لسنة ${lpState.year} في شهر ${LP_MONTHS_AR[p.assigned_month-1]} ✓\nالرجاء الدخول على الرابط وتحديد فترة الإجازة (${lpReqText(p.assigned_month)}) من التقويم:${lpDlLine('dates')}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
-  return `السلام عليكم ${r.name}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والمشرف يراجع الخطط ويعتمدها.${lpDlLine('months')}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  if(lpPhase(r)==='dates')return `السلام عليكم ${lpShortName(r.name)}\nتم اعتماد إجازتك السنوية لسنة ${lpState.year} في شهر ${LP_MONTHS_AR[p.assigned_month-1]} ✓\nالرجاء الدخول على الرابط وتحديد فترة الإجازة (${lpReqText(p.assigned_month)}) من التقويم:${lpDlLine('dates')}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  return `السلام عليكم ${lpShortName(r.name)}\nهذا رابط خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب، والمشرف يراجع الخطط ويعتمدها.${lpDlLine('months')}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
 }
 /* ===== آخر موعد + التذكير ===== */
 const LP_DAYS_AR=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
@@ -309,8 +309,8 @@ function lpDeadlineBanner(rows){
 function lpReminderMessage(r,kind){
   const url=lpLinkUrl(r.link.token),dl=lpDl(kind),n=lpDaysLeft(dl);
   const when=dl?(n<0?`\nانتهى الموعد (${lpDlFmt(dl)})، تواصل مع المشرف بأسرع وقت.`:`\nآخر موعد: ${lpDlFmt(dl)} (${lpLeftText(n)}).`):'';
-  if(kind==='dates')return `السلام عليكم ${r.name}\nتذكير: شهر إجازتك (${LP_MONTHS_AR[r.plan.assigned_month-1]}) معتمد ✓ وباقي تحدد فترة الإجازة (${lpReqText(r.plan.assigned_month)}) من التقويم.${when}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
-  return `السلام عليكم ${r.name}\nتذكير: ما وصلتنا خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب من الرابط، والأشهر تُحجز بالأسبقية.${when}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  if(kind==='dates')return `السلام عليكم ${lpShortName(r.name)}\nتذكير: شهر إجازتك (${LP_MONTHS_AR[r.plan.assigned_month-1]}) معتمد ✓ وباقي تحدد فترة الإجازة (${lpReqText(r.plan.assigned_month)}) من التقويم.${when}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
+  return `السلام عليكم ${lpShortName(r.name)}\nتذكير: ما وصلتنا خطة إجازتك السنوية لسنة ${lpState.year}. اختر 3 أشهر بالترتيب من الرابط، والأشهر تُحجز بالأسبقية.${when}\n${url}\nالرابط خاص فيك، لا تشاركه.`;
 }
 function lpAgo(t){if(!t)return '';const h=Math.round((Date.now()-new Date(t).getTime())/3600000);return h<1?'قبل شوي':h<24?`قبل ${h} ساعة`:`قبل ${Math.round(h/24)} يوم`}
 function lpReminders(){
@@ -341,7 +341,7 @@ function lpRemindOne(id,kind){
 function lpCopyReminders(kind){
   const list=lpLate()[kind];if(!list.length)return;const dl=lpDl(kind),n=lpDaysLeft(dl);
   const head=kind==='dates'?`تذكير: الموظفين التالية أسماؤهم شهر إجازتهم معتمد وباقي يحددون فترة الإجازة من التقويم.`:`تذكير: الموظفين التالية أسماؤهم ما سلّموا خطة الإجازة السنوية ${lpState.year}. كل واحد يفتح رابطه ويختار 3 أشهر.`;
-  const text=head+(dl&&n>=0?`\nآخر موعد: ${lpDlFmt(dl)} (${lpLeftText(n)}).`:'')+'\n\n'+list.map(r=>`${r.name}${kind==='dates'?' · '+LP_MONTHS_AR[r.plan.assigned_month-1]:''}:\n${lpLinkUrl(r.link.token)}`).join('\n\n');
+  const text=head+(dl&&n>=0?`\nآخر موعد: ${lpDlFmt(dl)} (${lpLeftText(n)}).`:'')+'\n\n'+list.map(r=>`${lpShortName(r.name)}${kind==='dates'?' · '+LP_MONTHS_AR[r.plan.assigned_month-1]:''}:\n${lpLinkUrl(r.link.token)}`).join('\n\n');
   lpCopyText(text,`تم نسخ تذكير ${list.length} موظف ✓`);lpMarkReminded(list.map(r=>r.id));
 }
 /* نقطة حمراء على تبويب خطة الإجازة لما يقرب الموعد وفيه متأخرين */
@@ -391,6 +391,13 @@ function lpShowText(text,title){
   document.getElementById('lpTextWa').onclick=()=>{const url=`https://wa.me/?text=${encodeURIComponent(text)}`;const w=window.open(url,'_blank');if(!w)location.href=url};
 }
 function lpCopyOne(id){const r=lpRows().find(x=>x.id===id);if(r?.link)lpCopyText(lpMessage(r),`تم نسخ رابط ${r.name} ✓`)}
+/* الاسم الأول + اللقب في رسائل الواتساب: "تركي سعد الجهني" ← "تركي الجهني"، "عبد الرحيم علي الفارسي" ← "عبد الرحيم الفارسي" */
+function lpShortName(name){
+  const w=String(name||'').trim().split(/\s+/).filter(Boolean);if(w.length<=2)return w.join(' ');
+  let first=w[0],i=1;if(/^(عبد|أبو|ابو)$/.test(first)&&w.length>2){first+=' '+w[1];i=2}
+  let last=w[w.length-1],j=w.length-1;if(j-1>=i&&/^(آل|ال|بن|ابن|أبو|ابو|عبد)$/.test(w[j-1])){last=w[j-1]+' '+last}
+  return first===last?first:first+' '+last;
+}
 function lpCopyRejectedMessages(){
   const rows=lpRows().filter(r=>r.link&&(r.plan?.status==='rejected'||(r.plan?.status==='approved'&&r.plan.dates_status==='rejected')));
   if(!rows.length){alert('ما فيه خطط مرفوضة');return}
@@ -399,13 +406,13 @@ function lpCopyRejectedMessages(){
 function lpCopyDatesMessages(){
   const rows=lpRows().filter(r=>r.link&&lpPhase(r)==='dates');
   if(!rows.length){alert('ما فيه أحد بانتظار تحديد التواريخ');return}
-  const text=`تم اعتماد أشهر الإجازة السنوية ${lpState.year} ✓\nالرجاء من كل موظف الدخول على رابطه وتحديد فترة الإجازة من التقويم.\n\n`+rows.map(r=>`${r.name} · ${LP_MONTHS_AR[r.plan.assigned_month-1]}:\n${lpLinkUrl(r.link.token)}`).join('\n\n');
+  const text=`تم اعتماد أشهر الإجازة السنوية ${lpState.year} ✓\nالرجاء من كل موظف الدخول على رابطه وتحديد فترة الإجازة من التقويم.\n\n`+rows.map(r=>`${lpShortName(r.name)} · ${LP_MONTHS_AR[r.plan.assigned_month-1]}:\n${lpLinkUrl(r.link.token)}`).join('\n\n');
   lpCopyText(text,`تم نسخ ${rows.length} رسالة ✓`);
 }
 function lpCopyLinks(all){
   const rows=lpRows().filter(r=>r.link&&(all||!r.plan));
   if(!rows.length){alert(all?'جهّز الروابط أولًا':'كل الموظفين سلّموا خططهم ✓');return}
-  const text=`روابط خطة الإجازة السنوية ${lpState.year}\nكل موظف يفتح رابطه ويختار 3 أشهر بالترتيب. المشرف يراجع الخطط ويعتمدها.\n\n`+rows.map(r=>`${r.name} (${r.badge}):\n${lpLinkUrl(r.link.token)}`).join('\n\n');
+  const text=`روابط خطة الإجازة السنوية ${lpState.year}\nكل موظف يفتح رابطه ويختار 3 أشهر بالترتيب. المشرف يراجع الخطط ويعتمدها.\n\n`+rows.map(r=>`${lpShortName(r.name)} (${r.badge}):\n${lpLinkUrl(r.link.token)}`).join('\n\n');
   lpCopyText(text,`تم نسخ ${rows.length} رابط ✓`);
 }
 function lpWhatsApp(id){
