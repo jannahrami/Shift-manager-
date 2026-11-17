@@ -329,7 +329,7 @@ let loadMap=null;
 function dayLoad(t){if(!loadMap){loadMap=new Map();(data.load||[]).forEach(x=>loadMap.set(utc(x.d),x.n))}return loadMap.get(t)||0}
 function blockLoad(b){let n=0;for(let i=0;i<7;i++)n=Math.max(n,dayLoad(b.start+i*DAY));return n}
 function capOf(code){return (data.caps&&data.caps[code])||(code==='N'?6:5)}
-function reqOf(p){return {min:p.required_shifts||(p.assigned_month<=3?2:3),max:p.max_shifts||3}}
+function reqOf(p){return {min:p.required_shifts||(p.assigned_month<=4?2:3),max:p.max_shifts||3}}
 /* أكتوبر–ديسمبر: يختار عدد الشفتات بنفسه بشرط ما يبقى رصيده أكثر من 9 */
 function yearEnd(p){return !!p.year_end&&p.balance!=null}
 function pickedDays(){return groupPeriods(picked).reduce((a,g)=>a+Math.round((g.end-g.start)/DAY)+1,0)}
