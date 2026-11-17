@@ -533,8 +533,10 @@ function lpProjectedBalance(r,year){
   if(p?.status==='approved'&&p.dates_status==='submitted')(p.periods||[]).forEach(x=>used+=diffDays(x.end,x.start)+1);
   return {balance:carried+30-used,used};
 }
+/* Excel يطلّع التواريخ المعتمدة بس: أي تواريخ لسا ما انعتمدت (قيد المراجعة/مرفوضة) ما تطلع */
+function lpExportRows(rows){return rows.map(r=>r.plan&&r.plan.dates_status!=='approved'&&(r.plan.periods||[]).length?{...r,plan:{...r.plan,periods:[]}}:r)}
 function lpExport(){
-  const rows=lpRows();if(!rows.length){alert('لا يوجد بيانات');return}
+  const rows=lpExportRows(lpRows());if(!rows.length){alert('لا يوجد بيانات');return}
   const year=lpState.year,max=lpMax(),m=x=>x?`${LP_MONTHS_AR[x-1]} · ${LP_MONTHS_EN[x-1].slice(0,3)}`:'';
   const sent=rows.filter(r=>r.plan).length,today=new Date();
   const dstr=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
@@ -590,7 +592,7 @@ function lpGivenChoice(badge,year,month){
 }
 /* تصدير خيارات الموظفين: الاسم · الباج · شهر أطول إجازة السنة الماضية · الخيارات الثلاثة */
 function lpExportChoices(){
-  const rows=lpRows();if(!rows.length){alert('لا يوجد بيانات');return}
+  const rows=lpExportRows(lpRows());if(!rows.length){alert('لا يوجد بيانات');return}
   const year=lpState.year,py=year-1,m=x=>x?LP_MONTHS_AR[x-1]:'—';
   const body=rows.map((r,i)=>{
     const p=r.plan&&r.plan.status!=='rejected'?r.plan:null,z=i%2===1,b=z?'zebra':'body',bc=z?'zebraC':'bodyC',ll=lpLongestLeave(r.id,py);
