@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=20261117m">
+<link rel="stylesheet" href="css/app.css?v=20261117n">
 <style>
   body{background:#f3f5f9}
   .pv-wrap{max-width:1500px;margin:0 auto;padding:16px 16px 40px}
@@ -40,7 +40,7 @@
     <div class="pv-foot">تتحدث تلقائياً كل 5 دقائق</div>
   </div>
 </div>
-<script src="js/lp-history.js?v=20261117m"></script>
+<script src="js/lp-history.js?v=20261117n"></script>
 <script>
 const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
 const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
@@ -121,6 +121,7 @@ function rowHtml(r){
   const p=r.plan,[label,cls]=STATUS[p?.status||'none'];
   const choices=`<div class="lp-curch"><span class="lp-curlbl">خيارات ${D.year}:</span>`+(p?[p.choice1,p.choice2,p.choice3].map((m,i)=>`<span class="lp-chip ${p.assigned_month===m?'assigned':''}"><span class="n">${i+1}</span>${M[m-1]}</span>`).join(''):'<span class="small-note">—</span>')+'</div>';
   let datesHtml='';
+  if(p&&p.status!=='approved'&&p.periods?.length)datesHtml=`<div class="lp-dates"><span class="badge b-neutral">التواريخ محفوظة</span><span class="lp-dates-text">${esc(p.periods.map(x=>`${day(x.start)} إلى ${day(x.end)} (${diff(x.end,x.start)+1} يوم)`).join('  ·  '))}</span></div>`;
   if(p?.status==='approved'){
     const ds=p.dates_status||'none',[dl,dc]=DATES[ds],per=p.periods||[];
     datesHtml=`<div class="lp-dates"><span class="badge ${dc}">${dl}</span>${per.length?`<span class="lp-dates-text">${esc(per.map(x=>`${day(x.start)} إلى ${day(x.end)} (${diff(x.end,x.start)+1} يوم)`).join('  ·  '))}</span><span class="small-note">${esc(per.map(shiftsOfPeriod).filter(Boolean).join(' | '))}</span>`:''}</div>`;
