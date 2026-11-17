@@ -124,7 +124,7 @@ function lpShiftsOfPeriod(x){
 function lpShiftsText(p,sep=' | '){return (p?.periods||[]).map(lpShiftsOfPeriod).filter(Boolean).join(sep)}
 function lpRowHtml(r){
   const p=r.plan,[label,cls]=LP_STATUS[p?.status||'none'];
-  const choices=p?[p.choice1,p.choice2,p.choice3].map((m,i)=>`<span class="lp-chip ${p.assigned_month===m?'assigned':''}" title="اضغط لتحويل الحجز لهذا الشهر" onclick="lpAssign('${esc(r.id)}',${m})"><span class="n">${i+1}</span>${LP_MONTHS_AR[m-1]}</span>`).join(''):'<span class="small-note">—</span>';
+  const choices=`<span class="lp-curlbl">خيارات ${lpState.year}:</span>`+(p?[p.choice1,p.choice2,p.choice3].map((m,i)=>`<span class="lp-chip ${p.assigned_month===m?'assigned':''}" title="اضغط لتحويل الحجز لهذا الشهر" onclick="lpAssign('${esc(r.id)}',${m})"><span class="n">${i+1}</span>${LP_MONTHS_AR[m-1]}</span>`).join(''):'<span class="small-note">—</span>');
   const id=esc(r.id),acts=[];
   if(p?.status==='submitted')acts.push(`<button class="primary" onclick="lpSetStatus('${id}','approved')">اعتماد الشهر</button>`,`<button class="danger" onclick="lpReject('${id}')">رفض</button>`);
   if(p&&p.status!=='submitted'&&p.dates_status!=='approved')acts.push(`<button class="secondary" onclick="lpSetStatus('${id}','submitted')">إرجاع للانتظار</button>`);
