@@ -1101,3 +1101,4 @@
     .lp-mp-row b{font-size:13px}.lp-mp-row small{display:block;font-size:11px;color:var(--muted)}
     .lp-mp-tag{font-size:11px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap}
     .lp-mp-tag.ok{background:#ecf8f0;color:#1c6b3a}.lp-mp-tag.pend{background:#fff6e2;color:#8a5a00}.lp-mp-tag.bad{background:#fdeeee;color:#a12828}.lp-mp-tag.mid{background:#eef3fb;color:#2563c9}
+    .lp-month-chip{background:#e8a83c!important;color:#fff!important;border-color:#e8a83c!important}
