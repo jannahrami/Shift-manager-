@@ -499,7 +499,9 @@ function lpxDownload(blob,filename){const url=URL.createObjectURL(blob),a=docume
 /* ورقة التوزيع: نفس شكل ملف الإجازات القديم — كل شهر جدول، يناير–يونيو يسار ويوليو–ديسمبر يمين */
 function lpDistributionSheet(rows,year,max){
   const md=d=>{const [,m,dd]=d.split('-').map(Number);return `${LP_MONTHS_EN[m-1].slice(0,3)} ${dd}`};
-  const E=(v,s)=>({v,s});
+  const E=(v,s)=>({v,s}),py=year-1,ORD=['1st choice','2nd choice','3rd choice'];
+  /* خيارات السنة الماضية: الشهر اللي أخذه وكان خياره رقم كم */
+  const prevOpt=r=>{const badge=String(r.badge||''),c=py===2026?LP_CHOICES_2026?.[badge]:lpState.prevPlans?.[badge];if(!c?.length)return 'not recorded';const vm=py===2026?LP_VAC_2026?.[badge]:null,ll=vm?null:lpLongestLeave(r.id,py),ms=vm||(ll?[ll.m]:[]);if(!ms.length)return 'no leave';return ms.map(m=>{const k=c.indexOf(m);return `${LP_MONTHS_EN[m-1].slice(0,3)} · ${k<0?'not in options':ORD[k]}`}).join(' + ')};
   /* كل فترة تنحط تحت الشهر اللي تبدأ فيه (موظف عنده فترة في يناير وفترة في يونيو يطلع في الشهرين) */
   const entries=[];
   rows.filter(r=>r.plan&&r.plan.status!=='rejected').forEach(r=>{
@@ -511,30 +513,30 @@ function lpDistributionSheet(rows,year,max){
   const block=m=>{
     const list=entries.filter(e=>e.m===m)
       .sort((a,b)=>String(a.periods[0]?.start||'9').localeCompare(String(b.periods[0]?.start||'9'))||String(a.r.employee?.name||a.r.name).localeCompare(String(b.r.employee?.name||b.r.name)));
-    const out=[{height:26,title:true,cells:[E(`${LP_MONTHS_EN[m-1]} 1, ${year}`,'mTitle'),E('','mTitle'),E('','mTitle'),E('','mTitle'),E('','mTitle')]},
-      {height:24,cells:['No.','Badge #','Name','Vacation',`Remaining ${year}`].map(v=>E(v,'dHead'))}];
+    const out=[{height:26,title:true,cells:[E(`${LP_MONTHS_EN[m-1]} 1, ${year}`,'mTitle'),E('','mTitle'),E('','mTitle'),E('','mTitle'),E('','mTitle'),E('','mTitle')]},
+      {height:24,cells:['No.','Badge #','Name','Vacation',`Remaining ${year}`,`${py} Options`].map(v=>E(v,'dHead'))}];
     const n=Math.max(list.length,max);
     for(let i=0;i<n;i++){
       const en=list[i],r=en?.r,p=r?.plan;
-      if(!r){out.push({height:22,cells:[E(i+1,'dBody'),E('','dBody'),E('','dBody'),E('','dBody'),E('','dBody')]});continue}
+      if(!r){out.push({height:22,cells:[E(i+1,'dBody'),E('','dBody'),E('','dBody'),E('','dBody'),E('','dBody'),E('','dBody')]});continue}
       const monthOk=p.status==='approved',ds=p.dates_status;
       const st=!monthOk?'dGray':ds==='approved'?'dGreen':ds==='submitted'?'dYellow':'dBody';
       const vac=en.periods.length?en.periods.map(x=>`${md(x.start)} to ${md(x.end)}`).join('  /  '):(monthOk?'month approved':'month pending');
-      out.push({height:en.periods.length>1?36:22,cells:[E(i+1,st),E(r.badge,st),E(r.employee?.name||r.name,st),E(vac,st),(()=>{const pb=lpProjectedBalance(r,year);return pb?E(pb.balance,st!=='dGray'&&pb.balance<0?'prevWarn':st):E('—',st)})()]});
+      out.push({height:en.periods.length>1?36:22,cells:[E(i+1,st),E(r.badge,st),E(r.employee?.name||r.name,st),E(vac,st),(()=>{const pb=lpProjectedBalance(r,year);return pb?E(pb.balance,st!=='dGray'&&pb.balance<0?'prevWarn':st):E('—',st)})(),E(prevOpt(r),st)]});
     }
     return out;
   };
-  const side=ms=>ms.flatMap((m,i)=>[...(i?[{height:10,cells:[null,null,null,null,null]}]:[]),...block(m)]);
-  const L=side([1,2,3,4,5,6]),R=side([7,8,9,10,11,12]),top=3,out=[],merges=['A1:K1','A2:K2'];
-  out.push({height:32,cells:[E(`Group-A  ·  Annual Leave Plan ${year}`,'gTitle'),...Array(10).fill(E('','gTitle'))]});
-  out.push({height:20,cells:[E(`Green = dates approved   ·   Yellow = dates under review   ·   White = month approved, dates not set   ·   Grey = month under review   ·   Remaining ${year} = ${year-1} balance (max 9 carried) + 30 − leave days`,'dLegend'),...Array(10).fill(E('','dLegend'))]});
+  const side=ms=>ms.flatMap((m,i)=>[...(i?[{height:10,cells:[null,null,null,null,null,null]}]:[]),...block(m)]);
+  const L=side([1,2,3,4,5,6]),R=side([7,8,9,10,11,12]),top=3,out=[],merges=['A1:M1','A2:M2'];
+  out.push({height:32,cells:[E(`Group-A  ·  Annual Leave Plan ${year}`,'gTitle'),...Array(12).fill(E('','gTitle'))]});
+  out.push({height:20,cells:[E(`Green = dates approved   ·   Yellow = dates under review   ·   White = month approved, dates not set   ·   Grey = month under review   ·   Remaining ${year} = ${year-1} balance (max 9 carried) + 30 − leave days   ·   ${py} Options = month taken in ${py} and which choice it was`,'dLegend'),...Array(12).fill(E('','dLegend'))]});
   out.push({height:8,cells:[]});
   for(let i=0;i<Math.max(L.length,R.length);i++){
-    const l=L[i]||{height:0,cells:[null,null,null,null,null]},r=R[i]||{height:0,cells:[null,null,null,null,null]},row=top+i+1;
-    if(l.title)merges.push(`A${row}:E${row}`);if(r.title)merges.push(`G${row}:K${row}`);
+    const l=L[i]||{height:0,cells:[null,null,null,null,null,null]},r=R[i]||{height:0,cells:[null,null,null,null,null,null]},row=top+i+1;
+    if(l.title)merges.push(`A${row}:F${row}`);if(r.title)merges.push(`H${row}:M${row}`);
     out.push({height:Math.max(l.height,r.height)||20,cells:[...l.cells,null,...r.cells]});
   }
-  return {name:'التوزيع',ltr:true,cols:[6,11,36,27,15,4,6,11,36,27,15],merges,rows:out};
+  return {name:'التوزيع',ltr:true,cols:[6,11,36,27,15,22,4,6,11,36,27,15,22],merges,rows:out};
 }
 /* رصيد السنة القادمة المتوقع: نفس قاعدة التطبيق (ترحيل 9 أيام بالحد الأعلى + 30) ناقص إجازاتها */
 function lpProjectedBalance(r,year){
