@@ -595,10 +595,6 @@ function lpLongestLeave(id,year){
   });
   return best;
 }
-/* خيارات خطة 2026 (من جدول Excel اللي كان قبل البرنامج) حسب رقم الباج: [الأول، الثاني، الثالث] */
-const LP_CHOICES_2026={"101771":[5,8,11],"101725":[8,11,4],"101702":[3,6,12],"103630":[10,7,4],"101655":[8,4,12],"103389":[11,12,12],"101650":[12,7,4],"101662":[12,8,4],"104121":[4,10,6],"101738":[12,8,4],"102305":[11,7,3],"101634":[7,12,4],"102299":[3,7,12],"103661":[9,8,4],"101631":[7,6,9],"103871":[7,11,4],"102301":[7,11,2],"101690":[11,8,1],"101632":[8,11,4],"101708":[7,10,4],"104165":[4,7,12],"104722":[12,8,4],"102593":[10,9,11],"101718":[8,12,4],"104495":[5,12,4],"104116":[9,6,4],"101749":[8,12,1],"102293":[7,12,4],"101741":[11,8,3],"101694":[7,9,4],"101697":[4,7,12],"102297":[7,12,3],"102286":[7,9,4],"101988":[6,9,12],"101700":[8,11,4],"103619":[11,7,4],"101703":[8,12,4],"101701":[11,5,4],"103409":[8,4,12],"101698":[8,12,4]};
-/* أشهر إجازة 2026 الفعلية (من جدول 2026 Vacation Plan) حسب رقم الباج */
-const LP_VAC_2026={"101749":[1],"101702":[3],"102299":[3],"102297":[3],"104121":[4],"104165":[4],"101697":[4],"103409":[4],"101771":[10],"104495":[5],"101701":[5],"101631":[6],"104116":[6],"102286":[6],"101988":[6],"101634":[7],"103871":[7],"102301":[7],"102293":[7],"101725":[8],"101655":[8],"101632":[8],"101703":[8],"101698":[8],"103661":[9],"102593":[9],"101694":[9],"103630":[10],"101708":[10],"103619":[10],"101700":[10],"101738":[11],"102305":[11],"101690":[11],"101741":[11],"101650":[12],"101662":[12],"104722":[12],"101718":[12]};
 function lpGivenChoice(badge,year,month){
   const c=year===2026?LP_CHOICES_2026[String(badge||'')]:lpState.prevPlans?.[String(badge||'')];
   if(!c||!month)return null;const i=c.indexOf(month);return i<0?`خارج الخيارات (${c.map(x=>LP_MONTHS_AR[x-1]).join('، ')})`:i+1;
@@ -901,13 +897,15 @@ let aiRealtimeResponseActive=false;
 let aiRealtimeResponsePending=null;
 
 /* ===== رابط السوبرفايزر: صفحة مؤشرات للقراءة فقط ===== */
-function smShareUrl(token){return new URL('supervisor.html?t='+token,location.href).href}
-async function smShareOpen(){
+let smScope='insights';
+function smShareUrl(token){return new URL((smScope==='leaveplan'?'plan-view.html':'supervisor.html')+'?t='+token,location.href).href}
+async function smShareOpen(scope='insights'){
+  smScope=scope==='leaveplan'?'leaveplan':'insights';const isPlan=smScope==='leaveplan';
   if(!isAdmin())return;
   document.getElementById('smShareBox')?.remove();
   const box=document.createElement('div');box.id='smShareBox';box.className='modal show';
-  box.innerHTML=`<div class="sheet" style="max-width:560px;max-height:86vh;overflow:auto"><button type="button" class="sheet-x" aria-label="إغلاق" onclick="document.getElementById('smShareBox').remove()">×</button><h3 style="margin:0 0 4px">مشاركة المؤشرات</h3>
-    <p class="small-note" style="margin:0 0 12px">رابط يفتح صفحة المؤشرات بس، للقراءة، ويتحدث تلقائياً. ما يقدر صاحبه يدخل البرنامج أو يعدّل، وما يشوف أرقام الجوالات. تقدر تلغي الرابط أي وقت.</p>
+  box.innerHTML=`<div class="sheet" style="max-width:560px;max-height:86vh;overflow:auto"><button type="button" class="sheet-x" aria-label="إغلاق" onclick="document.getElementById('smShareBox').remove()">×</button><h3 style="margin:0 0 4px">${isPlan?'مشاركة خطة الإجازة':'مشاركة المؤشرات'}</h3>
+    <p class="small-note" style="margin:0 0 12px">${isPlan?'رابط يفتح صفحة خطة الإجازة بس (الأرقام والأشهر وخيارات كل موظف)، للقراءة، ويتحدث تلقائياً. ما يشوف أزرار الروابط والاعتماد والتصدير، وما يقدر يعدّل أي شي.':'رابط يفتح صفحة المؤشرات بس، للقراءة، ويتحدث تلقائياً. ما يقدر صاحبه يدخل البرنامج أو يعدّل، وما يشوف أرقام الجوالات.'} تقدر تلغي الرابط أي وقت.</p>
     <div style="display:flex;gap:8px;margin-bottom:12px"><input id="smShareLabel" placeholder="لمين الرابط؟ مثال: السوبرفايزر" style="flex:1"><button class="primary" onclick="smShareCreate()">إنشاء رابط</button></div>
     <div id="smShareList" class="small-note">جاري التحميل…</div>
     <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="secondary" onclick="document.getElementById('smShareBox').remove()">إغلاق</button></div></div>`;
@@ -917,18 +915,18 @@ async function smShareOpen(){
 async function smShareLoad(){
   const el=document.getElementById('smShareList');if(!el)return;
   try{
-    const rows=await lpApi('/rest/v1/sm_share_links?revoked=eq.false&select=token,label,created_at,last_seen&order=created_at.desc')||[];
+    const rows=await lpApi(`/rest/v1/sm_share_links?revoked=eq.false&scope=eq.${smScope}&select=token,label,created_at,last_seen&order=created_at.desc`)||[];
     el.innerHTML=rows.length?rows.map(r=>`<div class="lp-rm-row"><div class="n"><b>${esc(r.label||'بدون اسم')}</b><small>${r.last_seen?'آخر فتح '+lpAgo(r.last_seen):'ما انفتح بعد'}</small></div>
       <button class="secondary" onclick="smShareCopy('${r.token}')">نسخ</button><button class="primary" onclick="smShareWa('${r.token}')">واتساب</button><button class="secondary danger" onclick="smShareRevoke('${r.token}')">إلغاء</button></div>`).join(''):'ما فيه روابط. اكتب لمين الرابط واضغط «إنشاء رابط».';
   }catch(e){el.textContent='تعذر التحميل: '+e.message}
 }
 async function smShareCreate(){
   const label=(document.getElementById('smShareLabel')?.value||'').trim()||'السوبرفايزر';
-  try{await lpApi('/rest/v1/sm_share_links',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({label})});document.getElementById('smShareLabel').value='';smShareLoad()}
+  try{await lpApi('/rest/v1/sm_share_links',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({label,scope:smScope})});document.getElementById('smShareLabel').value='';smShareLoad()}
   catch(e){alert('تعذر إنشاء الرابط: '+e.message)}
 }
 function smShareCopy(t){lpCopyText(smShareUrl(t),'تم نسخ الرابط ✓')}
-function smShareWa(t){const msg=`السلام عليكم\nهذا رابط مؤشرات Group A (للعرض فقط، ويتحدث تلقائياً):\n${smShareUrl(t)}`;const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;const w=window.open(url,'_blank');if(!w)location.href=url}
+function smShareWa(t){const msg=`السلام عليكم\nهذا رابط ${smScope==='leaveplan'?'خطة الإجازة السنوية':'مؤشرات'} Group A (للعرض فقط، ويتحدث تلقائياً):\n${smShareUrl(t)}`;const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;const w=window.open(url,'_blank');if(!w)location.href=url}
 async function smShareRevoke(t){
   if(!confirm('إلغاء الرابط؟ اللي عنده الرابط ما راح يقدر يفتحه بعدها.'))return;
   try{await lpApi(`/rest/v1/sm_share_links?token=eq.${t}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({revoked:true})});smShareLoad()}

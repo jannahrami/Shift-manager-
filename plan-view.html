@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="robots" content="noindex,nofollow" />
+<title>خطة الإجازة — Group A</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css?v=20261117l">
+<style>
+  body{background:#f3f5f9}
+  .pv-wrap{max-width:1500px;margin:0 auto;padding:16px 16px 40px}
+  .pv-top{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+  .pv-logo{width:42px;height:42px;border-radius:12px;background:#0a0f17;color:#5fd6d2;display:grid;place-items:center;font-weight:800;font-size:19px;flex:0 0 auto}
+  .pv-top b{display:block;font-size:17px}.pv-top small{color:var(--muted);font-size:12.5px}
+  .pv-ro{margin-inline-start:auto;font-size:11.5px;font-weight:700;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;white-space:nowrap}
+  .pv-state{text-align:center;padding:60px 20px;color:var(--muted)}.pv-state b{display:block;color:var(--text);font-size:17px;margin-bottom:6px}
+  .pv-foot{text-align:center;font-size:11px;color:var(--muted);margin-top:18px}
+  .lp-chip{cursor:default}
+  #pvList{display:flex!important;flex-direction:column;gap:8px;grid-template-columns:none!important}
+  #pvList .lp-row{padding:10px 12px!important;min-height:0!important;height:auto!important;overflow:visible!important}
+  #pvList .lp-row{grid-template-columns:minmax(150px,.75fr) minmax(0,3fr)!important}
+  @media(max-width:700px){#pvList .lp-row{grid-template-columns:1fr!important}}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="pv-wrap">
+  <div class="pv-top"><div class="pv-logo">S</div><div><b id="pvTitle">خطة الإجازة السنوية</b><small id="pvAsOf">جاري التحميل…</small></div><span class="pv-ro">للعرض فقط</span></div>
+  <div id="pvState" class="pv-state">جاري التحميل…</div>
+  <div id="pvApp" class="hidden">
+    <div class="section lp-section">
+      <div class="lp-stats" id="pvStats"></div>
+      <div class="lp-months" id="pvMonths"></div>
+      <div class="lp-filter" id="pvFilter"></div>
+      <div class="list" id="pvList"></div>
+    </div>
+    <div class="pv-foot">تتحدث تلقائياً كل 5 دقائق</div>
+  </div>
+</div>
+<script src="js/lp-history.js?v=20261117l"></script>
+<script>
+const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
+const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
+const M=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const ME=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const STATUS={none:['لم يسلّم','b-neutral'],submitted:['قيد المراجعة','b-yellow'],approved:['معتمدة','b-green'],rejected:['مرفوضة','b-red']};
+const DATES={none:['بانتظار تحديد التواريخ','b-neutral'],submitted:['التواريخ قيد المراجعة','b-yellow'],approved:['التواريخ معتمدة ✓','b-green'],rejected:['التواريخ مرفوضة','b-red']};
+const ANCHOR='2026-08-30',CYCLE=[{from:0,to:6,code:'N'},{from:7,to:8,code:'OFF'},{from:9,to:15,code:'A'},{from:16,to:17,code:'OFF'},{from:18,to:24,code:'M'},{from:25,to:27,code:'OFF'}];
+const WORD={N:'ليل',A:'مساء',M:'صباح'};
+const token=new URLSearchParams(location.search).get('t')||'';
+let D=null,filter='all',monthSel=0;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const diff=(a,b)=>Math.round((new Date(a+'T12:00:00')-new Date(b+'T12:00:00'))/86400000);
+const add=(d,n)=>{const x=new Date(d+'T12:00:00');x.setDate(x.getDate()+n);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};
+const day=d=>{const [y,m,dd]=d.split('-').map(Number);return `${dd} ${M[m-1]}`};
+const shiftOf=d=>{const i=((diff(d,ANCHOR)%28)+28)%28;return CYCLE.find(s=>i>=s.from&&i<=s.to)};
+
+async function load(){
+  if(!/^[0-9a-f-]{36}$/i.test(token)){showState('الرابط غير صحيح','تأكد إنك فتحت الرابط كامل مثل ما وصلك.');return}
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/rpc/sm_leaveplan_view`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_token:token})});
+    const j=await res.json();
+    if(!j||!j.ok){showState('الرابط ما يشتغل','ممكن يكون انلغى. اطلب رابط جديد من المسؤول.');return}
+    D=j;render();
+  }catch(e){if(!D)showState('تعذر التحميل','تأكد من الإنترنت وحدّث الصفحة.')}
+}
+function showState(t,s){$('pvState').innerHTML=`<b>${esc(t)}</b>${esc(s)}`;$('pvState').classList.remove('hidden');$('pvApp').classList.add('hidden');$('pvAsOf').textContent=''}
+
+function rows(){
+  const plans=new Map((D.plans||[]).map(p=>[String(p.employee_id),p])),links=new Map((D.links||[]).map(l=>[String(l.employee_id),l]));
+  const r=(D.employees||[]).map(e=>{const id=String(e.id);return {id,name:e.name||links.get(id)?.name||'',badge:String(e.badge||links.get(id)?.badge||''),plan:plans.get(id)}});
+  (D.links||[]).forEach(l=>{if(!r.some(x=>x.id===String(l.employee_id)))r.push({id:String(l.employee_id),name:l.name,badge:l.badge,plan:plans.get(String(l.employee_id))})});
+  return r.sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
+}
+function prevLeave(id,year){
+  const days=Array(13).fill(0);
+  (D.leaves||[]).forEach(l=>{
+    if(String(l.employeeId)!==String(id)||l.course)return;
+    const s=/^(\d{4})-(\d{2})-(\d{2})$/.exec(l.start||''),e=/^(\d{4})-(\d{2})-(\d{2})$/.exec(l.end||'');if(!s||!e)return;
+    let d=Date.UTC(+s[1],+s[2]-1,+s[3]);const end=Date.UTC(+e[1],+e[2]-1,+e[3]);
+    for(let g=0;d<=end&&g<400;d+=86400000,g++){const x=new Date(d);if(x.getUTCFullYear()===year)days[x.getUTCMonth()+1]++}
+  });
+  const months=[];for(let m=1;m<=12;m++)if(days[m])months.push({m,days:days[m]});
+  return {months,main:new Set(months.filter(x=>x.days>=7).map(x=>x.m))};
+}
+function longestLeave(id,year){
+  let best=null;
+  (D.leaves||[]).forEach(l=>{
+    if(String(l.employeeId)!==String(id)||l.course)return;
+    const s=/^(\d{4})-(\d{2})-(\d{2})$/.exec(l.start||''),e=/^(\d{4})-(\d{2})-(\d{2})$/.exec(l.end||'');if(!s||!e)return;
+    const per=Array(13).fill(0);let d=Date.UTC(+s[1],+s[2]-1,+s[3]);const end=Date.UTC(+e[1],+e[2]-1,+e[3]);
+    for(let g=0;d<=end&&g<400;d+=86400000,g++){const x=new Date(d);if(x.getUTCFullYear()===year)per[x.getUTCMonth()+1]++}
+    const n=per.reduce((a,b)=>a+b,0);if(!n)return;const m=per.indexOf(Math.max(...per));if(!best||n>best.days)best={m,days:n};
+  });
+  return best;
+}
+function prevChoices(r){
+  const py=D.year-1,badge=String(r.badge||''),c=py===2026?(typeof LP_CHOICES_2026!=='undefined'?LP_CHOICES_2026[badge]:null):null;
+  if(!c?.length)return `<div class="lp-prevch muted">خيارات ${py}: غير مسجّلة</div>`;
+  const vm=py===2026&&typeof LP_VAC_2026!=='undefined'?LP_VAC_2026[badge]:null,ll=vm?null:longestLeave(r.id,py),months=vm||(ll?[ll.m]:[]);
+  const ord=['الأول','الثاني','الثالث'];
+  const got=months.map(m=>{const i=c.indexOf(m);return i<0?`<b class="out">${M[m-1]} · خارج خياراته</b>`:`<b class="in">${M[m-1]} · الخيار ${ord[i]}</b>`}).join(' + ');
+  return `<div class="lp-prevch"><span class="t">خيارات ${py}:</span>${c.map((m,i)=>`<span class="c ${months.includes(m)?'got':''}">${i+1} ${M[m-1]}</span>`).join('')}<span class="g">${got?`أخذ: ${got}`:`ما أخذ إجازة ${py}`}</span></div>`;
+}
+function shiftsOfPeriod(x){
+  const parts=[];let cur=null;
+  for(let d=x.start,g=0;d<=x.end&&g<400;d=add(d,1),g++){
+    const sh=shiftOf(d);if(!WORD[sh.code])continue;
+    let st=d;for(let i=1;i<=28;i++){const pv=add(d,-i);if(shiftOf(pv).code!==sh.code)break;st=pv}
+    const key=sh.code+st;
+    if(cur&&cur.key===key)cur.days++;else{cur={key,code:sh.code,days:1};parts.push(cur)}
+  }
+  let back=null;for(let i=1;i<=7;i++){const d=add(x.end,i),s=shiftOf(d);if(s.code!=='OFF'){back={date:d,code:s.code};break}}
+  return parts.map(p=>WORD[p.code]+(p.days<7?` (${p.days} ${p.days<=10&&p.days>=3?'أيام':'يوم'})`:'')).join(' - ')+(back?` · يباشر ${day(back.date)} ${WORD[back.code]||''}`:'');
+}
+function rowHtml(r){
+  const p=r.plan,[label,cls]=STATUS[p?.status||'none'];
+  const choices=`<div class="lp-curch"><span class="lp-curlbl">خيارات ${D.year}:</span>`+(p?[p.choice1,p.choice2,p.choice3].map((m,i)=>`<span class="lp-chip ${p.assigned_month===m?'assigned':''}"><span class="n">${i+1}</span>${M[m-1]}</span>`).join(''):'<span class="small-note">—</span>')+'</div>';
+  let datesHtml='';
+  if(p?.status==='approved'){
+    const ds=p.dates_status||'none',[dl,dc]=DATES[ds],per=p.periods||[];
+    datesHtml=`<div class="lp-dates"><span class="badge ${dc}">${dl}</span>${per.length?`<span class="lp-dates-text">${esc(per.map(x=>`${day(x.start)} إلى ${day(x.end)} (${diff(x.end,x.start)+1} يوم)`).join('  ·  '))}</span><span class="small-note">${esc(per.map(shiftsOfPeriod).filter(Boolean).join(' | '))}</span>`:''}</div>`;
+  }
+  const py=D.year-1,prev=prevLeave(r.id,py),rep=p&&p.status!=='rejected'&&prev.main.has(p.assigned_month);
+  const prevLine=`<small class="lp-prev">إجازة ${py}: ${prev.months.length?prev.months.map(x=>`${M[x.m-1]} (${x.days})`).join('، '):'لا يوجد'}</small>`;
+  const repTag=rep?`<span class="badge b-red" style="display:inline-block;margin-top:5px;margin-right:4px">⚠ نفس شهر ${py}</span>`:'';
+  return `<div class="row lp-row"><div class="lp-who"><b>${esc(r.name)}</b><small>رقم الباج ${esc(r.badge)}</small>${prevLine}<span class="badge ${cls}" style="display:inline-block;margin-top:5px">${label}</span>${repTag}</div><div class="lp-choices">${prevChoices(r)}${choices}${datesHtml}</div></div>`;
+}
+function toggleMonth(m){monthSel=monthSel===m?0:m;render();if(monthSel)$('pvFilter').scrollIntoView({behavior:'smooth',block:'start'})}
+function setFilter(k){filter=k;render()}
+function render(){
+  $('pvState').classList.add('hidden');$('pvApp').classList.remove('hidden');
+  $('pvTitle').textContent=`خطة الإجازة السنوية ${D.year}`;
+  $('pvAsOf').textContent=`آخر تحديث ${new Date().toLocaleTimeString('ar-SA-u-nu-latn',{hour:'numeric',minute:'2-digit'})}`;
+  const R=rows(),max=Number(D.max)||6,counts=Array(13).fill(0);
+  (D.plans||[]).forEach(p=>{if(p.status!=='rejected')counts[p.assigned_month]++});
+  const st=k=>R.filter(r=>(r.plan?.status||'none')===k).length,sent=R.filter(r=>r.plan).length;
+  $('pvStats').innerHTML=[[sent,'سلّموا'],[R.length-sent,'لم يسلّموا'],[st('submitted'),'بانتظار الاعتماد'],[st('approved'),'معتمدة']].map(([n,l])=>`<div class="lp-stat"><b>${n}</b><span>${l}</span></div>`).join('');
+  $('pvMonths').innerHTML=M.map((m,i)=>{const n=counts[i+1],pct=Math.min(100,Math.round(n/max*100));return `<button type="button" class="lp-month ${n>=max?'full':n>=max-1?'near':''} ${monthSel===i+1?'sel':''}" title="${ME[i]} · اضغط لعرض موظفي هالشهر" onclick="toggleMonth(${i+1})"><b>${m}</b>${n} / ${max}<div class="bar"><i style="width:${pct}%"></i></div></button>`}).join('');
+  const dst=k=>R.filter(r=>r.plan?.status==='approved'&&(r.plan.dates_status||'none')===k).length;
+  const F=[['all','الكل',R.length],['none','لم يسلّم',st('none')],['submitted','بانتظار',st('submitted')],['approved','معتمدة',st('approved')],['rejected','مرفوضة',st('rejected')],['d_none','لم يحدد التواريخ',dst('none')],['d_submitted','تواريخ للمراجعة',dst('submitted')],['d_approved','تواريخ معتمدة',dst('approved')]];
+  const inMonth=r=>!monthSel||(r.plan&&r.plan.status!=='rejected'&&r.plan.assigned_month===monthSel);
+  $('pvFilter').innerHTML=(monthSel?`<button class="secondary on lp-month-chip" onclick="toggleMonth(${monthSel})">شهر ${M[monthSel-1]} (${R.filter(inMonth).length}) ✕</button>`:'')+F.map(([k,l,n])=>`<button class="secondary ${filter===k?'on':''}" onclick="setFilter('${k}')">${l} (${n})</button>`).join('');
+  const shown=R.filter(inMonth).filter(r=>{if(filter==='all')return true;if(filter.startsWith('d_'))return r.plan?.status==='approved'&&(r.plan.dates_status||'none')===filter.slice(2);return (r.plan?.status||'none')===filter});
+  $('pvList').innerHTML=shown.length?shown.map(rowHtml).join(''):`<div class="small-note" style="padding:12px">لا يوجد موظفين في هذا التصنيف${monthSel?' في شهر '+M[monthSel-1]:''}</div>`;
+}
+load();setInterval(load,5*60*1000);
+</script>
+</body>
+</html>
