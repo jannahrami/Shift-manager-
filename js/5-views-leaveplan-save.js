@@ -75,13 +75,25 @@ function lpRows(){
   return rows.sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
 }
 function lpMonthCounts(excludeId=''){const c=Array(13).fill(0);lpState.plans.forEach(p=>{if(p.status!=='rejected'&&String(p.employee_id)!==excludeId)c[p.assigned_month]++});return c}
+/* الضغط على شهر يعرض اللي في هالشهر تحت البطاقات */
+let lpMonthSel=0;
+function lpToggleMonth(m){lpMonthSel=lpMonthSel===m?0:m;lpRender()}
+function lpMonthPeople(rows){
+  if(!lpMonthSel)return '';
+  const list=rows.filter(r=>r.plan&&r.plan.status!=='rejected'&&r.plan.assigned_month===lpMonthSel)
+    .sort((a,b)=>(a.plan.status==='approved'?0:1)-(b.plan.status==='approved'?0:1)||String(a.name).localeCompare(String(b.name)));
+  const tag=p=>p.status!=='approved'?['الشهر قيد المراجعة','pend']:p.dates_status==='approved'?['التواريخ معتمدة','ok']:p.dates_status==='submitted'?['التواريخ قيد المراجعة','pend']:p.dates_status==='rejected'?['التواريخ مرفوضة','bad']:['الشهر معتمد · ما حدد التواريخ','mid'];
+  const items=list.map(r=>{const p=r.plan,[t,c]=tag(p),dates=(p.periods||[]).length?lpPeriodsText(p,' · '):'';
+    return `<div class="lp-mp-row"><div><b>${esc(r.name)}</b><small>${esc(r.badge||'')}${p.choice1===lpMonthSel?'':` · خياره الأول ${LP_MONTHS_AR[p.choice1-1]}`}</small>${dates?`<small>${esc(dates)}</small>`:''}</div><span class="lp-mp-tag ${c}">${t}</span></div>`}).join('');
+  return `<div class="lp-month-people"><div class="lp-mp-head"><b>${LP_MONTHS_AR[lpMonthSel-1]} · ${list.length} موظف</b><button type="button" class="secondary" onclick="lpToggleMonth(${lpMonthSel})">إخفاء</button></div>${items||'<div class="small-note">ما فيه أحد في هالشهر</div>'}</div>`;
+}
 function lpRender(){
   const rows=lpRows(),counts=lpMonthCounts(),max=lpMax();
   const st=k=>rows.filter(r=>(r.plan?.status||'none')===k).length;
   const sent=rows.filter(r=>r.plan).length;
   lpEl('lpDl').innerHTML=lpDeadlineBanner(rows);lpNavDot();
   lpEl('lpStats').innerHTML=[[sent,'سلّموا'],[rows.length-sent,'لم يسلّموا'],[st('submitted'),'بانتظار الاعتماد'],[st('approved'),'معتمدة']].map(([n,l])=>`<div class="lp-stat"><b>${n}</b><span>${l}</span></div>`).join('');
-  lpEl('lpMonths').innerHTML=LP_MONTHS_AR.map((m,i)=>{const n=counts[i+1],pct=Math.min(100,Math.round(n/max*100));return `<div class="lp-month ${n>=max?'full':n>=max-1?'near':''}" title="${LP_MONTHS_EN[i]}"><b>${m}</b>${n} / ${max}<div class="bar"><i style="width:${pct}%"></i></div></div>`}).join('');
+  lpEl('lpMonths').innerHTML=LP_MONTHS_AR.map((m,i)=>{const n=counts[i+1],pct=Math.min(100,Math.round(n/max*100));return `<button type="button" class="lp-month ${n>=max?'full':n>=max-1?'near':''} ${lpMonthSel===i+1?'sel':''}" title="${LP_MONTHS_EN[i]} · اضغط لعرض الأسماء" onclick="lpToggleMonth(${i+1})"><b>${m}</b>${n} / ${max}<div class="bar"><i style="width:${pct}%"></i></div></button>`}).join('')+lpMonthPeople(rows);
   const dst=k=>rows.filter(r=>r.plan?.status==='approved'&&(r.plan.dates_status||'none')===k).length;
   const filters=[['all','الكل',rows.length],['none','لم يسلّم',st('none')],['submitted','بانتظار',st('submitted')],['approved','معتمدة',st('approved')],['rejected','مرفوضة',st('rejected')],['d_none','لم يحدد التواريخ',dst('none')],['d_submitted','تواريخ للمراجعة',dst('submitted')],['d_approved','تواريخ معتمدة',dst('approved')]];
   lpEl('lpFilter').innerHTML=filters.map(([k,l,n])=>`<button class="secondary ${lpState.filter===k?'on':''}" onclick="lpState.filter='${k}';lpRender()">${l} (${n})</button>`).join('');
