@@ -1102,3 +1102,7 @@
     .lp-mp-tag{font-size:11px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap}
     .lp-mp-tag.ok{background:#ecf8f0;color:#1c6b3a}.lp-mp-tag.pend{background:#fff6e2;color:#8a5a00}.lp-mp-tag.bad{background:#fdeeee;color:#a12828}.lp-mp-tag.mid{background:#eef3fb;color:#2563c9}
     .lp-month-chip{background:#e8a83c!important;color:#fff!important;border-color:#e8a83c!important}
+    .lp-prevch{display:flex;flex-wrap:wrap;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);margin-bottom:6px;padding:5px 8px;border:1px dashed var(--line);border-radius:10px;background:var(--card2)}
+    .lp-prevch .t{font-weight:700}.lp-prevch .c{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:1px 8px;color:var(--text)}
+    .lp-prevch .c.got{border-color:#9bd3ae;background:#ecf8f0;color:#1c6b3a;font-weight:800}
+    .lp-prevch .g{margin-inline-start:4px}.lp-prevch .g b.in{color:#1c6b3a}.lp-prevch .g b.out{color:#a12828}.lp-prevch.muted{border-style:dotted}
