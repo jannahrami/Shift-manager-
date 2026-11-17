@@ -506,7 +506,7 @@ function lpDistributionSheet(rows,year,max){
       if(!r){out.push({height:22,cells:[E(i+1,'dBody'),E('','dBody'),E('','dBody'),E('','dBody'),E('','dBody')]});continue}
       const monthOk=p.status==='approved',ds=p.dates_status;
       const st=!monthOk?'dGray':ds==='approved'?'dGreen':ds==='submitted'?'dYellow':'dBody';
-      const vac=en.periods.length?en.periods.map(x=>`${md(x.start)} to ${md(x.end)}`).join('  /  '):(monthOk?'':'month pending');
+      const vac=en.periods.length?en.periods.map(x=>`${md(x.start)} to ${md(x.end)}`).join('  /  '):(monthOk?'month approved':'month pending');
       out.push({height:en.periods.length>1?36:22,cells:[E(i+1,st),E(r.badge,st),E(r.employee?.name||r.name,st),E(vac,st),(()=>{const pb=lpProjectedBalance(r,year);return pb?E(pb.balance,st!=='dGray'&&pb.balance<0?'prevWarn':st):E('—',st)})()]});
     }
     return out;
