@@ -129,6 +129,7 @@ function lpRowHtml(r){
   if(p?.status==='submitted')acts.push(`<button class="primary" onclick="lpSetStatus('${id}','approved')">اعتماد الشهر</button>`,`<button class="danger" onclick="lpReject('${id}')">رفض</button>`);
   if(p&&p.status!=='submitted'&&p.dates_status!=='approved')acts.push(`<button class="secondary" onclick="lpSetStatus('${id}','submitted')">إرجاع للانتظار</button>`);
   let datesHtml='';
+  if(p&&p.status!=='approved'&&p.periods?.length)datesHtml=`<div class="lp-dates"><span class="badge b-neutral">التواريخ محفوظة</span><span class="lp-dates-text">${esc(lpPeriodsText(p))}</span><span class="small-note">${esc(lpShiftsText(p))}</span></div>`;
   if(p?.status==='approved'){
     const ds=p.dates_status||'none',[dl,dc]=LP_DATES[ds];
     datesHtml=`<div class="lp-dates"><span class="badge ${dc}">${dl}</span>${p.periods?.length?`<span class="lp-dates-text">${esc(lpPeriodsText(p))}</span><span class="small-note">${esc(lpShiftsText(p))}</span>`:''}${p.dates_note&&ds==='rejected'?`<small style="color:var(--red)">${esc(p.dates_note)}</small>`:''}${(()=>{if(p.assigned_month<10||!p.periods?.length)return '';const pb=lpProjectedBalance(r,lpState.year);return pb&&pb.balance>9?`<small style="color:var(--red);font-weight:700">⚠ يبقى رصيده ${pb.balance} يوم بعد الإجازة — فوق 9، لازم يزيد ${pb.balance-9} يوم</small>`:''})()}</div>`;
@@ -161,13 +162,14 @@ const LP_CLEAR_DATES={periods:null,dates_status:null,dates_note:'',dates_submitt
 async function lpSetStatus(id,status){
   const p=lpPlan(id);
   if(p?.dates_status==='approved'&&status!=='approved'){alert('تواريخ هذا الموظف معتمدة ومضافة للإجازات. ألغِ اعتماد التواريخ أولًا.');return}
-  const clear=p?.status==='approved'&&status!=='approved'&&p.periods?.length;
-  if(clear&&!confirm('الموظف محدد تواريخ. إرجاع الخطة بيمسح التواريخ. متأكد؟'))return;
+  /* الإرجاع للانتظار يخلي التواريخ زي ما هي؛ الرفض بس هو اللي يمسحها */
+  const clear=p?.status==='approved'&&status==='rejected'&&p.periods?.length;
+  if(clear&&!confirm('الموظف محدد تواريخ. رفض الخطة بيمسح التواريخ. متأكد؟'))return;
   try{await lpPatch(id,{status,...(status!=='rejected'?{admin_note:''}:{}),...(clear?LP_CLEAR_DATES:{})})}catch(e){alert(lpFriendlyError(e))}
 }
 async function lpReject(id){
   const note=prompt('سبب الرفض (يظهر للموظف، اختياري):','');if(note===null)return;
-  try{await lpPatch(id,{status:'rejected',admin_note:note.trim()})}catch(e){alert(lpFriendlyError(e));return}
+  try{const p=lpPlan(id);await lpPatch(id,{status:'rejected',admin_note:note.trim(),...(p?.periods?.length||p?.dates_status?LP_CLEAR_DATES:{})})}catch(e){alert(lpFriendlyError(e));return}
   lpOfferWhatsApp(id);
 }
 async function lpAssign(id,month){
