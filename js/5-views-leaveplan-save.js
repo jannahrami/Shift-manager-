@@ -320,7 +320,7 @@ function lpReminders(){
   const row=(r,k)=>{const ph=normalizeSaudiPhone(r.employee?.phone);return `<div class="lp-rm-row" id="lpRm_${k}_${esc(r.id)}"><div class="n"><b>${esc(r.name)}</b><small>${esc(r.badge||'')}${ph?'':' · ⚠ ما فيه جوال'}${r.link.reminded_at?` · ذُكِّر ${lpAgo(r.link.reminded_at)}`:''}</small></div><button class="primary" onclick="lpRemindOne('${esc(r.id)}','${k}')">واتساب</button></div>`};
   const sec=(k,title,list)=>list.length?`<h4 style="margin:12px 0 4px">${title} (${list.length})${lpDl(k)?` <span class="small-note">· ${lpLeftText(lpDaysLeft(lpDl(k)))}</span>`:''}</h4>${list.map(r=>row(r,k)).join('')}<button class="secondary" style="margin-top:8px" onclick="lpCopyReminders('${k}')">📋 نسخ رسالة جماعية</button>`:'';
   const box=document.createElement('div');box.id='lpRemBox';box.className='modal show';
-  box.innerHTML=`<div class="sheet" style="max-width:520px;max-height:86vh;overflow:auto"><h3 style="margin:0 0 4px">⏰ تذكير المتأخرين</h3>
+  box.innerHTML=`<div class="sheet" style="max-width:520px;max-height:86vh;overflow:auto"><button type="button" class="sheet-x" aria-label="إغلاق" onclick="document.getElementById('lpRemBox').remove()">×</button><h3 style="margin:0 0 4px">⏰ تذكير المتأخرين</h3>
     <p class="small-note" style="margin:0">اضغط «واتساب» لكل موظف، تنفتح الرسالة جاهزة فيها رابطه وآخر موعد. أو انسخ رسالة جماعية للقروب.</p>
     ${sec('months','ما سلّموا خطة الأشهر',late.months)}${sec('dates','ما حددوا التواريخ',late.dates)}
     <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="secondary" onclick="document.getElementById('lpRemBox').remove()">إغلاق</button></div></div>`;
@@ -378,7 +378,7 @@ async function lpCopyText(text,okMsg){
 function lpShowText(text,title){
   document.getElementById('lpTextBox')?.remove();
   const box=document.createElement('div');box.id='lpTextBox';box.className='modal show';
-  box.innerHTML=`<div class="sheet" style="max-width:560px"><h3 style="margin:0 0 4px">${esc(title)}</h3>
+  box.innerHTML=`<div class="sheet" style="max-width:560px"><button type="button" class="sheet-x" aria-label="إغلاق" onclick="document.getElementById('lpTextBox').remove()">×</button><h3 style="margin:0 0 4px">${esc(title)}</h3>
     <p class="small-note" style="margin:0 0 8px">الرسالة انحفظت في الحافظة، الصقها في واتساب. أو اضغط «إرسال واتساب» واختر القروب أو الشخص.</p>
     <textarea id="lpTextArea" readonly style="width:100%;height:46vh;font-size:13px;line-height:1.6;direction:rtl;white-space:pre-wrap"></textarea>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap">
@@ -882,7 +882,7 @@ async function smShareOpen(){
   if(!isAdmin())return;
   document.getElementById('smShareBox')?.remove();
   const box=document.createElement('div');box.id='smShareBox';box.className='modal show';
-  box.innerHTML=`<div class="sheet" style="max-width:560px;max-height:86vh;overflow:auto"><h3 style="margin:0 0 4px">مشاركة المؤشرات</h3>
+  box.innerHTML=`<div class="sheet" style="max-width:560px;max-height:86vh;overflow:auto"><button type="button" class="sheet-x" aria-label="إغلاق" onclick="document.getElementById('smShareBox').remove()">×</button><h3 style="margin:0 0 4px">مشاركة المؤشرات</h3>
     <p class="small-note" style="margin:0 0 12px">رابط يفتح صفحة المؤشرات بس، للقراءة، ويتحدث تلقائياً. ما يقدر صاحبه يدخل البرنامج أو يعدّل، وما يشوف أرقام الجوالات. تقدر تلغي الرابط أي وقت.</p>
     <div style="display:flex;gap:8px;margin-bottom:12px"><input id="smShareLabel" placeholder="لمين الرابط؟ مثال: السوبرفايزر" style="flex:1"><button class="primary" onclick="smShareCreate()">إنشاء رابط</button></div>
     <div id="smShareList" class="small-note">جاري التحميل…</div>

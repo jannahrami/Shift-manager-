@@ -1087,3 +1087,7 @@
     .sdp-leg{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted);margin-top:10px}.sdp-leg i{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-inline-end:4px}
     .sdp-leg i.bsi{width:6px;height:6px;border-radius:50%;background:#172033;vertical-align:1px}
     .sdp-foot{display:flex;justify-content:space-between;margin-top:10px}
+    /* النوافذ فوق الشريط السفلي، وزر إغلاق ثابت فوق */
+    .modal{z-index:80!important}
+    .sheet-x{position:sticky;top:-18px;float:left;margin:-6px -6px 0 0;z-index:3;width:36px;height:36px;min-height:0;border-radius:50%!important;border:1px solid var(--line)!important;background:var(--card)!important;color:var(--text)!important;font-size:22px;line-height:1;padding:0!important;box-shadow:0 2px 8px rgba(16,22,31,.12)!important;cursor:pointer}
+    @media(max-width:899px){.modal .sheet{max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important}.modal{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}}
