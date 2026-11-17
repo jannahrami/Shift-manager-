@@ -141,7 +141,16 @@ function lpRowHtml(r){
   const py=lpState.year-1,prev=lpPrev(r.id,py),rep=lpRepeat(r);
   const prevLine=`<small class="lp-prev">إجازة ${py}: ${prev.months.length?prev.months.map(x=>`${LP_MONTHS_AR[x.m-1]} (${x.days})`).join('، '):'لا يوجد'}</small>`;
   const repTag=rep?`<span class="badge b-red" style="display:inline-block;margin-top:5px;margin-right:4px">⚠ نفس شهر ${py}</span>`:'';
-  return `<div class="row lp-row"><div class="lp-who"><b>${esc(r.name)}</b><small>رقم الباج ${esc(r.badge)}</small>${prevLine}<span class="badge ${cls}" style="display:inline-block;margin-top:5px">${label}</span>${repTag}${note}</div><div class="lp-choices">${choices}${datesHtml}</div><div class="lp-row-actions">${acts.join('')}</div></div>`;
+  return `<div class="row lp-row"><div class="lp-who"><b>${esc(r.name)}</b><small>رقم الباج ${esc(r.badge)}</small>${prevLine}<span class="badge ${cls}" style="display:inline-block;margin-top:5px">${label}</span>${repTag}${note}</div><div class="lp-choices">${lpPrevChoicesHtml(r)}${choices}${datesHtml}</div><div class="lp-row-actions">${acts.join('')}</div></div>`;
+}
+/* خيارات السنة الماضية في صف الموظف: الخيارات الثلاثة + أي خيار أخذ */
+function lpPrevChoicesHtml(r){
+  const py=lpState.year-1,badge=String(r.badge||''),c=py===2026?LP_CHOICES_2026?.[badge]:lpState.prevPlans?.[badge];
+  if(!c?.length)return `<div class="lp-prevch muted">خيارات ${py}: غير مسجّلة</div>`;
+  const vm=py===2026?LP_VAC_2026?.[badge]:null,ll=vm?null:lpLongestLeave?.(r.id,py),months=vm||(ll?[ll.m]:[]);
+  const ord=['الأول','الثاني','الثالث'];
+  const got=months.map(m=>{const i=c.indexOf(m);return i<0?`<b class="out">${LP_MONTHS_AR[m-1]} · خارج خياراته</b>`:`<b class="in">${LP_MONTHS_AR[m-1]} · الخيار ${ord[i]}</b>`}).join(' + ');
+  return `<div class="lp-prevch"><span class="t">خيارات ${py}:</span>${c.map((m,i)=>`<span class="c ${months.includes(m)?'got':''}">${i+1} ${LP_MONTHS_AR[m-1]}</span>`).join('')}<span class="g">${got?`أخذ: ${got}`:`ما أخذ إجازة ${py}`}</span></div>`;
 }
 async function lpPatch(id,patch){
   await lpApi(`/rest/v1/leave_plans?year=eq.${lpState.year}&employee_id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({...patch,updated_at:new Date().toISOString()})});
