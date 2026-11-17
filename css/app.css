@@ -1106,3 +1106,7 @@
     .lp-prevch .t{font-weight:700}.lp-prevch .c{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:1px 8px;color:var(--text)}
     .lp-prevch .c.got{border-color:#9bd3ae;background:#ecf8f0;color:#1c6b3a;font-weight:800}
     .lp-prevch .g{margin-inline-start:4px}.lp-prevch .g b.in{color:#1c6b3a}.lp-prevch .g b.out{color:#a12828}.lp-prevch.muted{border-style:dotted}
+    /* فاصل واضح بين خيارات السنة الماضية وخيارات هذي السنة */
+    .lp-choices .lp-prevch{margin:0 0 0 28px;position:relative;padding:5px 10px;border:1px solid #d9dee6;background:#f4f6f9}
+    .lp-choices .lp-prevch::after{content:"";position:absolute;inset-inline-end:-16px;top:15%;bottom:15%;width:2px;border-radius:2px;background:#c9cfd8}
+    @media(max-width:760px){.lp-choices .lp-prevch{margin:0 0 8px 0;flex-basis:100%}.lp-choices .lp-prevch::after{display:none}}
