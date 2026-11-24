@@ -86,6 +86,8 @@ begin
     'today', v_today,
     'year', v_year,
     'max', coalesce(v_set.max_per_month, 6),
+    'prev_choices', coalesce((select value from public.shift_manager_config where key = 'lp_choices_' || (v_year - 1)), '{}'::jsonb),
+    'prev_vac', coalesce((select value from public.shift_manager_config where key = 'lp_vac_' || (v_year - 1)), '{}'::jsonb),
     'employees', coalesce((
       select jsonb_agg(jsonb_build_object(
         'id', e->>'id',

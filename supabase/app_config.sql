@@ -19,3 +19,4 @@ revoke all on public.shift_manager_config from anon;
 -- keys: 'marine_id_expiry' = {"badge":"YYYY-MM-DD",...}
 --       'access_groups'    = [{id,title,icon,badges:[...],names:{badge:name}}, ...]
 --       'historical_locations_2026' = {"YYYY-MM":{"post":["name",...]}}
+--       'lp_choices_2026' = {"badge":[m1,m2,m3]}   'lp_vac_2026' = {"badge":[month,...]}

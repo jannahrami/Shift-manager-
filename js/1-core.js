@@ -38,6 +38,8 @@ const SOON_DAYS=3;
    في Supabase، وتنقرأ بعد تسجيل الدخول — عشان ما تكون ظاهرة في الكود العام. */
 let MARINE_ID_EXPIRY_BY_BADGE={};
 let ACCESS_GROUPS=[];
+/* خيارات وإجازات 2026 حسب الباج — تنقرأ من shift_manager_config (مو من الكود) */
+let LP_CHOICES_2026={},LP_VAC_2026={};
 async function loadAppConfig(){
   try{
     const res=await supabaseFetch('/rest/v1/shift_manager_config?select=key,value');
@@ -45,6 +47,8 @@ async function loadAppConfig(){
     (await res.json()).forEach(r=>{
       if(r.key==='marine_id_expiry'&&r.value&&typeof r.value==='object')MARINE_ID_EXPIRY_BY_BADGE=r.value;
       if(r.key==='access_groups'&&Array.isArray(r.value))ACCESS_GROUPS=r.value;
+      if(r.key==='lp_choices_2026'&&r.value&&typeof r.value==='object')LP_CHOICES_2026=r.value;
+      if(r.key==='lp_vac_2026'&&r.value&&typeof r.value==='object')LP_VAC_2026=r.value;
       if(r.key==='historical_locations_2026'&&r.value&&typeof r.value==='object')HISTORICAL_LOCATIONS_2026=r.value;
     });
   }catch(e){console.warn('config load failed',e)}

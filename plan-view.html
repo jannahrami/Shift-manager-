@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=20261124a">
+<link rel="stylesheet" href="css/app.css?v=20261124b">
 <style>
   body{background:#f3f5f9}
   .pv-wrap{max-width:1500px;margin:0 auto;padding:16px 16px 40px}
@@ -40,7 +40,6 @@
     <div class="pv-foot">تتحدث تلقائياً كل 5 دقائق</div>
   </div>
 </div>
-<script src="js/lp-history.js?v=20261124a"></script>
 <script>
 const SUPABASE_URL='https://gfpzjydgcmwwrxrvmreq.supabase.co';
 const SUPABASE_KEY='sb_publishable_VJ17gLtZ7CAHnpOP6G1yqw_CxvZgyrz';
@@ -99,9 +98,9 @@ function longestLeave(id,year){
   return best;
 }
 function prevChoices(r){
-  const py=D.year-1,badge=String(r.badge||''),c=py===2026?(typeof LP_CHOICES_2026!=='undefined'?LP_CHOICES_2026[badge]:null):null;
+  const py=D.year-1,badge=String(r.badge||''),c=(D.prev_choices||{})[badge];
   if(!c?.length)return `<div class="lp-prevch muted">خيارات ${py}: غير مسجّلة</div>`;
-  const vm=py===2026&&typeof LP_VAC_2026!=='undefined'?LP_VAC_2026[badge]:null,ll=vm?null:longestLeave(r.id,py),months=vm||(ll?[ll.m]:[]);
+  const vm=(D.prev_vac||{})[badge]||null,ll=vm?null:longestLeave(r.id,py),months=vm||(ll?[ll.m]:[]);
   const ord=['الأول','الثاني','الثالث'];
   const got=months.map(m=>{const i=c.indexOf(m);return i<0?`<b class="out">${M[m-1]} · خارج خياراته</b>`:`<b class="in">${M[m-1]} · الخيار ${ord[i]}</b>`}).join(' + ');
   return `<div class="lp-prevch"><span class="t">خيارات ${py}:</span>${c.map((m,i)=>`<span class="c ${months.includes(m)?'got':''}">${i+1} ${M[m-1]}</span>`).join('')}<span class="g">${got?`أخذ: ${got}`:`ما أخذ إجازة ${py}`}</span></div>`;
