@@ -90,6 +90,9 @@ function lpRender(){
   const inMonth=r=>!lpMonthSel||(r.plan&&r.plan.status!=='rejected'&&r.plan.assigned_month===lpMonthSel);
   lpEl('lpFilter').innerHTML=(lpMonthSel?`<button class="secondary on lp-month-chip" onclick="lpToggleMonth(${lpMonthSel})">شهر ${LP_MONTHS_AR[lpMonthSel-1]} (${rows.filter(inMonth).length}) ✕</button>`:'')+filters.map(([k,l,n])=>`<button class="secondary ${lpState.filter===k?'on':''}" onclick="lpState.filter='${k}';lpRender()">${l} (${n})</button>`).join('');
   const shown=rows.filter(inMonth).filter(r=>{const f=lpState.filter;if(f==='all')return true;if(f.startsWith('d_'))return r.plan?.status==='approved'&&(r.plan.dates_status||'none')===f.slice(2);return (r.plan?.status||'none')===f});
+  lpRenderViewToggle();
+  if(lpViewMode==='cal'){lpEl('lpList').innerHTML='';lpEl('lpFilter').style.display='none';lpRenderCalendar(rows);return}
+  lpEl('lpFilter').style.display='';lpEl('lpCal')&&(lpEl('lpCal').innerHTML='');
   lpEl('lpList').innerHTML=shown.length?shown.map(lpRowHtml).join(''):`<div class="small-note" style="padding:12px">لا يوجد موظفين في هذا التصنيف${lpMonthSel?' في شهر '+LP_MONTHS_AR[lpMonthSel-1]:''}</div>`;
 }
 /* Previous-year leave per employee (from leaves already entered in the app). Courses are not counted as leave. */
@@ -142,7 +145,7 @@ function lpRowHtml(r){
   const py=lpState.year-1,prev=lpPrev(r.id,py),rep=lpRepeat(r);
   const prevLine=`<small class="lp-prev">إجازة ${py}: ${prev.months.length?prev.months.map(x=>`${LP_MONTHS_AR[x.m-1]} (${x.days})`).join('، '):'لا يوجد'}</small>`;
   const repTag=rep?`<span class="badge b-red" style="display:inline-block;margin-top:5px;margin-right:4px">⚠ نفس شهر ${py}</span>`:'';
-  return `<div class="row lp-row"><div class="lp-who"><b>${esc(r.name)}</b><small>رقم الباج ${esc(r.badge)}</small>${prevLine}<span class="badge ${cls}" style="display:inline-block;margin-top:5px">${label}</span>${repTag}${note}</div><div class="lp-choices">${lpPrevChoicesHtml(r)}${choices}${datesHtml}</div><div class="lp-row-actions">${acts.join('')}</div></div>`;
+  return `<div class="row lp-row" id="lprow-${esc(r.id)}"><div class="lp-who"><b>${esc(r.name)}</b><small>رقم الباج ${esc(r.badge)}</small>${prevLine}<span class="badge ${cls}" style="display:inline-block;margin-top:5px">${label}</span>${repTag}${note}</div><div class="lp-choices">${lpPrevChoicesHtml(r)}${choices}${datesHtml}</div><div class="lp-row-actions">${acts.join('')}</div></div>`;
 }
 /* خيارات السنة الماضية في صف الموظف: الخيارات الثلاثة + أي خيار أخذ */
 function lpPrevChoicesHtml(r){
@@ -936,3 +939,60 @@ async function smShareRevoke(t){
   try{await lpApi(`/rest/v1/sm_share_links?token=eq.${t}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({revoked:true})});smShareLoad()}
   catch(e){alert('تعذر الإلغاء: '+e.message)}
 }
+
+/* ===== تقويم خطة الإجازة: السنة كاملة، شريط لكل موظف بلون الشفت ===== */
+let lpViewMode='list';
+const LPC_DAY=7; /* عرض اليوم بالبكسل */
+const LPC_COLOR={N:'#efd45b',A:'#e993aa',M:'#d68ce4',OFF:'#cfd5de'};
+const LPC_WORD={N:'ليل',A:'مساء',M:'صباح',OFF:'أوف'};
+function lpSetView(m){lpViewMode=m;lpRender();if(m==='cal')lpEl('lpViewToggle')?.scrollIntoView({behavior:'smooth',block:'start'})}
+function lpRenderViewToggle(){
+  let t=lpEl('lpViewToggle');
+  if(!t){t=document.createElement('div');t.id='lpViewToggle';t.className='lpc-toggle';lpEl('lpFilter').before(t);
+    const c=document.createElement('div');c.id='lpCal';lpEl('lpList').after(c)}
+  t.innerHTML=`<button class="secondary ${lpViewMode==='list'?'on':''}" onclick="lpSetView('list')">قائمة</button><button class="secondary ${lpViewMode==='cal'?'on':''}" onclick="lpSetView('cal')">تقويم</button>`;
+}
+function lpcIdx(d,y){return diffDays(d,`${y}-01-01`)}
+function lpcRuns(start,end,y){
+  /* يقسم الفترة لقطع متصلة حسب الشفت */
+  const runs=[];const last=`${y}-12-31`,first=`${y}-01-01`;
+  let d=start<first?first:start;const e=end>last?last:end;
+  for(let g=0;d<=e&&g<400;d=addDaysISO(d,1),g++){const c=groupShiftForDate(d).code;const r=runs[runs.length-1];if(r&&r.code===c)r.n++;else runs.push({code:c,from:d,n:1})}
+  return runs;
+}
+function lpRenderCalendar(rows){
+  const y=lpState.year,days=diffDays(`${y}-12-31`,`${y}-01-01`)+1,W=days*LPC_DAY,box=lpEl('lpCal');
+  const list=rows.filter(r=>r.plan&&r.plan.status!=='rejected').map(r=>{
+    const p=r.plan,per=(p.periods||[]).filter(x=>x.start&&x.end).sort((a,b)=>a.start.localeCompare(b.start));
+    const sortKey=per[0]?.start||`${y}-${String(p.assigned_month).padStart(2,'0')}-15`;
+    return {r,p,per,sortKey};
+  }).sort((a,b)=>a.sortKey.localeCompare(b.sortKey)||String(a.r.name).localeCompare(String(b.r.name),'ar'));
+  /* عدد المجازين كل يوم حسب شفت اليوم (من الخطط بس، بدون المرفوضة) */
+  const cnt=Array(days).fill(0);
+  list.forEach(x=>x.per.forEach(q=>{for(let d=q.start,g=0;d<=q.end&&g<400;d=addDaysISO(d,1),g++){const i=lpcIdx(d,y);if(i>=0&&i<days)cnt[i]++}}));
+  const months=LP_MONTHS_AR.map((m,i)=>{const s=`${y}-${String(i+1).padStart(2,'0')}-01`,n=new Date(y,i+1,0).getDate();return `<div class="lpc-mh" style="right:${lpcIdx(s,y)*LPC_DAY}px;width:${n*LPC_DAY}px">${m}</div>`}).join('');
+  const ticks=[];for(let i=0;i<days;i++){const d=addDaysISO(`${y}-01-01`,i),dd=Number(d.slice(8));if(dd===1||(dd%5===0&&dd<30))ticks.push(`<span style="right:${i*LPC_DAY}px">${dd}</span>`)}
+  const monthLines=LP_MONTHS_AR.map((m,i)=>`<i style="right:${lpcIdx(`${y}-${String(i+1).padStart(2,'0')}-01`,y)*LPC_DAY}px"></i>`).join('');
+  const bar=(x)=>{
+    const {p,per}=x,ds=p.status!=='approved'?'review':(p.dates_status==='approved'?'ok':'review');
+    if(!per.length){
+      const s=`${y}-${String(p.assigned_month).padStart(2,'0')}-01`,n=new Date(y,p.assigned_month,0).getDate();
+      return `<div class="lpc-ghost ${p.status==='approved'?'':'pend'}" style="right:${lpcIdx(s,y)*LPC_DAY}px;width:${n*LPC_DAY}px" title="${esc(x.r.name)} · ${LP_MONTHS_AR[p.assigned_month-1]} · ${p.status==='approved'?'الشهر معتمد، التواريخ ما تحددت':'الشهر قيد المراجعة'}"></div>`;
+    }
+    return per.map(q=>{const tip=`${x.r.name} · ${lpFmtDay(q.start)} إلى ${lpFmtDay(q.end)} (${diffDays(q.end,q.start)+1} يوم) · ${ds==='ok'?'معتمدة':'قيد المراجعة'}\n${lpShiftsOfPeriod(q)}`;
+      return lpcRuns(q.start,q.end,y).map(u=>`<div class="lpc-seg ${ds}" style="right:${lpcIdx(u.from,y)*LPC_DAY}px;width:${u.n*LPC_DAY}px;--c:${LPC_COLOR[u.code]}" title="${esc(tip)}"></div>`).join('')}).join('');
+  };
+  const lanes=list.map(x=>`<div class="lpc-row"><button class="lpc-name" onclick="lpCalGoto('${esc(x.r.id)}')" title="اضغط لعرضه في القائمة">${esc(lpShortName?lpShortName(x.r.name):x.r.name)}</button><div class="lpc-lane" style="width:${W}px">${monthLines}${bar(x)}</div></div>`).join('');
+  /* سطر العدد: كل يوم بلون شفته، أحمر إذا فوق الحد */
+  const cells=[];for(let i=0;i<days;i++){if(!cnt[i])continue;const d=addDaysISO(`${y}-01-01`,i),sh=groupShiftForDate(d),cap=LP_SHIFT_CAP[sh.code],over=cap&&cnt[i]>cap;
+    cells.push(`<div class="lpc-cnt ${over?'over':''}" style="right:${i*LPC_DAY}px;height:${Math.min(100,cnt[i]*12)}%;--c:${LPC_COLOR[sh.code]}" title="${fmtDate(d)} · ${LPC_WORD[sh.code]} · ${cnt[i]} في إجازة${cap?` (الحد ${cap})`:''}"></div>`)}
+  const overDays=[];for(let i=0;i<days;i++){const d=addDaysISO(`${y}-01-01`,i),sh=groupShiftForDate(d),cap=LP_SHIFT_CAP[sh.code];if(cap&&cnt[i]>cap)overDays.push(d)}
+  box.innerHTML=`<div class="lpc-legend"><span><i style="background:${LPC_COLOR.N}"></i>ليل</span><span><i style="background:${LPC_COLOR.A}"></i>مساء</span><span><i style="background:${LPC_COLOR.M}"></i>صباح</span><span><i style="background:${LPC_COLOR.OFF}"></i>أوف</span><span class="sep"></span><span><i class="ok"></i>تواريخ معتمدة</span><span><i class="review"></i>قيد المراجعة</span><span><i class="ghost"></i>الشهر بس (بدون تواريخ)</span>
+    <span class="lpc-sum ${overDays.length?'bad':''}">${overDays.length?`⚠ ${overDays.length} يوم فوق حد الشفت`:'✓ ما فيه يوم فوق حد الشفت'}</span></div>
+    ${list.length?`<div class="lpc-scroll"><div class="lpc-grid" style="--w:${W}px">
+      <div class="lpc-row lpc-head"><div class="lpc-name"></div><div class="lpc-lane" style="width:${W}px">${months}<div class="lpc-ticks">${ticks.join('')}</div></div></div>
+      ${lanes}
+      <div class="lpc-row lpc-count"><div class="lpc-name">عدد المجازين<small>أحمر = فوق الحد (ليل ${LP_SHIFT_CAP.N} · مساء/صباح ${LP_SHIFT_CAP.A})</small></div><div class="lpc-lane" style="width:${W}px">${monthLines}${cells.join('')}</div></div>
+    </div></div>`:'<div class="small-note" style="padding:12px">لا توجد خطط بعد</div>'}`;
+}
+function lpCalGoto(id){lpViewMode='list';lpState.filter='all';lpMonthSel=0;lpRender();const el=document.getElementById('lprow-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('lpc-flash');setTimeout(()=>el.classList.remove('lpc-flash'),1800)}}
