@@ -42,7 +42,7 @@ function renderInsightsDashboard(){
     kpi({label:'Marine ID',num:mAttn,foot:`${mr.expired.length} منتهية · ${mr.d30.length+mr.d60.length} خلال 60 يوم`,lvl:mr.expired.length?'bad':mAttn?'warn':'ok',badge:mr.expired.length?'منتهية':mAttn?'تجديد':'سارية',go:'insSecMarine'})
   ].join('');
 
-  renderInsightsAttention(mr,ye,blocks);renderInsightsShiftLoad(blocks);renderInsightsYearEnd(ye);renderInsightsMonths();renderInsightsMarine(mr);insApplyCollapsed();
+  renderInsightsAttention(mr,ye,blocks);renderInsightsShiftLoad(blocks);renderInsightsYearEnd(ye);renderInsightsMonths();renderInsightsMarine(mr);renderInsightsRecords();insApplyCollapsed();
 }
 /* ===== أقسام تنطوي وتنفتح + التنقل من البطاقات ===== */
 function insCollapsedSet(){try{return new Set(JSON.parse(localStorage.getItem('smInsCollapsed')||'[]'))}catch(e){return new Set()}}
@@ -532,4 +532,30 @@ function renderShiftSchedule(){
     html+=`<div class="schedule-day ${date===t?'today':''}"><div class="schedule-day-number">${day.toLocaleString('ar-SA')}</div><div class="schedule-shift-code ${info.cls}">${info.code}</div><div class="schedule-shift-name">${info.arabic}</div></div>`;
   }
   grid.innerHTML=html;
+}
+
+/* ===== أعلى الموظفين: M time · Late · Excuse · Medical release ===== */
+const INS_REC_TYPES=[['M time','M time','b-blue'],['Late','Late · تأخير','b-red'],['Excuse','Excuse · استئذان','b-yellow'],['Medical release','Medical release','b-green']];
+let insRec=null; /* {mode:'year'|'custom', year, from, to} */
+function insRecRange(){
+  if(!insRec){const y=new Date().getFullYear();insRec={mode:'year',year:y,from:`${y}-01-01`,to:todayISO()}}
+  return insRec.mode==='year'?{from:`${insRec.year}-01-01`,to:`${insRec.year}-12-31`}:{from:insRec.from||'0000-01-01',to:insRec.to||'9999-12-31'};
+}
+function insRecSet(k,v){insRecRange();if(k==='year'){insRec.mode='year';insRec.year=Number(v)}else if(k==='custom'){insRec.mode='custom'}else{insRec[k]=v;insRec.mode='custom'}renderInsightsRecords()}
+function renderInsightsRecords(){
+  const box=document.getElementById('insightsRecords'),bar=document.getElementById('insRecRange');if(!box||!bar)return;
+  const {from,to}=insRecRange(),recs=(state.records||[]).filter(r=>r.date&&r.date>=from&&r.date<=to);
+  const years=[...new Set([new Date().getFullYear(),...(state.records||[]).map(r=>Number(String(r.date||'').slice(0,4))).filter(Boolean)])].sort((a,b)=>b-a);
+  bar.innerHTML=`<div class="ins-tabs">${years.map(y=>`<button class="secondary ${insRec.mode==='year'&&insRec.year===y?'on':''}" onclick="insRecSet('year',${y})">${y}</button>`).join('')}<button class="secondary ${insRec.mode==='custom'?'on':''}" onclick="insRecSet('custom')">تواريخ محددة</button></div>
+    ${insRec.mode==='custom'?`<label>من <input type="date" value="${esc(insRec.from)}" onchange="insRecSet('from',this.value)"></label><label>إلى <input type="date" value="${esc(insRec.to)}" onchange="insRecSet('to',this.value)"></label>`:''}`;
+  const k=document.getElementById('insRecKicker');if(k)k.textContent=insRec.mode==='year'?`سنة ${insRec.year} كاملة`:`من ${fmtDate(from)} إلى ${fmtDate(to)}`;
+  const emp=id=>(state.employees||[]).find(e=>String(e.id)===String(id));
+  box.innerHTML=INS_REC_TYPES.map(([type,label,cls])=>{
+    const c=new Map();recs.filter(r=>r.type===type).forEach(r=>c.set(r.employeeId,(c.get(r.employeeId)||0)+1));
+    const total=[...c.values()].reduce((a,b)=>a+b,0);
+    const top=[...c.entries()].map(([id,n])=>({e:emp(id),id,n})).filter(x=>x.e).sort((a,b)=>b.n-a.n||String(rosterEmployeeName(a.e)).localeCompare(String(rosterEmployeeName(b.e)),'ar')).slice(0,5);
+    const max=top[0]?.n||1;
+    return `<div class="ins-rec-card"><div class="ins-rec-h"><span class="badge ${cls}">${esc(label)}</span><small>${total} مرة · ${c.size} موظف</small></div>
+      ${top.length?top.map((x,i)=>`<button class="ins-rec-r" onclick="openEmployeeProfile('${esc(x.id)}')" title="فتح ملف الموظف"><span class="i">${i+1}</span><span class="n"><b>${esc(rosterEmployeeName(x.e)||x.e.name)}</b><i style="width:${Math.round(x.n/max*100)}%"></i></span><span class="c">${x.n}</span></button>`).join(''):'<div class="empty">ما فيه سجلات في هذي الفترة</div>'}</div>`;
+  }).join('');
 }
