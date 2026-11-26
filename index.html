@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=20261126b">
+  <link rel="stylesheet" href="css/app.css?v=20261126c">
 </head>
 <body>
 <div class="auth-screen" id="authScreen">
@@ -82,6 +82,10 @@
           <div class="section-head ins-toggle"><div><span class="section-kicker">مرتبة حسب الأهمية</span><h2>يحتاج انتباهك</h2></div><span class="ins-chev">⌃</span></div>
           <div class="ins-body"><div class="ins-attn" id="insightsAttention"></div></div>
         </div>
+        <div class="section dash-panel ins-sec dash-span2" id="insSecRecords">
+          <div class="section-head ins-toggle"><div><span class="section-kicker" id="insRecKicker">من سجلات الموظفين</span><h2>أعلى الموظفين</h2></div><span class="ins-chev">⌃</span></div>
+          <div class="ins-body"><div class="ins-rec-bar" id="insRecRange"></div><div class="ins-rec" id="insightsRecords"></div></div>
+        </div>
         <div class="section dash-panel ins-sec dash-full" id="insSecMonths">
           <div class="section-head ins-toggle"><div><span class="section-kicker">مين مجاز في أي شهر</span><h2>توزيع الإجازات على أشهر السنة</h2></div><div style="display:flex;gap:8px;align-items:center"><div class="ins-tabs" id="insMonthsTabs"></div><span class="ins-chev">⌃</span></div></div>
           <div class="ins-body"><div id="insightsMonths"></div></div>
@@ -93,10 +97,6 @@
         <div class="section dash-panel ins-sec" id="insSecMarine">
           <div class="section-head ins-toggle"><div><span class="section-kicker" id="insMarineKicker">صلاحيات الدخول</span><h2>بطاقات Marine ID</h2></div><span class="ins-chev">⌃</span></div>
           <div class="ins-body"><div id="insightsMarine"></div></div>
-        </div>
-        <div class="section dash-panel ins-sec dash-full" id="insSecRecords">
-          <div class="section-head ins-toggle"><div><span class="section-kicker" id="insRecKicker">من سجلات الموظفين</span><h2>أعلى الموظفين</h2></div><span class="ins-chev">⌃</span></div>
-          <div class="ins-body"><div class="ins-rec-bar" id="insRecRange"></div><div class="ins-rec" id="insightsRecords"></div></div>
         </div>
       </div>
     </section>
@@ -304,7 +304,7 @@
 
     <section id="leavePlanView" class="view">
       <div class="section lp-section" id="leavePlanSection">
-        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 26 نوفمبر ٢</span></div><h2>خطة الإجازة السنوية</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="dash-share" onclick="smShareOpen('leaveplan')">مشاركة مع السوبرفايزر</button><button class="secondary" onclick="lpLoad()">تحديث</button></div></div>
+        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 26 نوفمبر ٣</span></div><h2>خطة الإجازة السنوية</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="dash-share" onclick="smShareOpen('leaveplan')">مشاركة مع السوبرفايزر</button><button class="secondary" onclick="lpLoad()">تحديث</button></div></div>
         <div class="lp-controls">
           <label>السنة<input type="number" id="lpYear" min="2025" max="2100" onchange="lpLoad()"></label>
           <label>الحد في الشهر<input type="number" id="lpMax" min="1" max="60" value="6"></label>
@@ -725,11 +725,11 @@
   </div>
 </div>
 
-<script src="js/1-core.js?v=20261126b"></script>
-<script src="js/2-dashboard-calendar.js?v=20261126b"></script>
-<script src="js/3-employees-reports.js?v=20261126b"></script>
-<script src="js/4-leaves-roster.js?v=20261126b"></script>
-<script src="js/5-views-leaveplan-save.js?v=20261126b"></script>
-<script src="js/6-assistant-boot.js?v=20261126b"></script>
+<script src="js/1-core.js?v=20261126c"></script>
+<script src="js/2-dashboard-calendar.js?v=20261126c"></script>
+<script src="js/3-employees-reports.js?v=20261126c"></script>
+<script src="js/4-leaves-roster.js?v=20261126c"></script>
+<script src="js/5-views-leaveplan-save.js?v=20261126c"></script>
+<script src="js/6-assistant-boot.js?v=20261126c"></script>
 </body>
 </html>
