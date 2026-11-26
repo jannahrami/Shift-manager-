@@ -554,8 +554,9 @@ function renderInsightsRecords(){
     const c=new Map();recs.filter(r=>r.type===type).forEach(r=>c.set(r.employeeId,(c.get(r.employeeId)||0)+1));
     const total=[...c.values()].reduce((a,b)=>a+b,0);
     const nm=e=>{const f=rosterEmployeeName(e)||e.name;return typeof lpShortName==='function'?lpShortName(f):f};
-    const top=[...c.entries()].map(([id,n])=>({e:emp(id),id,n})).filter(x=>x.e).sort((a,b)=>b.n-a.n||String(nm(a.e)).localeCompare(String(nm(b.e)),'ar'));
+    const top=[...c.entries()].map(([id,n])=>({e:emp(id),id,n})).filter(x=>x.e).sort((a,b)=>b.n-a.n||String(nm(a.e)).localeCompare(String(nm(b.e)),'ar')).slice(0,5);
+    const max=top[0]?.n||1;
     return `<div class="ins-rec-card"><div class="ins-rec-h"><span class="badge ${cls}">${esc(label)}</span><small>${total} مرة · ${c.size} موظف</small></div>
-      ${top.length?`<div class="ins-rec-list">${top.map(x=>`<button class="ins-rec-chip" onclick="openEmployeeProfile('${esc(x.id)}')" title="${esc(rosterEmployeeName(x.e)||x.e.name)} · فتح الملف">${esc(nm(x.e))} <b>${x.n}</b></button>`).join('')}</div>`:'<div class="empty">ما فيه سجلات في هذي الفترة</div>'}</div>`;
+      ${top.length?top.map((x,i)=>`<button class="ins-rec-r" onclick="openEmployeeProfile('${esc(x.id)}')" title="${esc(rosterEmployeeName(x.e)||x.e.name)} · فتح الملف"><span class="i">${i+1}</span><span class="n"><b>${esc(nm(x.e))}</b><i style="width:${Math.round(x.n/max*100)}%"></i></span><span class="c">${x.n}</span></button>`).join(''):'<div class="empty">ما فيه سجلات في هذي الفترة</div>'}</div>`;
   }).join('');
 }
