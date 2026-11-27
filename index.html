@@ -6,20 +6,20 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#f3f5f9" />
-  <link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=20261127g">
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=20261127g">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=20261127g">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=20261127h">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=20261127h">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=20261127h">
   <link rel="manifest" href="manifest.webmanifest">
 <title>Shift Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=20261127g">
+  <link rel="stylesheet" href="css/app.css?v=20261127h">
 </head>
 <body>
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
-    <div class="auth-logo app-icon"><img src="icons/icon.svg?v=20261127g" alt=""></div>
+    <div class="auth-logo app-icon"><img src="icons/icon.svg?v=20261127h" alt=""></div>
     <h2>Shift Manager</h2>
     <p>اختر نوع الدخول ثم أدخل بيانات الحساب.</p>
     <select id="loginRole" onchange="updateLoginRoleUI()">
@@ -36,7 +36,7 @@
 <div class="app locked" id="appShell">
   <div class="topbar">
     <div class="brand">
-      <div class="brand-mark app-icon"><img src="icons/icon.svg?v=20261127g" alt=""></div>
+      <div class="brand-mark app-icon"><img src="icons/icon.svg?v=20261127h" alt=""></div>
       <div class="title">
         <h1>Shift Manager</h1>
         <p>Group A · لوحة إدارة الشفت</p>
@@ -308,7 +308,7 @@
 
     <section id="leavePlanView" class="view">
       <div class="section lp-section" id="leavePlanSection">
-        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 27 نوفمبر ٧</span></div><h2>خطة الإجازة السنوية</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="dash-share" onclick="smShareOpen('leaveplan')">مشاركة مع السوبرفايزر</button><button class="secondary" onclick="lpLoad()">تحديث</button></div></div>
+        <div class="section-head"><div><div class="section-kicker">الموظفين يختارون، وأنت تعتمد <span style="opacity:.55;font-weight:600">· إصدار 27 نوفمبر ٨</span></div><h2>خطة الإجازة السنوية</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="dash-share" onclick="smShareOpen('leaveplan')">مشاركة مع السوبرفايزر</button><button class="secondary" onclick="lpLoad()">تحديث</button></div></div>
         <div class="lp-controls">
           <label>السنة<input type="number" id="lpYear" min="2025" max="2100" onchange="lpLoad()"></label>
           <label>الحد في الشهر<input type="number" id="lpMax" min="1" max="60" value="6"></label>
@@ -432,27 +432,32 @@
 
 
     <section id="shiftView" class="view">
-      <div class="section" id="monthlyRosterSection">
-        <div class="monthly-roster-toolbar">
-          <div><span class="section-kicker">مرجع التوزيع المعتمد</span><div class="monthly-roster-title" id="monthlyRosterTitle">الجدول الشهري</div></div>
-          <div class="monthly-roster-actions">
-            <button class="secondary no-print" onclick="changeMonthlyRosterMonth(-1)">السابق</button>
-            <button class="secondary no-print" onclick="goMonthlyRosterToday()">هذا الشهر</button>
-            <button class="secondary no-print" onclick="changeMonthlyRosterMonth(1)">التالي</button>
-            <button class="primary no-print auto-roster-btn" onclick="previewAutoMonthlyRoster()">توزيع تلقائي</button>
-            <button class="primary no-print" onclick="saveMonthlyRosterPeriod()">حفظ الجدول</button>
-            <button class="secondary danger no-print" onclick="cancelMonthlyRoster()">إلغاء الجدول</button>
-            <button class="primary no-print" onclick="printMonthlyRoster()">طباعة / PDF</button>
-            <button class="secondary no-print" onclick="exportMonthlyRosterExcel()">تصدير Excel</button>
+      <div class="section sv-shell" id="monthlyRosterSection">
+        <div class="sv-top">
+          <div class="sv-month"><button class="secondary sv-arrow" onclick="changeMonthlyRosterMonth(-1)" aria-label="الشهر السابق">›</button><div><span class="section-kicker">الجدول الشهري</span><div class="monthly-roster-title" id="monthlyRosterTitle">الجدول الشهري</div></div><button class="secondary sv-arrow" onclick="changeMonthlyRosterMonth(1)" aria-label="الشهر التالي">‹</button></div>
+          <div class="roster-period sv-period no-print"><label>من</label><input type="text" readonly class="shift-date-input" id="monthlyRosterStart" onclick="openShiftDatePicker(this)" onchange="updateMonthlyRosterPeriodDraft()"><label>إلى</label><input type="text" readonly class="shift-date-input" id="monthlyRosterEnd" onclick="openShiftDatePicker(this)" onchange="updateMonthlyRosterPeriodDraft()"></div>
+          <span class="sv-status" id="svStatus"></span>
+          <div class="sv-actions no-print">
+            <button class="primary auto-roster-btn" onclick="previewAutoMonthlyRoster()">توزيع تلقائي</button>
+            <button class="secondary" onclick="saveMonthlyRosterPeriod()">حفظ الجدول</button>
+            <div class="sv-more-wrap"><button class="secondary sv-more" onclick="toggleSvMore(event)" aria-label="المزيد" aria-haspopup="true">⋯</button>
+              <div class="sv-menu" id="svMenu">
+                <button onclick="toggleSvMore();goMonthlyRosterToday()">هذا الشهر</button>
+                <button onclick="toggleSvMore();printMonthlyRoster()">طباعة / PDF</button>
+                <button onclick="toggleSvMore();exportMonthlyRosterExcel()">تصدير Excel</button>
+                <button class="danger" onclick="toggleSvMore();cancelMonthlyRoster()">إلغاء الجدول</button>
+              </div></div>
           </div>
         </div>
-        <div class="small-note">توزيع شهري يدوي مستقل. لا يتم إنشاء أو تعديل أي توزيع يومي تلقائيًا.</div>
-        <div class="roster-period no-print"><label>الفترة من</label><input type="text" readonly class="shift-date-input" id="monthlyRosterStart" onclick="openShiftDatePicker(this)" onchange="updateMonthlyRosterPeriodDraft()"><label>إلى</label><input type="text" readonly class="shift-date-input" id="monthlyRosterEnd" onclick="openShiftDatePicker(this)" onchange="updateMonthlyRosterPeriodDraft()"><span class="small-note">يتم فحص الإجازات خلال هذه الفترة قبل التوزيع.</span></div>
-        <div class="roster-summary" id="monthlyRosterSummary"></div>
-        <div id="monthlyRosterTable"></div>
+        <div class="roster-summary sv-kpis" id="monthlyRosterSummary"></div>
+        <div class="sv-body">
+          <div id="monthlyRosterTable" class="sv-main"></div>
+          <aside class="sv-side" id="svSide"></aside>
+        </div>
       </div>
 
-      <div class="section">
+      <details class="section sv-fold" id="svCycleFold">
+        <summary><span class="sv-fold-t">دورة الشفت</span><span class="sv-fold-s" id="svCycleSummary"></span><span class="sv-chev">⌄</span></summary>
         <div class="schedule-toolbar">
           <div><span class="section-kicker">دورة Group A</span><div class="schedule-title" id="scheduleTitle">جدول الدوام</div></div>
           <div class="schedule-actions">
@@ -475,12 +480,13 @@
           <div class="schedule-weekdays" id="scheduleWeekdays"></div>
           <div class="schedule-grid" id="scheduleGrid"></div>
         </div>
-      </div>
+      </details>
 
-      <div class="section">
+      <details class="section sv-fold">
+        <summary><span class="sv-fold-t">التوزيع اليومي</span><span class="sv-fold-s">توزيع الشفت يوم بيوم</span><span class="sv-chev">⌄</span></summary>
         <div class="section-head"><h2>توزيع الشفت</h2><button onclick="openShiftModal()">+ توزيع</button></div>
         <div id="shiftList"></div>
-      </div>
+      </details>
     </section>
 
     <section id="calendarView" class="view">
@@ -729,11 +735,11 @@
   </div>
 </div>
 
-<script src="js/1-core.js?v=20261127g"></script>
-<script src="js/2-dashboard-calendar.js?v=20261127g"></script>
-<script src="js/3-employees-reports.js?v=20261127g"></script>
-<script src="js/4-leaves-roster.js?v=20261127g"></script>
-<script src="js/5-views-leaveplan-save.js?v=20261127g"></script>
-<script src="js/6-assistant-boot.js?v=20261127g"></script>
+<script src="js/1-core.js?v=20261127h"></script>
+<script src="js/2-dashboard-calendar.js?v=20261127h"></script>
+<script src="js/3-employees-reports.js?v=20261127h"></script>
+<script src="js/4-leaves-roster.js?v=20261127h"></script>
+<script src="js/5-views-leaveplan-save.js?v=20261127h"></script>
+<script src="js/6-assistant-boot.js?v=20261127h"></script>
 </body>
 </html>
