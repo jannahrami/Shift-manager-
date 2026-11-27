@@ -1176,3 +1176,17 @@
     /* أيقونة البرنامج (درع وساعة) */
     .app-icon{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;overflow:hidden}
     .app-icon img{width:100%;height:100%;display:block}
+    /* ===== جدول الشفت: قائمة نقل الموظف ===== */
+    .roster-person{cursor:pointer}
+    .rmm{position:fixed;z-index:95;width:290px;max-height:70vh;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px rgba(15,22,33,.22);overflow:hidden}
+    .rmm.sheet{left:8px;right:8px;bottom:8px;width:auto;max-height:78dvh}
+    .rmm-h{position:relative;padding:10px 14px 8px;border-bottom:1px solid var(--line)}
+    .rmm-h b{display:block;font-size:14px}.rmm-h small{color:var(--muted);font-size:11.5px}
+    .rmm-x{position:absolute;top:8px;left:8px;border:0;background:#f1f3f7;border-radius:8px;width:28px;height:28px;cursor:pointer}
+    .rmm-list{overflow:auto;padding:4px 6px 8px}
+    .rmm-g{font-size:11px;font-weight:800;color:var(--muted);padding:8px 8px 3px}
+    .rmm-i{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;padding:7px 9px;border-radius:8px;font:inherit;font-size:13px;cursor:pointer;text-align:right;color:var(--text)}
+    .rmm-i:hover{background:#f3f5f9}.rmm-i small{color:var(--muted);font-size:11.5px}
+    .rmm-i.cur{background:#fdf3dc;cursor:default}.rmm-i.cur small{color:#9a6b05;font-weight:700}
+    .rmm-rm{border:0;border-top:1px solid var(--line);background:#fff;color:#c0392b;font:inherit;font-weight:700;padding:10px;cursor:pointer}
+    .rmm-rm:hover{background:#fdf0ef}

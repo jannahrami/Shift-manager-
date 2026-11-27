@@ -399,16 +399,41 @@ function saveMonthlyRosterAssignment(){
 function clearMonthlyRosterAssignment(){if(!editingMonthlyRosterPost)return;if(!confirm('تفريغ جميع الموظفين من هذا الموقع؟'))return;const data=monthlyRosterData(),fixed=Object.entries(FIXED_ROSTER_POSTS).filter(([id,key])=>key===editingMonthlyRosterPost&&!rosterLeaveStatus(id).blocked).map(([id])=>id);if(fixed.length)data[editingMonthlyRosterPost]=fixed;else delete data[editingMonthlyRosterPost];closeModal('monthlyRosterModal');editingMonthlyRosterPost='';save()}
 function rosterPersonChip(employee,sourceKey,mode='saved'){
   const fixedPost=fixedRosterPost(employee.id),fixed=fixedPost===sourceKey,status=rosterLeaveStatus(employee.id),assistantBackup=employee.id===ASSISTANT_BACKUP_ID&&sourceKey===ASSISTANT_POST_KEY&&rosterLeaveStatus(ASSISTANT_PRIMARY_ID).overlaps.length,sccBackup=SCC_BACKUP_IDS.includes(employee.id)&&sourceKey===SCC_POST_KEY&&SCC_PRIMARY_IDS.some(id=>rosterLeaveStatus(id).overlaps.length),communityBackup=employee.id===COMMUNITY_BACKUP_ID&&sourceKey===COMMUNITY_POST_KEY&&rosterLeaveStatus(COMMUNITY_PRIMARY_ID).overlaps.length,statusClass=status.upcoming?'roster-mid-leave':status.returning||assistantBackup||sccBackup||communityBackup?'roster-returning':'',details=[];if(fixed)details.push(`ثابت في ${fixedPost.split('|')[1]}`);if(status.upcoming)details.push(`تبدأ إجازته ${fmtDate(status.upcoming.start)}`);else if(status.returning)details.push(`متاح بعد العودة ${fmtDate(addDaysISO(status.returning.end,1))}`);if(assistantBackup)details.push('Assistant Backup أثناء إجازة الموظف الأساسي');if(sccBackup)details.push('SCC Backup أثناء إجازة أحد موظفي SCC');if(communityBackup)details.push('Community Supervisor Backup');const title=details.join(' — ')||'اسحب لتغيير الموقع';
-  return `<span class="roster-person ${employee.dutyRole==='leader'?'roster-leader':''} ${statusClass} ${fixed?'roster-fixed':''}" title="${esc(title)}" ${fixed?'':'draggable="true"'} ondragstart="dragRosterEmployee(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')">${esc(rosterEmployeeName(employee))}</span>`;
+  return `<span class="roster-person ${employee.dutyRole==='leader'?'roster-leader':''} ${statusClass} ${fixed?'roster-fixed':''}" title="${esc(title)}" ${fixed?'':'draggable="true"'} ondragstart="dragRosterEmployee(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')" onclick="openRosterMoveMenu(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')" role="button" tabindex="0">${esc(rosterEmployeeName(employee))}</span>`;
 }
 function dragRosterEmployee(event,employeeId,sourceKey,mode){event.dataTransfer.setData('text/plain',JSON.stringify({employeeId,sourceKey,mode}));event.dataTransfer.effectAllowed='move'}
 function allowRosterDrop(event){event.preventDefault();event.currentTarget.classList.add('drag-over')}
 function dropRosterEmployee(event,targetKey,mode){
   event.preventDefault();document.querySelectorAll('.roster-drop.drag-over').forEach(x=>x.classList.remove('drag-over'));let payload;try{payload=JSON.parse(event.dataTransfer.getData('text/plain'))}catch{return}if(!payload||payload.mode!==mode||payload.sourceKey===targetKey)return;
-  if(fixedRosterPost(payload.employeeId)){const e=state.employees.find(x=>x.id===payload.employeeId);alert(`${e?.name||'الموظف'} ثابت في ${fixedRosterPost(payload.employeeId).split('|')[1]}`);return}
-  const data=mode==='preview'?pendingAutoRoster?.result:monthlyRosterData();if(!data)return;Object.keys(data).forEach(key=>data[key]=(data[key]||[]).filter(id=>id!==payload.employeeId));if(!data[targetKey])data[targetKey]=[];data[targetKey].push(payload.employeeId);
-  if(mode==='preview')renderAutoRosterPreview();else save();
+  moveRosterEmployee(payload.employeeId,targetKey,mode);
 }
+/* ينقل الموظف لموقع (أو يشيله لو targetKey فاضي) — نفس قواعد السحب */
+function moveRosterEmployee(employeeId,targetKey,mode){
+  if(fixedRosterPost(employeeId)){const e=state.employees.find(x=>x.id===employeeId);alert(`${e?.name||'الموظف'} ثابت في ${fixedRosterPost(employeeId).split('|')[1]}`);return false}
+  const data=mode==='preview'?pendingAutoRoster?.result:monthlyRosterData();if(!data)return false;Object.keys(data).forEach(key=>data[key]=(data[key]||[]).filter(id=>id!==employeeId));if(targetKey){if(!data[targetKey])data[targetKey]=[];data[targetKey].push(employeeId)}
+  if(mode==='preview')renderAutoRosterPreview();else save();
+  return true;
+}
+/* ===== الضغط على اسم الموظف: قائمة المواقع ===== */
+function closeRosterMoveMenu(){document.getElementById('rosterMoveMenu')?.remove();document.removeEventListener('mousedown',rosterMoveOutside,true);document.removeEventListener('keydown',rosterMoveEsc,true)}
+function rosterMoveOutside(e){const m=document.getElementById('rosterMoveMenu');if(m&&!m.contains(e.target))closeRosterMoveMenu()}
+function rosterMoveEsc(e){if(e.key==='Escape')closeRosterMoveMenu()}
+function openRosterMoveMenu(event,employeeId,sourceKey,mode){
+  event.stopPropagation();event.preventDefault();closeRosterMoveMenu();
+  const emp=state.employees.find(e=>e.id===employeeId);if(!emp)return;
+  if(fixedRosterPost(employeeId)===sourceKey){alert(`${rosterEmployeeName(emp)} ثابت في ${sourceKey.split('|')[1]}`);return}
+  const data=(mode==='preview'?pendingAutoRoster?.result:monthlyRosterData())||{};
+  const groups=MONTHLY_ROSTER_GROUPS.map(g=>`<div class="rmm-g">${esc(g.name==='Monthly Schedule'?'القيادة والمهام':g.name)}</div>`+g.posts.map(post=>{const key=rosterPostKey(g.key,post),n=(data[key]||[]).length,cur=key===sourceKey;
+    return `<button type="button" class="rmm-i ${cur?'cur':''}" ${cur?'disabled':''} onclick="pickRosterMove('${esc(employeeId)}','${esc(key)}','${mode}')"><span>${esc(post)}</span><small>${cur?'موقعه الحالي':n}</small></button>`}).join('')).join('');
+  const inPost=Object.keys(data).some(k=>(data[k]||[]).includes(employeeId));
+  const m=document.createElement('div');m.id='rosterMoveMenu';m.className='rmm';m.setAttribute('role','menu');
+  m.innerHTML=`<div class="rmm-h"><b>${esc(rosterEmployeeName(emp))}</b><small>اختر الموقع الجديد</small><button type="button" class="rmm-x" aria-label="إغلاق" onclick="closeRosterMoveMenu()">✕</button></div><div class="rmm-list">${groups}</div>${inPost?`<button type="button" class="rmm-rm" onclick="pickRosterMove('${esc(employeeId)}','','${mode}')">إزالة من الموقع</button>`:''}`;
+  document.body.appendChild(m);
+  if(window.innerWidth>700){const r=event.currentTarget.getBoundingClientRect(),w=m.offsetWidth,h=m.offsetHeight;let left=Math.min(Math.max(8,r.right-w),window.innerWidth-w-8),top=r.bottom+6;if(top+h>window.innerHeight-8)top=Math.max(8,r.top-h-6);m.style.left=left+'px';m.style.top=top+'px'}else m.classList.add('sheet');
+  setTimeout(()=>{document.addEventListener('mousedown',rosterMoveOutside,true);document.addEventListener('keydown',rosterMoveEsc,true)},0);
+  m.querySelector('.rmm-i.cur')?.scrollIntoView({block:'center'});
+}
+function pickRosterMove(employeeId,targetKey,mode){closeRosterMoveMenu();moveRosterEmployee(employeeId,targetKey,mode)}
 function seededRosterSort(employees,salt){return [...employees].sort((a,b)=>{const score=id=>{let h=2166136261;for(const c of (monthlyRosterMonth+'|'+salt+'|'+id)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};return score(a.id)-score(b.id)})}
 function isLeaderGate(group,post){return group.key==='stations'&&post.startsWith('STN#')&&!post.includes('X-Ray')}
 function specialRoleForPost(post){return ({'Shift Chief (01)':'chief','Assistant Shift Chief (02)':'assistant','Community Supervisor (03)':'community','Shift Clerk':'clerk','SCC':'scc','Ind. Visitor':'visitor','Comm. Visitor':'commVisitor'})[post]||''}
