@@ -296,7 +296,7 @@ const MONTHLY_ROSTER_GROUPS=[
 ];
 const ROSTER_STATION_LIMITS={
   'stations|STN# 01':{min:4},'stations|STN# 04':{min:2,max:3},'stations|STN# 05':{min:3},
-  'stations|STN# 06':{min:1,max:1},'stations|STN# 07':{min:2,max:2},'stations|STN# 10':{min:3},'stations|STN# 16A':{min:3,max:4}
+  'stations|STN# 06':{min:1,max:1},'stations|STN# 07':{min:1,max:2,def:2},'stations|STN# 10':{min:3},'stations|STN# 16A':{min:3,max:4}
 };
 function rosterPostKey(groupKey,post){return groupKey+'|'+post}
 function monthlyRosterData(){
@@ -307,7 +307,7 @@ function monthlyRosterData(){
 }
 function normalizeRosterRequirement(key,value){const rule=ROSTER_STATION_LIMITS[key],n=Math.max(0,Math.min(99,Number(value)||0));if(!rule)return n;return Math.min(rule.max??99,Math.max(rule.min,n))}
 function rosterRequirementHint(key){const r=ROSTER_STATION_LIMITS[key];if(!r)return '';return r.max===r.min?`${r.min} بالضبط`:r.max?`من ${r.min} إلى ${r.max}`:`الحد الأدنى ${r.min}`}
-function monthlyRosterRequirements(){if(!state.monthlyScheduleRequirements[monthlyRosterMonth])state.monthlyScheduleRequirements[monthlyRosterMonth]={};const req=state.monthlyScheduleRequirements[monthlyRosterMonth];Object.keys(ROSTER_STATION_LIMITS).forEach(key=>req[key]=normalizeRosterRequirement(key,req[key]));return req}
+function monthlyRosterRequirements(){if(!state.monthlyScheduleRequirements[monthlyRosterMonth])state.monthlyScheduleRequirements[monthlyRosterMonth]={};const req=state.monthlyScheduleRequirements[monthlyRosterMonth];Object.keys(ROSTER_STATION_LIMITS).forEach(key=>req[key]=normalizeRosterRequirement(key,req[key]??ROSTER_STATION_LIMITS[key].def));return req}
 function defaultMonthlyRosterPeriod(){const b=monthBounds(monthlyRosterMonth);return {start:b.start,end:b.end}}
 function monthlyRosterPeriod(){return state.monthlySchedulePeriods[monthlyRosterMonth]||defaultMonthlyRosterPeriod()}
 function syncMonthlyRosterPeriodInputs(){const p=monthlyRosterPeriod(),start=document.getElementById('monthlyRosterStart'),end=document.getElementById('monthlyRosterEnd');if(start)start.value=p.start;if(end)end.value=p.end}
