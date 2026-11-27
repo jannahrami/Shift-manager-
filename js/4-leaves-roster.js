@@ -234,25 +234,17 @@ function getGateCoverageReport(year){
       });
     });
   });
-  /* التغطيات خارج الجدول (مؤقتة): عدد المرات ومجموع الأيام داخل السنة */
-  const ys=`${year}-01-01`,ye=`${year}-12-31`;
-  (state.tempCoverage||[]).forEach(t=>{
-    if(!t.start||!t.end||t.end<ys||t.start>ye)return;const e=state.employees.find(x=>x.id===t.employeeId);if(!e)return;
-    const bucket=/^STN/i.test(t.loc)?gates:/^Patrol/i.test(t.loc)?patrols:null;if(!bucket)return;
-    if(!bucket[t.loc])bucket[t.loc]={};if(!bucket[t.loc][e.id])bucket[t.loc][e.id]={employee:e,count:0};
-    const x=bucket[t.loc][e.id];x.tmpCount=(x.tmpCount||0)+1;x.tmpDays=(x.tmpDays||0)+diffDays(t.end>ye?ye:t.end,t.start<ys?ys:t.start)+1;
-  });
   function finalize(bucket){
     return Object.keys(bucket).sort().map(loc=>({
       location:loc,
-      employees:Object.values(bucket[loc]).map(x=>({employee:x.employee,count:x.count,exceeded:x.count>3,tmpCount:x.tmpCount||0,tmpDays:x.tmpDays||0})).sort((a,b)=>b.count-a.count||b.tmpDays-a.tmpDays)
+      employees:Object.values(bucket[loc]).map(x=>({employee:x.employee,count:x.count,exceeded:x.count>3})).sort((a,b)=>b.count-a.count)
     }));
   }
   return {gates:finalize(gates),patrols:finalize(patrols)};
 }
 function coverageCardHtml(item){
-  const rows=item.employees.map(x=>`<div class="coverage-row cov3 ${x.exceeded?'exceeded':''}"><span class="cov-name">${esc(x.employee.nameAr||x.employee.name)}</span><span class="cov-count">${x.count?`${x.count} ${x.count===1?'مرة':'مرات'}`:'<span class="cov-none">—</span>'}</span><span class="cov-tmp">${x.tmpCount?`${x.tmpCount} · ${x.tmpDays} ${x.tmpDays>=3&&x.tmpDays<=10?'أيام':'يوم'}`:'<span class="cov-none">—</span>'}</span></div>`).join('');
-  return `<div class="coverage-card"><h4>${esc(item.location)}</h4>${rows?`<div class="coverage-row cov3 cov-head"><span>الموظف</span><span>الجدول</span><span>خارج الجدول</span></div>${rows}`:'<div class="empty">لا يوجد</div>'}</div>`;
+  const rows=item.employees.map(x=>`<div class="coverage-row ${x.exceeded?'exceeded':''}"><span class="cov-name">${esc(x.employee.nameAr||x.employee.name)}</span><span class="cov-count">${x.count} ${x.count===1?'مرة':'مرات'}</span></div>`).join('');
+  return `<div class="coverage-card"><h4>${esc(item.location)}</h4>${rows||'<div class="empty">لا يوجد</div>'}</div>`;
 }
 function openGateCoverage(){showView('gateCoverageView',document.querySelector('.navbtn[data-view=gateCoverageView]'))}
 /* يتنادى من showView لما تفتح تبويب «التغطية» */
@@ -568,7 +560,7 @@ function pickShiftDate(iso){
 let tcEditId=null;
 function tcPosts(){return MONTHLY_ROSTER_GROUPS.filter(g=>g.key!=='leadership').flatMap(g=>g.posts.map(p=>({group:g.name,post:p})))}
 function tcPostOptions(sel){return MONTHLY_ROSTER_GROUPS.filter(g=>g.key!=='leadership').map(g=>`<optgroup label="${esc(g.name)}">${g.posts.map(p=>`<option value="${esc(p)}" ${p===sel?'selected':''}>${esc(p)}</option>`).join('')}</optgroup>`).join('')}
-function tcDaysTxt(n){return `${n} ${n>=3&&n<=10?'أيام':'يوم'}`}
+function tcDaysTxt(n){return n===1?"يوم واحد":n===2?"يومين":`${n} ${n>=3&&n<=10?"أيام":"يوم"}`}
 function tcEmpName(id){const e=state.employees.find(x=>x.id===id);return e?(e.nameAr||e.name):'—'}
 function tcValidate(loc,start,end){if(!loc)return 'اختر الموقع';if(!start||!end)return 'حدد التاريخين';if(end<start)return 'تاريخ النهاية قبل البداية';if(diffDays(end,start)>60)return 'المدة أطول من 60 يوم — هذي مو تغطية مؤقتة';return ''}
 function tcOverlap(employeeId,start,end,skipId){return (state.tempCoverage||[]).find(t=>t.id!==skipId&&t.employeeId===employeeId&&!(t.end<start||t.start>end))}
@@ -597,14 +589,23 @@ function tcChipTag(employeeId){
   return list.map(t=>`<span class="tc-tag" title="تغطية مؤقتة: ${esc(t.loc)} من ${fmtDate(t.start)} إلى ${fmtDate(t.end)}">↪ ${esc(t.loc)} ${t.start===t.end?fmtDayShort(t.start):`${fmtDayShort(t.start)}–${fmtDayShort(t.end)}`}</span>`).join('');
 }
 function fmtDayShort(d){const [y,m,dd]=d.split('-').map(Number);return `${dd}/${m}`}
+let tcOpenKey='';
 function renderTempCoverageLog(year){
   const box=document.getElementById('tempCoverageLog');if(!box)return;
-  const ys=`${year}-01-01`,ye=`${year}-12-31`,list=(state.tempCoverage||[]).filter(t=>!(t.end<ys||t.start>ye)).sort((a,b)=>b.start.localeCompare(a.start));
-  const total=list.reduce((s,t)=>s+diffDays(t.end,t.start)+1,0);
-  document.getElementById('tempCoverageKicker').textContent=list.length?`${list.length} تغطية · ${tcDaysTxt(total)}`:'من قائمة الاسم في جدول الشفت';
-  box.innerHTML=list.length?list.map(t=>{const days=diffDays(t.end,t.start)+1;
-    if(tcEditId===t.id)return `<div class="tc-row edit"><b>${esc(tcEmpName(t.employeeId))}</b><select id="tceLoc">${tcPostOptions(t.loc)}</select><input type="date" id="tceStart" value="${esc(t.start)}"><input type="date" id="tceEnd" value="${esc(t.end)}"><span class="tc-err" id="tceErr"></span><span class="tc-btns"><button type="button" onclick="saveTempCoverageEdit('${esc(t.id)}')">حفظ</button><button type="button" class="secondary" onclick="tcEditId=null;renderGateCoverage()">إلغاء</button></span></div>`;
-    return `<div class="tc-row"><div><b>${esc(tcEmpName(t.employeeId))} ← ${esc(t.loc)}</b><small>${fmtDate(t.start)}${t.end!==t.start?' – '+fmtDate(t.end):''} · ${tcDaysTxt(days)}${t.from?` · أصلاً في ${esc(t.from)}`:''}</small></div><span class="tc-btns"><button type="button" class="secondary" onclick="tcEditId='${esc(t.id)}';renderGateCoverage()">تعديل</button><button type="button" class="secondary danger" onclick="deleteTempCoverage('${esc(t.id)}')">حذف</button></span></div>`}).join(''):'<div class="empty">ما فيه تغطيات مؤقتة في هذي السنة. سجّلها من جدول الشفت: اضغط على اسم الموظف ← «تغطية مؤقتة».</div>';
+  const ys=`${year}-01-01`,ye=`${year}-12-31`,list=(state.tempCoverage||[]).filter(t=>!(t.end<ys||t.start>ye));
+  const daysIn=t=>diffDays(t.end>ye?ye:t.end,t.start<ys?ys:t.start)+1;
+  const total=list.reduce((s,t)=>s+daysIn(t),0);
+  document.getElementById('tempCoverageKicker').textContent=list.length?`المجموع ${tcDaysTxt(total)} · اضغط على الاسم للتفاصيل`:'تتسجل من قائمة الاسم في جدول الشفت';
+  const by={};list.forEach(t=>{(by[t.loc]=by[t.loc]||{});const x=(by[t.loc][t.employeeId]=by[t.loc][t.employeeId]||{days:0,items:[]});x.days+=daysIn(t);x.items.push(t)});
+  const order=l=>(/^STN/i.test(l)?0:1);
+  const locs=Object.keys(by).sort((a,b)=>order(a)-order(b)||a.localeCompare(b,undefined,{numeric:true}));
+  box.innerHTML=locs.length?locs.map(loc=>{
+    const rows=Object.entries(by[loc]).sort((a,b)=>b[1].days-a[1].days).map(([id,x])=>{const key=loc+'|'+id,open=tcOpenKey===key;
+      const items=open?`<div class="tc-items">${x.items.sort((a,b)=>a.start.localeCompare(b.start)).map(t=>tcEditId===t.id
+        ?`<div class="tc-item edit"><select id="tceLoc">${tcPostOptions(t.loc)}</select><input type="date" id="tceStart" value="${esc(t.start)}"><input type="date" id="tceEnd" value="${esc(t.end)}"><span class="tc-err" id="tceErr"></span><span class="tc-btns"><button type="button" onclick="saveTempCoverageEdit('${esc(t.id)}')">حفظ</button><button type="button" class="secondary" onclick="tcEditId=null;renderGateCoverage()">إلغاء</button></span></div>`
+        :`<div class="tc-item"><span>${fmtDate(t.start)}${t.end!==t.start?' – '+fmtDate(t.end):''} · ${tcDaysTxt(diffDays(t.end,t.start)+1)}${t.from?`<small> · أصلاً في ${esc(t.from)}</small>`:''}</span><span class="tc-btns"><button type="button" class="secondary" onclick="tcEditId='${esc(t.id)}';renderGateCoverage()">تعديل</button><button type="button" class="secondary danger" onclick="deleteTempCoverage('${esc(t.id)}')">حذف</button></span></div>`).join('')}</div>`:'';
+      return `<div class="coverage-row tc-cov ${open?'open':''}"><button type="button" class="cov-name tc-name" onclick="tcOpenKey=tcOpenKey==='${esc(key)}'?'':'${esc(key)}';tcEditId=null;renderGateCoverage()">${esc(tcEmpName(id))} <span class="tc-chev">${open?'▴':'▾'}</span></button><span class="cov-count">${tcDaysTxt(x.days)}</span></div>${items}`}).join('');
+    return `<div class="coverage-card"><h4>${esc(loc)}</h4>${rows}</div>`}).join(''):'<div class="empty">ما فيه تغطيات خارج الجدول في هذي السنة. سجّلها من جدول الشفت: اضغط على اسم الموظف ← «تغطية مؤقتة».</div>';
 }
 function saveTempCoverageEdit(id){
   const t=(state.tempCoverage||[]).find(x=>x.id===id);if(!t)return;
