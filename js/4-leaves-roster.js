@@ -374,7 +374,7 @@ function rosterPrintTableHtml(){
   let html='<div class="monthly-roster-wrap"><table class="monthly-roster-table"><thead><tr><th>الموقع / المهمة</th><th>العدد المطلوب<br><small>شامل الليدر</small></th><th>الموظفون</th></tr></thead><tbody>';
   MONTHLY_ROSTER_GROUPS.forEach(group=>{
     html+=`<tr class="roster-group ${group.key}"><td colspan="3">${esc(group.name)}</td></tr>`;
-    group.posts.forEach(post=>{const key=rosterPostKey(group.key,post),ids=Array.isArray(data[key])?data[key]:[],people=ids.map(id=>state.employees.find(e=>e.id===id)).filter(Boolean),hint=rosterRequirementHint(key);
+    group.posts.forEach(post=>{const key=rosterPostKey(group.key,post),ids=Array.isArray(data[key])?data[key]:[],people=rosterLeadersFirst(ids.map(id=>state.employees.find(e=>e.id===id)).filter(Boolean)),hint=rosterRequirementHint(key);
       html+=`<tr><td class="roster-post">${esc(post)}${hint?`<div class="small-note">${esc(hint)}</div>`:''}</td><td>${Number(requirements[key])||0}</td><td><div class="roster-people">${people.length?people.map(e=>`<span class="roster-person ${e.dutyRole==='leader'?'roster-leader':''}">${esc(rosterEmployeeName(e))}</span>`).join(''):'<span class="roster-empty">غير موزع</span>'}</div></td></tr>`});
   });
   return html+rosterLeaveSectionRows(3)+'</tbody></table></div>';
@@ -388,7 +388,7 @@ function renderMonthlyRoster(){
   if(st){st.className='sv-status '+(has&&saved?'ok':has?'draft':'empty');st.textContent=has&&saved?'✓ محفوظ':has?'الفترة ما انحفظت':'ما فيه توزيع'}
   box.innerHTML=MONTHLY_ROSTER_GROUPS.map(group=>{
     let filled=0,need=0;
-    const cards=group.posts.map(post=>{const key=rosterPostKey(group.key,post),ids=Array.isArray(data[key])?data[key]:[],people=ids.map(id=>state.employees.find(e=>e.id===id)).filter(Boolean),req=Number(requirements[key])||0,rule=ROSTER_STATION_LIMITS[key],hint=rosterRequirementHint(key);
+    const cards=group.posts.map(post=>{const key=rosterPostKey(group.key,post),ids=Array.isArray(data[key])?data[key]:[],people=rosterLeadersFirst(ids.map(id=>state.employees.find(e=>e.id===id)).filter(Boolean)),req=Number(requirements[key])||0,rule=ROSTER_STATION_LIMITS[key],hint=rosterRequirementHint(key);
       filled+=Math.min(people.length,req||people.length);need+=req;
       const cls=req&&people.length<req?'short':(!req&&!people.length?'idle':'ok'),pct=req?Math.min(100,Math.round(people.length/req*100)):(people.length?100:0);
       return `<div class="sv-card ${cls}${key===MARINE_PATROL_KEY?' marine':''}"><div class="sv-card-h"><b>${esc(post)}${key===MARINE_PATROL_KEY?' <span class="sv-anchor" title="تحتاج بطاقة Marine">⚓</span>':''}</b><span class="sv-cnt">${people.length} <small>من</small> <input class="roster-required" type="number" min="${rule?.min??0}" max="${rule?.max??99}" value="${req}" onchange="setMonthlyRosterRequirement('${esc(key)}',this.value)" aria-label="العدد المطلوب في ${esc(post)}" title="العدد المطلوب (شامل الليدر)"></span></div>${hint?`<div class="sv-hint">${esc(hint)}</div>`:''}<div class="sv-bar"><i style="width:${pct}%"></i></div>
@@ -663,3 +663,6 @@ function rosterMarineMark(employee){
 
 const MARINE_PATROL_KEY='patrol|Patrol# (09)';
 function rosterMarineOk(employee,period){const exp=marineExpiryFor(employee);return !!exp&&exp>=(period?.end||todayISO())}
+
+/* الليدر دايم أول في العرض (ترتيب الحفظ ما يتغير) */
+function rosterLeadersFirst(list){return [...list.filter(e=>e.dutyRole==='leader'),...list.filter(e=>e.dutyRole!=='leader')]}
