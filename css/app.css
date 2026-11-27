@@ -1190,3 +1190,9 @@
     .rmm-i.cur{background:#fdf3dc;cursor:default}.rmm-i.cur small{color:#9a6b05;font-weight:700}
     .rmm-rm{border:0;border-top:1px solid var(--line);background:#fff;color:#c0392b;font:inherit;font-weight:700;padding:10px;cursor:pointer}
     .rmm-rm:hover{background:#fdf0ef}
+    .rmm-role{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:700}
+    .rmm-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:#f6f7fa}
+    .rmm-seg button{border:0;background:none;border-radius:999px;padding:4px 14px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--text)}
+    .rmm-seg button.on{background:#1c2430;color:#fff;cursor:default}
+    .rmm-seg button:first-child.on{background:#c0392b}
+    .rmm-role-now{flex-basis:100%;color:var(--muted);font-weight:600;font-size:11.5px}

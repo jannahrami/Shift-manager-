@@ -427,11 +427,22 @@ function openRosterMoveMenu(event,employeeId,sourceKey,mode){
     return `<button type="button" class="rmm-i ${cur?'cur':''}" ${cur?'disabled':''} onclick="pickRosterMove('${esc(employeeId)}','${esc(key)}','${mode}')"><span>${esc(post)}</span><small>${cur?'موقعه الحالي':n}</small></button>`}).join('')).join('');
   const inPost=Object.keys(data).some(k=>(data[k]||[]).includes(employeeId));
   const m=document.createElement('div');m.id='rosterMoveMenu';m.className='rmm';m.setAttribute('role','menu');
-  m.innerHTML=`<div class="rmm-h"><b>${esc(rosterEmployeeName(emp))}</b><small>اختر الموقع الجديد</small><button type="button" class="rmm-x" aria-label="إغلاق" onclick="closeRosterMoveMenu()">✕</button></div><div class="rmm-list">${groups}</div>${inPost?`<button type="button" class="rmm-rm" onclick="pickRosterMove('${esc(employeeId)}','','${mode}')">إزالة من الموقع</button>`:''}`;
+  m.innerHTML=`<div class="rmm-h"><b>${esc(rosterEmployeeName(emp))}</b><small>اختر الموقع الجديد</small><button type="button" class="rmm-x" aria-label="إغلاق" onclick="closeRosterMoveMenu()">✕</button></div>${rosterRoleRow(emp,employeeId,sourceKey,mode)}<div class="rmm-list">${groups}</div>${inPost?`<button type="button" class="rmm-rm" onclick="pickRosterMove('${esc(employeeId)}','','${mode}')">إزالة من الموقع</button>`:''}`;
   document.body.appendChild(m);
   if(window.innerWidth>700){const r=event.currentTarget.getBoundingClientRect(),w=m.offsetWidth,h=m.offsetHeight;let left=Math.min(Math.max(8,r.right-w),window.innerWidth-w-8),top=r.bottom+6;if(top+h>window.innerHeight-8)top=Math.max(8,r.top-h-6);m.style.left=left+'px';m.style.top=top+'px'}else m.classList.add('sheet');
   setTimeout(()=>{document.addEventListener('mousedown',rosterMoveOutside,true);document.addEventListener('keydown',rosterMoveEsc,true)},0);
   m.querySelector('.rmm-i.cur')?.scrollIntoView({block:'center'});
+}
+function rosterRoleRow(emp,employeeId,sourceKey,mode){
+  const r=emp.dutyRole||'',other=r&&r!=='leader'&&r!=='officer'?`<small class="rmm-role-now">الحالية: ${esc(employeeDutyRoleLabel(r))}</small>`:'';
+  return `<div class="rmm-role"><span>المهمة</span><div class="rmm-seg">${[['leader','ليدر'],['officer','فرد']].map(([k,l])=>`<button type="button" class="${r===k?'on':''}" ${r===k?'disabled':''} onclick="setRosterRole('${esc(employeeId)}','${k}','${esc(sourceKey)}','${mode}')">${l}</button>`).join('')}</div>${other}</div>`;
+}
+/* يغيّر مهمة الموظف في ملفه (دائم) — نفس صفحة الموظفين */
+function setRosterRole(employeeId,role,sourceKey,mode){
+  const e=state.employees.find(x=>x.id===employeeId);if(!e)return;
+  e.dutyRole=role;closeRosterMoveMenu();
+  if(mode==='preview')renderAutoRosterPreview();
+  save();
 }
 function pickRosterMove(employeeId,targetKey,mode){closeRosterMoveMenu();moveRosterEmployee(employeeId,targetKey,mode)}
 function seededRosterSort(employees,salt){return [...employees].sort((a,b)=>{const score=id=>{let h=2166136261;for(const c of (monthlyRosterMonth+'|'+salt+'|'+id)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};return score(a.id)-score(b.id)})}
