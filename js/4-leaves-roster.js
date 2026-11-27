@@ -307,7 +307,7 @@ function monthlyRosterData(){
 }
 function normalizeRosterRequirement(key,value){const rule=ROSTER_STATION_LIMITS[key],n=Math.max(0,Math.min(99,Number(value)||0));if(!rule)return n;return Math.min(rule.max??99,Math.max(rule.min,n))}
 function rosterRequirementHint(key){const r=ROSTER_STATION_LIMITS[key];if(!r)return '';return r.max===r.min?`${r.min} بالضبط`:r.max?`من ${r.min} إلى ${r.max}`:`الحد الأدنى ${r.min}`}
-function monthlyRosterRequirements(){if(!state.monthlyScheduleRequirements[monthlyRosterMonth])state.monthlyScheduleRequirements[monthlyRosterMonth]={};const req=state.monthlyScheduleRequirements[monthlyRosterMonth];Object.keys(ROSTER_STATION_LIMITS).forEach(key=>req[key]=normalizeRosterRequirement(key,req[key]??ROSTER_STATION_LIMITS[key].def));return req}
+function monthlyRosterRequirements(){if(!state.monthlyScheduleRequirements[monthlyRosterMonth])state.monthlyScheduleRequirements[monthlyRosterMonth]={};const req=state.monthlyScheduleRequirements[monthlyRosterMonth];rosterInheritRequirements(req);Object.keys(ROSTER_STATION_LIMITS).forEach(key=>req[key]=normalizeRosterRequirement(key,req[key]??ROSTER_STATION_LIMITS[key].def));return req}
 function defaultMonthlyRosterPeriod(){const b=monthBounds(monthlyRosterMonth);return {start:b.start,end:b.end}}
 function monthlyRosterPeriod(){return state.monthlySchedulePeriods[monthlyRosterMonth]||defaultMonthlyRosterPeriod()}
 function syncMonthlyRosterPeriodInputs(){const p=monthlyRosterPeriod(),start=document.getElementById('monthlyRosterStart'),end=document.getElementById('monthlyRosterEnd');if(start)start.value=p.start;if(end)end.value=p.end}
@@ -671,3 +671,13 @@ function rosterLeadersFirst(list){return [...list.filter(e=>e.dutyRole==='leader
 /* عنوان صفحة الشفت = تواريخ الفترة، وتحته اسم الجدول */
 function svUpdateTitle(){const title=document.getElementById('monthlyRosterTitle');if(!title)return;const p=monthlyRosterPeriod(),f=d=>new Date(d+'T12:00:00').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn',{day:'numeric',month:'long'}),k=document.getElementById('svKicker');
   title.textContent=`${f(p.start)} – ${f(p.end)}`;title.title=`${p.start} → ${p.end}`;if(k)k.textContent='جدول '+monthLabel(monthlyRosterMonth).replace('إجازات ','')}
+
+/* جدول جديد (ما فيه توزيع، وأعداده بس الحدود الثابتة) ياخذ الأعداد المطلوبة من آخر جدول قبله */
+function rosterInheritRequirements(req){
+  const month=monthlyRosterMonth,custom=r=>Object.entries(r||{}).some(([k,v])=>!ROSTER_STATION_LIMITS[k]&&(Number(v)||0)>0);
+  if(custom(req))return;
+  const sched=state.monthlySchedules?.[month];if(sched&&Object.values(sched).some(ids=>Array.isArray(ids)&&ids.length))return;
+  const prev=Object.keys(state.monthlyScheduleRequirements||{}).filter(m=>m<month&&custom(state.monthlyScheduleRequirements[m])).sort().pop();if(!prev)return;
+  Object.entries(state.monthlyScheduleRequirements[prev]).forEach(([k,v])=>{if((Number(v)||0)>0)req[k]=Number(v)});
+  try{localStorage.setItem(KEY,JSON.stringify(state));clearTimeout(syncTimer);syncTimer=setTimeout(syncCloud,450)}catch{}
+}
