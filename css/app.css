@@ -997,7 +997,7 @@
     .navbtn span:has(svg.ic){display:inline-flex!important;align-items:center;justify-content:center;background:transparent!important;box-shadow:none!important}
     /* ===== Desktop nav: one compact row ===== */
     @media(min-width:900px){
-      .bottom-nav{grid-template-columns:repeat(9,minmax(0,1fr))!important;gap:6px!important;padding:8px!important}
+      .bottom-nav{grid-template-columns:repeat(10,minmax(0,1fr))!important;gap:6px!important;padding:8px!important}
       .bottom-nav .navbtn{min-height:46px!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:8px;padding:8px 10px!important;font-size:13px!important;border-radius:12px!important;box-shadow:none!important}
       .bottom-nav .navbtn span{width:auto!important;height:auto!important;margin:0!important;font-size:18px!important}
       .bottom-nav .navbtn span.lp-nav-dot{top:4px!important;inset-inline-start:6px!important;font-size:10px!important}

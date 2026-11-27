@@ -246,11 +246,13 @@ function coverageCardHtml(item){
   const rows=item.employees.map(x=>`<div class="coverage-row ${x.exceeded?'exceeded':''}"><span class="cov-name">${esc(x.employee.nameAr||x.employee.name)}</span><span class="cov-count">${x.count} ${x.count===1?'مرة':'مرات'}</span></div>`).join('');
   return `<div class="coverage-card"><h4>${esc(item.location)}</h4>${rows||'<div class="empty">لا يوجد</div>'}</div>`;
 }
-function openGateCoverage(){
-  const sel=document.getElementById('gateCoverageYear');
-  const years=getAvailableHistoryYears();
+function openGateCoverage(){showView('gateCoverageView',document.querySelector('.navbtn[data-view=gateCoverageView]'))}
+/* يتنادى من showView لما تفتح تبويب «التغطية» */
+function prepGateCoverage(){
+  const sel=document.getElementById('gateCoverageYear');if(!sel)return;
+  const prev=sel.value,years=getAvailableHistoryYears();
   sel.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join('');
-  showView('gateCoverageView');
+  if(prev&&years.map(String).includes(prev))sel.value=prev;
   renderGateCoverage();
 }
 function renderGateCoverage(){

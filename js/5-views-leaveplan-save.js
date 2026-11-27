@@ -680,6 +680,7 @@ function showView(id,btn){
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
   syncNavMoreActive(id);
+  if(id==='gateCoverageView')prepGateCoverage();
   document.querySelector('.fab')?.classList.toggle('hidden',!['homeView','employeesView'].includes(id));
   if(id==='reportsView'){
     const month=document.getElementById('monthlyReportMonth'),year=document.getElementById('annualReportYear');
