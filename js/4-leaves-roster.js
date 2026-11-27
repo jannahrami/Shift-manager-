@@ -402,7 +402,7 @@ function saveMonthlyRosterAssignment(){
 function clearMonthlyRosterAssignment(){if(!editingMonthlyRosterPost)return;if(!confirm('تفريغ جميع الموظفين من هذا الموقع؟'))return;const data=monthlyRosterData(),fixed=Object.entries(FIXED_ROSTER_POSTS).filter(([id,key])=>key===editingMonthlyRosterPost&&!rosterLeaveStatus(id).blocked).map(([id])=>id);if(fixed.length)data[editingMonthlyRosterPost]=fixed;else delete data[editingMonthlyRosterPost];closeModal('monthlyRosterModal');editingMonthlyRosterPost='';save()}
 function rosterPersonChip(employee,sourceKey,mode='saved'){
   const fixedPost=fixedRosterPost(employee.id),fixed=fixedPost===sourceKey,status=rosterLeaveStatus(employee.id),assistantBackup=employee.id===ASSISTANT_BACKUP_ID&&sourceKey===ASSISTANT_POST_KEY&&rosterLeaveStatus(ASSISTANT_PRIMARY_ID).overlaps.length,sccBackup=SCC_BACKUP_IDS.includes(employee.id)&&sourceKey===SCC_POST_KEY&&SCC_PRIMARY_IDS.some(id=>rosterLeaveStatus(id).overlaps.length),communityBackup=employee.id===COMMUNITY_BACKUP_ID&&sourceKey===COMMUNITY_POST_KEY&&rosterLeaveStatus(COMMUNITY_PRIMARY_ID).overlaps.length,statusClass=status.upcoming?'roster-mid-leave':status.returning||assistantBackup||sccBackup||communityBackup?'roster-returning':'',details=[];if(fixed)details.push(`ثابت في ${fixedPost.split('|')[1]}`);if(status.upcoming)details.push(`تبدأ إجازته ${fmtDate(status.upcoming.start)}`);else if(status.returning)details.push(`متاح بعد العودة ${fmtDate(addDaysISO(status.returning.end,1))}`);if(assistantBackup)details.push('Assistant Backup أثناء إجازة الموظف الأساسي');if(sccBackup)details.push('SCC Backup أثناء إجازة أحد موظفي SCC');if(communityBackup)details.push('Community Supervisor Backup');const title=details.join(' — ')||'اسحب لتغيير الموقع';
-  return `<span class="roster-person ${employee.dutyRole==='leader'?'roster-leader':''} ${statusClass} ${fixed?'roster-fixed':''}" title="${esc(title)}" ${fixed?'':'draggable="true"'} ondragstart="dragRosterEmployee(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')" onclick="openRosterMoveMenu(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')" role="button" tabindex="0">${esc(rosterEmployeeName(employee))}${mode==='saved'?tcChipTag(employee.id):''}</span>`;
+  return `<span class="roster-person ${employee.dutyRole==='leader'?'roster-leader':''} ${statusClass} ${fixed?'roster-fixed':''}" title="${esc(title)}" ${fixed?'':'draggable="true"'} ondragstart="dragRosterEmployee(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')" onclick="openRosterMoveMenu(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')" role="button" tabindex="0">${rosterMarineMark(employee)}${esc(rosterEmployeeName(employee))}${mode==='saved'?tcChipTag(employee.id):''}</span>`;
 }
 function dragRosterEmployee(event,employeeId,sourceKey,mode){event.dataTransfer.setData('text/plain',JSON.stringify({employeeId,sourceKey,mode}));event.dataTransfer.effectAllowed='move'}
 function allowRosterDrop(event){event.preventDefault();event.currentTarget.classList.add('drag-over')}
@@ -617,4 +617,10 @@ function deleteTempCoverage(id){
   const t=(state.tempCoverage||[]).find(x=>x.id===id);if(!t)return;
   if(!confirm(`حذف تغطية ${tcEmpName(t.employeeId)} في ${t.loc} (${fmtDate(t.start)} – ${fmtDate(t.end)})؟`))return;
   state.tempCoverage=state.tempCoverage.filter(x=>x.id!==id);if(save()!==false)renderGateCoverage();
+}
+
+/* علامة بطاقة Marine جنب الاسم: أخضر صالحة · برتقالي تنتهي خلال 30 يوم · أحمر منتهية */
+function rosterMarineMark(employee){
+  const st=marineStatus(employee);if(st.kind==='missing')return '';
+  return `<span class="mrn-mark ${st.kind}" title="بطاقة Marine: ${esc(st.label)} · ${fmtDate(marineExpiryFor(employee))}">⚓</span>`;
 }

@@ -1226,3 +1226,6 @@
     .tc-item small{color:var(--muted)}
     .tc-item.edit select,.tc-item.edit input{padding:5px 7px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:12px;background:#fff;max-width:100%}
     .tc-item .tc-btns button{padding:3px 9px!important;font-size:11px!important}
+    /* علامة Marine في جدول الشفت */
+    .mrn-mark{display:inline-grid;place-items:center;width:17px;height:17px;margin-inline-end:5px;border-radius:50%;font-size:10px;line-height:1;color:#fff;vertical-align:middle}
+    .mrn-mark.valid{background:#1f9d55}.mrn-mark.soon{background:#e8890c}.mrn-mark.expired{background:#d63a3a}
