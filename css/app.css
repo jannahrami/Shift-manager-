@@ -1291,3 +1291,26 @@
     @media(max-width:980px){.sv-body{grid-template-columns:1fr}.sv-side{position:static;order:-1}.sv-side-card{margin-top:10px}}
     @media(max-width:700px){.sv-actions{margin-inline-start:0;width:100%}.sv-actions .primary{flex:1}.sv-grid{grid-template-columns:1fr}.sv-period input{width:104px}}
     .sv-cnt{gap:4px}.sv-cnt small{font-weight:600;font-size:11px}
+    /* ===== صفحة الشفت: ترتيب البطاقات ===== */
+    .sv-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+    .sv-card{display:flex;flex-direction:column;padding:10px 12px 10px!important}
+    .sv-card-h{align-items:flex-start!important;gap:8px!important}
+    .sv-card-t{flex:1;min-width:0}.sv-card-t b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sv-card-t small{display:block;font-size:10.5px;color:var(--muted);margin-top:1px}
+    .sv-badge{flex:0 0 auto;font-size:12.5px;font-weight:800;padding:2px 9px;border-radius:999px;background:#e7f6ec;color:#1f7a3f;direction:ltr}
+    .sv-badge.short{background:#fdecea;color:#c0392b}.sv-badge.idle{background:#f1f3f7;color:var(--muted)}
+    .sv-edit{flex:0 0 auto;width:26px;height:26px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:13px;line-height:1;cursor:pointer;color:var(--muted);padding:0}
+    .sv-edit:hover{background:#f3f5f9;color:var(--text)}
+    .sv-card .sv-bar{margin:8px 0 9px!important}
+    .sv-list{display:flex!important;flex-direction:column;align-items:stretch!important;gap:5px!important;flex:1}
+    .sv-list .roster-person,.sv-side .roster-person{display:flex!important;align-items:center;width:100%;box-sizing:border-box;margin:0!important;border-radius:9px!important;padding:6px 10px!important;font-size:12.5px;justify-content:flex-start;text-align:right}
+    .sv-list .roster-person.roster-leader{border-inline-start:3px solid #d63a3a!important}
+    .sv-list .sv-add{width:100%;border-radius:9px;padding:6px 10px;text-align:center}
+    .sv-side .roster-people{flex-direction:column;align-items:stretch!important;gap:5px!important}
+    .sv-card.idle{opacity:.55}
+    .sv-req-row{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#f7f8fb;font-weight:700;font-size:13px}
+    .sv-req-row input{width:70px!important;text-align:center}
+    @media(max-width:1250px){.sv-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+    @media(max-width:980px){.sv-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+    @media(max-width:600px){.sv-grid{grid-template-columns:1fr!important}}
+    .sv-card-t b{white-space:normal!important;overflow:visible!important;line-height:1.3}
