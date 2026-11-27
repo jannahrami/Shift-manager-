@@ -396,7 +396,7 @@ function renderMonthlyRosterEmployeeOptions(){
   box.innerHTML=employees.length?employees.map(e=>{const leave=rosterLeaveStatus(e.id),fixedPost=fixedRosterPost(e.id),fixedElsewhere=fixedPost&&editingMonthlyRosterPost!==fixedPost,fixedHere=fixedPost&&editingMonthlyRosterPost===fixedPost,disabled=leave.blocked||fixedElsewhere||fixedHere;if(leave.blocked||fixedElsewhere)editingMonthlyRosterSelection.delete(e.id);const note=leave.blocked?`في إجازة عند بداية الفترة: ${fmtDate(leave.blocked.start)} إلى ${fmtDate(leave.blocked.end)}`:fixedElsewhere?`ثابت في ${fixedPost.split('|')[1]}`:fixedHere?'ثابت في هذا الموقع':leave.upcoming?`تنبيه: تبدأ إجازته ${fmtDate(leave.upcoming.start)}`:`Badge #${esc(e.empId)}`;return `<label class="roster-check" style="${disabled?'opacity:.58':''}"><input type="checkbox" value="${esc(e.id)}" ${editingMonthlyRosterSelection.has(e.id)?'checked':''} ${disabled?'disabled':''} onchange="toggleMonthlyRosterEmployee('${esc(e.id)}',this.checked)"><span><strong>${esc(e.name)}</strong><small>${note}</small></span></label>`}).join(''):'<div class="empty">لا توجد نتائج</div>';
 }
 function saveMonthlyRosterAssignment(){
-  if(!editingMonthlyRosterPost)return;const ids=[...editingMonthlyRosterSelection],data=monthlyRosterData(),blocked=ids.map(id=>({id,status:rosterLeaveStatus(id)})).filter(x=>x.status.blocked);if(blocked.length){alert('لا يمكن إضافة موظف موجود في إجازة عند بداية فترة الجدول');return}const upcoming=ids.map(id=>({employee:state.employees.find(e=>e.id===id),leave:rosterLeaveStatus(id).upcoming})).filter(x=>x.employee&&x.leave);if(upcoming.length&&!confirm('تنبيه: الموظفون التالية أسماؤهم تبدأ إجازاتهم أثناء فترة الجدول:\n'+upcoming.map(x=>`${x.employee.name} — ${fmtDate(x.leave.start)}`).join('\n')+'\n\nهل تريد إضافتهم؟'))return;
+  if(!editingMonthlyRosterPost)return;if(editingMonthlyRosterPost===MARINE_PATROL_KEY){const bad=[...editingMonthlyRosterSelection].map(id=>state.employees.find(e=>e.id===id)).filter(e=>e&&!rosterMarineOk(e,monthlyRosterPeriod()));if(bad.length&&!confirm(`هذولا ما عندهم بطاقة Marine صالحة لين نهاية الفترة:\n${bad.map(e=>rosterEmployeeName(e)).join('\n')}\n\nتكمل؟`))return}const ids=[...editingMonthlyRosterSelection],data=monthlyRosterData(),blocked=ids.map(id=>({id,status:rosterLeaveStatus(id)})).filter(x=>x.status.blocked);if(blocked.length){alert('لا يمكن إضافة موظف موجود في إجازة عند بداية فترة الجدول');return}const upcoming=ids.map(id=>({employee:state.employees.find(e=>e.id===id),leave:rosterLeaveStatus(id).upcoming})).filter(x=>x.employee&&x.leave);if(upcoming.length&&!confirm('تنبيه: الموظفون التالية أسماؤهم تبدأ إجازاتهم أثناء فترة الجدول:\n'+upcoming.map(x=>`${x.employee.name} — ${fmtDate(x.leave.start)}`).join('\n')+'\n\nهل تريد إضافتهم؟'))return;
   if(ids.length)data[editingMonthlyRosterPost]=ids;else delete data[editingMonthlyRosterPost];closeModal('monthlyRosterModal');editingMonthlyRosterPost='';save();
 }
 function clearMonthlyRosterAssignment(){if(!editingMonthlyRosterPost)return;if(!confirm('تفريغ جميع الموظفين من هذا الموقع؟'))return;const data=monthlyRosterData(),fixed=Object.entries(FIXED_ROSTER_POSTS).filter(([id,key])=>key===editingMonthlyRosterPost&&!rosterLeaveStatus(id).blocked).map(([id])=>id);if(fixed.length)data[editingMonthlyRosterPost]=fixed;else delete data[editingMonthlyRosterPost];closeModal('monthlyRosterModal');editingMonthlyRosterPost='';save()}
@@ -413,6 +413,7 @@ function dropRosterEmployee(event,targetKey,mode){
 /* ينقل الموظف لموقع (أو يشيله لو targetKey فاضي) — نفس قواعد السحب */
 function moveRosterEmployee(employeeId,targetKey,mode){
   if(fixedRosterPost(employeeId)){const e=state.employees.find(x=>x.id===employeeId);alert(`${e?.name||'الموظف'} ثابت في ${fixedRosterPost(employeeId).split('|')[1]}`);return false}
+  if(targetKey===MARINE_PATROL_KEY){const e=state.employees.find(x=>x.id===employeeId);if(e&&!rosterMarineOk(e,monthlyRosterPeriod())&&!confirm(`${rosterEmployeeName(e)} ما عنده بطاقة Marine صالحة لين نهاية الفترة، و ${MARINE_PATROL_KEY.split('|')[1]} تحتاج Marine. تكمل؟`))return false}
   const data=mode==='preview'?pendingAutoRoster?.result:monthlyRosterData();if(!data)return false;Object.keys(data).forEach(key=>data[key]=(data[key]||[]).filter(id=>id!==employeeId));if(targetKey){if(!data[targetKey])data[targetKey]=[];data[targetKey].push(employeeId)}
   if(mode==='preview')renderAutoRosterPreview();else save();
   return true;
@@ -470,7 +471,14 @@ function buildAutoMonthlyRoster(){
     if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length} من مهمة ${employeeDutyRoleLabel(role)}`)
   });
   targets.filter(t=>isLeaderGate(t.group,t.post)).forEach(t=>{result[t.key]=result[t.key]||[];const hasLeader=result[t.key].some(id=>state.employees.find(e=>e.id===id)?.dutyRole==='leader');if(!hasLeader&&result[t.key].length<t.count){const id=takeRosterEmployee(pools,['leader'],used);if(id)result[t.key].unshift(id);else shortages.push(`${t.post}: لا يوجد ليدر متاح`)}else if(!hasLeader)shortages.push(`${t.post}: العدد المحدد لا يتسع لليدر مع الموظف الثابت`)});
-  const patrolTargets=targets.filter(t=>t.group.key==='patrol');fillRosterTargetsRoundRobin(patrolTargets,result,pools,['patrol','flex'],used);patrolTargets.forEach(t=>{if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length}`)});
+  /* Patrol# (09): ما يغطيها إلا اللي عنده Marine صالحة لين نهاية الفترة — تتوزع أول عشان ما تروح بطاقات Marine لدوريات ثانية */
+  const marineTarget=targets.find(t=>t.key===MARINE_PATROL_KEY);
+  if(marineTarget){result[marineTarget.key]=result[marineTarget.key]||[];
+    result[marineTarget.key].forEach(id=>{const e=state.employees.find(x=>x.id===id);if(e&&!rosterMarineOk(e,period))shortages.push(`${e.name}: في ${marineTarget.post} وبطاقة Marine غير صالحة لين نهاية الفترة`)});
+    for(const role of ['patrol','flex']){while(result[marineTarget.key].length<marineTarget.count){const e=pools[role].find(x=>!used.has(x.id)&&rosterMarineOk(x,period));if(!e)break;used.add(e.id);result[marineTarget.key].push(e.id)}}
+    if(result[marineTarget.key].length<marineTarget.count)shortages.push(`${marineTarget.post}: ما لقيت أحد متاح عنده بطاقة Marine صالحة (ناقص ${marineTarget.count-result[marineTarget.key].length})`);
+  }
+  const patrolTargets=targets.filter(t=>t.group.key==='patrol'&&t.key!==MARINE_PATROL_KEY);fillRosterTargetsRoundRobin(patrolTargets,result,pools,['patrol','flex'],used);patrolTargets.forEach(t=>{if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length}`)});
   const stationTargets=targets.filter(t=>t.group.key!=='patrol'&&!specialRoleForPost(t.post));fillRosterTargetsRoundRobin(stationTargets,result,pools,['officer','flex','leader','patrol'],used);stationTargets.forEach(t=>{if(result[t.key].length<t.count)shortages.push(`${t.post}: ناقص ${t.count-result[t.key].length}`)});
   const leaveWarnings=[...used].map(id=>{const e=state.employees.find(x=>x.id===id),leave=rosterLeaveStatus(id,period).upcoming;return leave?`${e.name}: تبدأ إجازته ${fmtDate(leave.start)} أثناء فترة الجدول`:''}).filter(Boolean);
   return {result,shortages,leaveWarnings,used,required:targets.reduce((s,t)=>s+t.count,0),unclassified:state.employees.filter(e=>!e.dutyRole).length};
@@ -624,3 +632,6 @@ function rosterMarineMark(employee){
   const st=marineStatus(employee);if(st.kind==='missing')return '';
   return `<span class="mrn-mark ${st.kind}" title="بطاقة Marine: ${esc(st.label)} · ${fmtDate(marineExpiryFor(employee))}">⚓</span>`;
 }
+
+const MARINE_PATROL_KEY='patrol|Patrol# (09)';
+function rosterMarineOk(employee,period){const exp=marineExpiryFor(employee);return !!exp&&exp>=(period?.end||todayISO())}
