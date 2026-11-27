@@ -1196,3 +1196,24 @@
     .rmm-seg button.on{background:#1c2430;color:#fff;cursor:default}
     .rmm-seg button:first-child.on{background:#c0392b}
     .rmm-role-now{flex-basis:100%;color:var(--muted);font-weight:600;font-size:11.5px}
+    /* ===== التغطيات خارج الجدول ===== */
+    .coverage-row.cov3{display:grid;grid-template-columns:minmax(0,1fr) 62px 88px;gap:6px}
+    .coverage-row.cov3>span:not(.cov-name){text-align:center}
+    .coverage-row.cov-head{font-size:11px;color:var(--muted);font-weight:700;border-top:0;padding-bottom:3px}
+    .coverage-row .cov-tmp{font-weight:800;color:#b7791f}
+    .coverage-row .cov-none{color:var(--muted);font-weight:400;opacity:.6}
+    .rmm-tc{border:0;border-top:1px solid var(--line);background:#fffaf0;color:#9a6b05;font:inherit;font-weight:700;padding:10px;cursor:pointer}
+    .rmm-tc:hover{background:#fdf3dc}
+    .tc-form{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+    .tc-form label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
+    .tc-form select,.tc-form input,.tc-row select,.tc-row input{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13px;color:var(--text);background:#fff}
+    .tc-dates{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .tc-err{color:#c0392b;font-size:12px;font-weight:700;min-height:0}
+    .tc-act{display:flex;gap:8px;justify-content:flex-end}
+    .tc-tag{display:inline-block;margin-inline-start:6px;padding:0 6px;border-radius:999px;background:#fdf3dc;color:#9a6b05;font-size:10.5px;font-weight:800;vertical-align:middle}
+    .tc-log{display:flex;flex-direction:column;gap:6px}
+    .tc-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    .tc-row b{display:block;font-size:13px}.tc-row small{color:var(--muted);font-size:12px}
+    .tc-row.edit{justify-content:flex-start}
+    .tc-btns{display:inline-flex;gap:6px}.tc-btns button{padding:5px 12px!important;font-size:12px!important}
+    .tc-btns .danger{color:#c0392b!important}

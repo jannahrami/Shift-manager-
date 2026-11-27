@@ -234,17 +234,25 @@ function getGateCoverageReport(year){
       });
     });
   });
+  /* التغطيات خارج الجدول (مؤقتة): عدد المرات ومجموع الأيام داخل السنة */
+  const ys=`${year}-01-01`,ye=`${year}-12-31`;
+  (state.tempCoverage||[]).forEach(t=>{
+    if(!t.start||!t.end||t.end<ys||t.start>ye)return;const e=state.employees.find(x=>x.id===t.employeeId);if(!e)return;
+    const bucket=/^STN/i.test(t.loc)?gates:/^Patrol/i.test(t.loc)?patrols:null;if(!bucket)return;
+    if(!bucket[t.loc])bucket[t.loc]={};if(!bucket[t.loc][e.id])bucket[t.loc][e.id]={employee:e,count:0};
+    const x=bucket[t.loc][e.id];x.tmpCount=(x.tmpCount||0)+1;x.tmpDays=(x.tmpDays||0)+diffDays(t.end>ye?ye:t.end,t.start<ys?ys:t.start)+1;
+  });
   function finalize(bucket){
     return Object.keys(bucket).sort().map(loc=>({
       location:loc,
-      employees:Object.values(bucket[loc]).map(x=>({employee:x.employee,count:x.count,exceeded:x.count>3})).sort((a,b)=>b.count-a.count)
+      employees:Object.values(bucket[loc]).map(x=>({employee:x.employee,count:x.count,exceeded:x.count>3,tmpCount:x.tmpCount||0,tmpDays:x.tmpDays||0})).sort((a,b)=>b.count-a.count||b.tmpDays-a.tmpDays)
     }));
   }
   return {gates:finalize(gates),patrols:finalize(patrols)};
 }
 function coverageCardHtml(item){
-  const rows=item.employees.map(x=>`<div class="coverage-row ${x.exceeded?'exceeded':''}"><span class="cov-name">${esc(x.employee.nameAr||x.employee.name)}</span><span class="cov-count">${x.count} ${x.count===1?'مرة':'مرات'}</span></div>`).join('');
-  return `<div class="coverage-card"><h4>${esc(item.location)}</h4>${rows||'<div class="empty">لا يوجد</div>'}</div>`;
+  const rows=item.employees.map(x=>`<div class="coverage-row cov3 ${x.exceeded?'exceeded':''}"><span class="cov-name">${esc(x.employee.nameAr||x.employee.name)}</span><span class="cov-count">${x.count?`${x.count} ${x.count===1?'مرة':'مرات'}`:'<span class="cov-none">—</span>'}</span><span class="cov-tmp">${x.tmpCount?`${x.tmpCount} · ${x.tmpDays} ${x.tmpDays>=3&&x.tmpDays<=10?'أيام':'يوم'}`:'<span class="cov-none">—</span>'}</span></div>`).join('');
+  return `<div class="coverage-card"><h4>${esc(item.location)}</h4>${rows?`<div class="coverage-row cov3 cov-head"><span>الموظف</span><span>الجدول</span><span>خارج الجدول</span></div>${rows}`:'<div class="empty">لا يوجد</div>'}</div>`;
 }
 function openGateCoverage(){showView('gateCoverageView',document.querySelector('.navbtn[data-view=gateCoverageView]'))}
 /* يتنادى من showView لما تفتح تبويب «التغطية» */
@@ -260,6 +268,7 @@ function renderGateCoverage(){
   const report=getGateCoverageReport(year);
   document.getElementById('gateCoverageGates').innerHTML=report.gates.length?report.gates.map(coverageCardHtml).join(''):'<div class="empty">لا توجد بيانات بوابات لهذه السنة</div>';
   document.getElementById('gateCoveragePatrols').innerHTML=report.patrols.length?report.patrols.map(coverageCardHtml).join(''):'<div class="empty">لا توجد بيانات دوريات لهذه السنة</div>';
+  renderTempCoverageLog(year);
 }
 let employeeHistoryEmployeeId=null;
 function openEmployeeHistory(id){
@@ -401,7 +410,7 @@ function saveMonthlyRosterAssignment(){
 function clearMonthlyRosterAssignment(){if(!editingMonthlyRosterPost)return;if(!confirm('تفريغ جميع الموظفين من هذا الموقع؟'))return;const data=monthlyRosterData(),fixed=Object.entries(FIXED_ROSTER_POSTS).filter(([id,key])=>key===editingMonthlyRosterPost&&!rosterLeaveStatus(id).blocked).map(([id])=>id);if(fixed.length)data[editingMonthlyRosterPost]=fixed;else delete data[editingMonthlyRosterPost];closeModal('monthlyRosterModal');editingMonthlyRosterPost='';save()}
 function rosterPersonChip(employee,sourceKey,mode='saved'){
   const fixedPost=fixedRosterPost(employee.id),fixed=fixedPost===sourceKey,status=rosterLeaveStatus(employee.id),assistantBackup=employee.id===ASSISTANT_BACKUP_ID&&sourceKey===ASSISTANT_POST_KEY&&rosterLeaveStatus(ASSISTANT_PRIMARY_ID).overlaps.length,sccBackup=SCC_BACKUP_IDS.includes(employee.id)&&sourceKey===SCC_POST_KEY&&SCC_PRIMARY_IDS.some(id=>rosterLeaveStatus(id).overlaps.length),communityBackup=employee.id===COMMUNITY_BACKUP_ID&&sourceKey===COMMUNITY_POST_KEY&&rosterLeaveStatus(COMMUNITY_PRIMARY_ID).overlaps.length,statusClass=status.upcoming?'roster-mid-leave':status.returning||assistantBackup||sccBackup||communityBackup?'roster-returning':'',details=[];if(fixed)details.push(`ثابت في ${fixedPost.split('|')[1]}`);if(status.upcoming)details.push(`تبدأ إجازته ${fmtDate(status.upcoming.start)}`);else if(status.returning)details.push(`متاح بعد العودة ${fmtDate(addDaysISO(status.returning.end,1))}`);if(assistantBackup)details.push('Assistant Backup أثناء إجازة الموظف الأساسي');if(sccBackup)details.push('SCC Backup أثناء إجازة أحد موظفي SCC');if(communityBackup)details.push('Community Supervisor Backup');const title=details.join(' — ')||'اسحب لتغيير الموقع';
-  return `<span class="roster-person ${employee.dutyRole==='leader'?'roster-leader':''} ${statusClass} ${fixed?'roster-fixed':''}" title="${esc(title)}" ${fixed?'':'draggable="true"'} ondragstart="dragRosterEmployee(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')" onclick="openRosterMoveMenu(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')" role="button" tabindex="0">${esc(rosterEmployeeName(employee))}</span>`;
+  return `<span class="roster-person ${employee.dutyRole==='leader'?'roster-leader':''} ${statusClass} ${fixed?'roster-fixed':''}" title="${esc(title)}" ${fixed?'':'draggable="true"'} ondragstart="dragRosterEmployee(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')" onclick="openRosterMoveMenu(event,'${esc(employee.id)}','${esc(sourceKey)}','${mode}')" role="button" tabindex="0">${esc(rosterEmployeeName(employee))}${mode==='saved'?tcChipTag(employee.id):''}</span>`;
 }
 function dragRosterEmployee(event,employeeId,sourceKey,mode){event.dataTransfer.setData('text/plain',JSON.stringify({employeeId,sourceKey,mode}));event.dataTransfer.effectAllowed='move'}
 function allowRosterDrop(event){event.preventDefault();event.currentTarget.classList.add('drag-over')}
@@ -429,7 +438,7 @@ function openRosterMoveMenu(event,employeeId,sourceKey,mode){
     return `<button type="button" class="rmm-i ${cur?'cur':''}" ${cur?'disabled':''} onclick="pickRosterMove('${esc(employeeId)}','${esc(key)}','${mode}')"><span>${esc(post)}</span><small>${cur?'موقعه الحالي':n}</small></button>`}).join('')).join('');
   const inPost=Object.keys(data).some(k=>(data[k]||[]).includes(employeeId));
   const m=document.createElement('div');m.id='rosterMoveMenu';m.className='rmm';m.setAttribute('role','menu');
-  m.innerHTML=`<div class="rmm-h"><b>${esc(rosterEmployeeName(emp))}</b><small>اختر الموقع الجديد</small><button type="button" class="rmm-x" aria-label="إغلاق" onclick="closeRosterMoveMenu()">✕</button></div>${rosterRoleRow(emp,employeeId,sourceKey,mode)}<div class="rmm-list">${groups}</div>${inPost?`<button type="button" class="rmm-rm" onclick="pickRosterMove('${esc(employeeId)}','','${mode}')">إزالة من الموقع</button>`:''}`;
+  m.innerHTML=`<div class="rmm-h"><b>${esc(rosterEmployeeName(emp))}</b><small>اختر الموقع الجديد</small><button type="button" class="rmm-x" aria-label="إغلاق" onclick="closeRosterMoveMenu()">✕</button></div>${rosterRoleRow(emp,employeeId,sourceKey,mode)}<div class="rmm-list">${groups}</div>${mode==='saved'?`<button type="button" class="rmm-tc" onclick="openTempCoverageForm('${esc(employeeId)}','${esc(sourceKey)}')">↪ تغطية مؤقتة (بدون تغيير الجدول)</button>`:''}${inPost?`<button type="button" class="rmm-rm" onclick="pickRosterMove('${esc(employeeId)}','','${mode}')">إزالة من الموقع</button>`:''}`;
   document.body.appendChild(m);
   if(window.innerWidth>700){const r=event.currentTarget.getBoundingClientRect(),w=m.offsetWidth,h=m.offsetHeight;let left=Math.min(Math.max(8,r.right-w),window.innerWidth-w-8),top=r.bottom+6;if(top+h>window.innerHeight-8)top=Math.max(8,r.top-h-6);m.style.left=left+'px';m.style.top=top+'px'}else m.classList.add('sheet');
   setTimeout(()=>{document.addEventListener('mousedown',rosterMoveOutside,true);document.addEventListener('keydown',rosterMoveEsc,true)},0);
@@ -553,4 +562,58 @@ function renderShiftDatePicker(){
 function pickShiftDate(iso){
   if(!sdpInput)return;sdpInput.value=iso;sdpInput.dispatchEvent(new Event('change',{bubbles:true}));
   document.getElementById('shiftDatePicker')?.classList.remove('open');
+}
+
+/* ===== التغطيات خارج الجدول (مؤقتة) ===== */
+let tcEditId=null;
+function tcPosts(){return MONTHLY_ROSTER_GROUPS.filter(g=>g.key!=='leadership').flatMap(g=>g.posts.map(p=>({group:g.name,post:p})))}
+function tcPostOptions(sel){return MONTHLY_ROSTER_GROUPS.filter(g=>g.key!=='leadership').map(g=>`<optgroup label="${esc(g.name)}">${g.posts.map(p=>`<option value="${esc(p)}" ${p===sel?'selected':''}>${esc(p)}</option>`).join('')}</optgroup>`).join('')}
+function tcDaysTxt(n){return `${n} ${n>=3&&n<=10?'أيام':'يوم'}`}
+function tcEmpName(id){const e=state.employees.find(x=>x.id===id);return e?(e.nameAr||e.name):'—'}
+function tcValidate(loc,start,end){if(!loc)return 'اختر الموقع';if(!start||!end)return 'حدد التاريخين';if(end<start)return 'تاريخ النهاية قبل البداية';if(diffDays(end,start)>60)return 'المدة أطول من 60 يوم — هذي مو تغطية مؤقتة';return ''}
+function tcOverlap(employeeId,start,end,skipId){return (state.tempCoverage||[]).find(t=>t.id!==skipId&&t.employeeId===employeeId&&!(t.end<start||t.start>end))}
+/* من قائمة الاسم في جدول الشفت */
+function openTempCoverageForm(employeeId,sourceKey){
+  const m=document.getElementById('rosterMoveMenu');if(!m)return;const today=todayISO();
+  const list=m.querySelector('.rmm-list'),rm=m.querySelector('.rmm-rm'),role=m.querySelector('.rmm-role');rm&&rm.remove();role&&role.remove();
+  m.querySelector('.rmm-h small').textContent='تغطية مؤقتة — الجدول ما يتغير';
+  list.outerHTML=`<div class="tc-form"><label>يغطي في<select id="tcLoc"><option value="">اختر…</option>${tcPostOptions('')}</select></label>
+    <div class="tc-dates"><label>من<input type="date" id="tcStart" value="${today}"></label><label>إلى<input type="date" id="tcEnd" value="${today}"></label></div>
+    <div class="tc-err" id="tcErr"></div>
+    <div class="tc-act"><button type="button" class="secondary" onclick="closeRosterMoveMenu()">إلغاء</button><button type="button" onclick="saveTempCoverage('${esc(employeeId)}','${esc(sourceKey)}')">حفظ التغطية</button></div></div>`;
+}
+function saveTempCoverage(employeeId,sourceKey){
+  const loc=document.getElementById('tcLoc').value,start=document.getElementById('tcStart').value,end=document.getElementById('tcEnd').value,err=tcValidate(loc,start,end);
+  if(err){document.getElementById('tcErr').textContent=err;return}
+  if(sourceKey&&sourceKey.split('|').slice(1).join('|')===loc){document.getElementById('tcErr').textContent='هذا موقعه الأصلي في الجدول';return}
+  const o=tcOverlap(employeeId,start,end);if(o&&!confirm(`عنده تغطية ثانية في نفس الفترة (${o.loc}: ${fmtDate(o.start)} – ${fmtDate(o.end)}). تكمل؟`))return;
+  state.tempCoverage.push({id:'tc_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),employeeId,loc,start,end,from:sourceKey?sourceKey.split('|').slice(1).join('|'):'',createdAt:new Date().toISOString()});
+  closeRosterMoveMenu();save();
+}
+/* علامة جنب الاسم في الجدول: تغطيات داخل فترة الجدول المعروض */
+function tcChipTag(employeeId){
+  const p=monthlyRosterPeriod();
+  const list=(state.tempCoverage||[]).filter(t=>t.employeeId===employeeId&&!(t.end<p.start||t.start>p.end)).sort((a,b)=>a.start.localeCompare(b.start));
+  return list.map(t=>`<span class="tc-tag" title="تغطية مؤقتة: ${esc(t.loc)} من ${fmtDate(t.start)} إلى ${fmtDate(t.end)}">↪ ${esc(t.loc)} ${t.start===t.end?fmtDayShort(t.start):`${fmtDayShort(t.start)}–${fmtDayShort(t.end)}`}</span>`).join('');
+}
+function fmtDayShort(d){const [y,m,dd]=d.split('-').map(Number);return `${dd}/${m}`}
+function renderTempCoverageLog(year){
+  const box=document.getElementById('tempCoverageLog');if(!box)return;
+  const ys=`${year}-01-01`,ye=`${year}-12-31`,list=(state.tempCoverage||[]).filter(t=>!(t.end<ys||t.start>ye)).sort((a,b)=>b.start.localeCompare(a.start));
+  const total=list.reduce((s,t)=>s+diffDays(t.end,t.start)+1,0);
+  document.getElementById('tempCoverageKicker').textContent=list.length?`${list.length} تغطية · ${tcDaysTxt(total)}`:'من قائمة الاسم في جدول الشفت';
+  box.innerHTML=list.length?list.map(t=>{const days=diffDays(t.end,t.start)+1;
+    if(tcEditId===t.id)return `<div class="tc-row edit"><b>${esc(tcEmpName(t.employeeId))}</b><select id="tceLoc">${tcPostOptions(t.loc)}</select><input type="date" id="tceStart" value="${esc(t.start)}"><input type="date" id="tceEnd" value="${esc(t.end)}"><span class="tc-err" id="tceErr"></span><span class="tc-btns"><button type="button" onclick="saveTempCoverageEdit('${esc(t.id)}')">حفظ</button><button type="button" class="secondary" onclick="tcEditId=null;renderGateCoverage()">إلغاء</button></span></div>`;
+    return `<div class="tc-row"><div><b>${esc(tcEmpName(t.employeeId))} ← ${esc(t.loc)}</b><small>${fmtDate(t.start)}${t.end!==t.start?' – '+fmtDate(t.end):''} · ${tcDaysTxt(days)}${t.from?` · أصلاً في ${esc(t.from)}`:''}</small></div><span class="tc-btns"><button type="button" class="secondary" onclick="tcEditId='${esc(t.id)}';renderGateCoverage()">تعديل</button><button type="button" class="secondary danger" onclick="deleteTempCoverage('${esc(t.id)}')">حذف</button></span></div>`}).join(''):'<div class="empty">ما فيه تغطيات مؤقتة في هذي السنة. سجّلها من جدول الشفت: اضغط على اسم الموظف ← «تغطية مؤقتة».</div>';
+}
+function saveTempCoverageEdit(id){
+  const t=(state.tempCoverage||[]).find(x=>x.id===id);if(!t)return;
+  const loc=document.getElementById('tceLoc').value,start=document.getElementById('tceStart').value,end=document.getElementById('tceEnd').value,err=tcValidate(loc,start,end);
+  if(err){document.getElementById('tceErr').textContent=err;return}
+  Object.assign(t,{loc,start,end,updatedAt:new Date().toISOString()});tcEditId=null;if(save()!==false)renderGateCoverage();
+}
+function deleteTempCoverage(id){
+  const t=(state.tempCoverage||[]).find(x=>x.id===id);if(!t)return;
+  if(!confirm(`حذف تغطية ${tcEmpName(t.employeeId)} في ${t.loc} (${fmtDate(t.start)} – ${fmtDate(t.end)})؟`))return;
+  state.tempCoverage=state.tempCoverage.filter(x=>x.id!==id);if(save()!==false)renderGateCoverage();
 }
